@@ -1,0 +1,4 @@
+sdk/target/
+*.png
+
+docs/book/

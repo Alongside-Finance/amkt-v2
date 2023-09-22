@@ -1,0 +1,193 @@
+{
+    "modexp_37120_37111_1_35000" : {
+        "_info" : {
+            "comment" : "Puts the base 179769313486231590772930519078902473361797697894230657273430081157732675805500963132708477322407536021120113879871393357658789768814416622492847430639474124377767893424865485276302219601246094119453082952085005768838150682342462881473913110540827237163350510684586298239947245938479716304835356329624224137120, exponent 179769313486231590772930519078902473361797697894230657273430081157732675805500963132708477322407536021120113879871393357658789768814416622492847430639474124377767893424865485276302219601246094119453082952085005768838150682342462881473913110540827237163350510684586298239947245938479716304835356329624224137111 and modulus 1 into the MODEXP precompile, saves the hash of the result. Gives the execution 35000 gas",
+            "filling-rpc-server" : "evm version 1.10.2-unstable-22082f9e-20210309",
+            "filling-tool-version" : "retesteth-0.1.0-accesslist+commit.47c69eb3.Linux.g++",
+            "lllcversion" : "Version: 0.5.14-develop.2020.6.22+commit.9189ad7a.Linux.g++",
+            "source" : "src/GeneralStateTestsFiller/stPreCompiledContracts/modexp_37120_37111_1_35000Filler.json",
+            "sourceHash" : "ae7fdc364d8a7a3a8c266e2e7e4503529e0ca95f0e2ea596dcea6607e23dea0f"
+        },
+        "env" : {
+            "currentCoinbase" : "0x3535353535353535353535353535353535353535",
+            "currentDifficulty" : "0x020000",
+            "currentGasLimit" : "0x05f5e100",
+            "currentNumber" : "0x01",
+            "currentTimestamp" : "0x03e8",
+            "previousHash" : "0xc6745cf3cada515bbfb9573261c82547e0b8f9e3d5dd382e464704a84e47b5ad"
+        },
+        "post" : {
+            "Berlin" : [
+                {
+                    "indexes" : {
+                        "data" : 0,
+                        "gas" : 3,
+                        "value" : 0
+                    },
+                    "hash" : "0x9a13515cf37e15a6c05f31e832d6821eb82f7a489fdcb2e5172db8a9ad11c49d",
+                    "txbytes" : "0xf90226010183030d4094c305c901078781c232a2a521c2af7980f8385ee980b901c430c8d1da00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000161000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9701000000000000000000000000000000000000000000000000000000000000001ca0e8d93ad1bd1e9cfe4d4ed987c7599dd2fc5e8fa15d71ac7ed4c472920d31e2fba05faa6f1e0bfda79a5e46d8f35ca83e8ee80ceb48513f4894763f0faa25629bf8",
+                    "logs" : "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"
+                },
+                {
+                    "indexes" : {
+                        "data" : 0,
+                        "gas" : 0,
+                        "value" : 0
+                    },
+                    "hash" : "0x388b9d76c6f6045ae01c93741d9fb41dbb486d2e69ff800d6901e5a409fd6ae2",
+                    "txbytes" : "0xf9022601018301249094c305c901078781c232a2a521c2af7980f8385ee980b901c430c8d1da00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000161000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9701000000000000000000000000000000000000000000000000000000000000001ca07f250bc7cd62320fe5cc2bd5155fe7d410f1e849473ce3c0d4e7c07ecb399350a03e822220f199bc374e13456ac7df08323a3a8fb75e938ca3ca67ea3445e92ba1",
+                    "logs" : "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"
+                },
+                {
+                    "indexes" : {
+                        "data" : 0,
+                        "gas" : 1,
+                        "value" : 0
+                    },
+                    "hash" : "0x708237ca0dfceaafb51bf7f9cb5efdebf0b109f7b60dad55d54f0284b5febed7",
+                    "txbytes" : "0xf90226010183015f9094c305c901078781c232a2a521c2af7980f8385ee980b901c430c8d1da00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000161000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9701000000000000000000000000000000000000000000000000000000000000001ba02c589cfead49893491fbe5d82a33402c366c905d77f160a5f01b2c08aa73b2c0a049202fc3f90d64bdfcdca492e1c4c294239e24244769d0296c9b7dba21eb9b7b",
+                    "logs" : "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"
+                },
+                {
+                    "indexes" : {
+                        "data" : 0,
+                        "gas" : 2,
+                        "value" : 0
+                    },
+                    "hash" : "0x66f21cbe1a60badc0952992953e337df1c6cd4441cc8ded116bf5c18e0a67db7",
+                    "txbytes" : "0xf9022601018301adb094c305c901078781c232a2a521c2af7980f8385ee980b901c430c8d1da00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000161000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9701000000000000000000000000000000000000000000000000000000000000001ba03d02bf4e787e1ea6225ff3c295e1d2c680489bbcbe88908aab279c15e136bdc1a04aa72430be82743a7c35c41e69a957e51e7ffbfd35edaff76257ed9f454955b9",
+                    "logs" : "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"
+                }
+            ],
+            "Istanbul" : [
+                {
+                    "indexes" : {
+                        "data" : 0,
+                        "gas" : 0,
+                        "value" : 0
+                    },
+                    "hash" : "0x388b9d76c6f6045ae01c93741d9fb41dbb486d2e69ff800d6901e5a409fd6ae2",
+                    "txbytes" : "0xf9022601018301249094c305c901078781c232a2a521c2af7980f8385ee980b901c430c8d1da00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000161000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9701000000000000000000000000000000000000000000000000000000000000001ca07f250bc7cd62320fe5cc2bd5155fe7d410f1e849473ce3c0d4e7c07ecb399350a03e822220f199bc374e13456ac7df08323a3a8fb75e938ca3ca67ea3445e92ba1",
+                    "logs" : "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"
+                },
+                {
+                    "indexes" : {
+                        "data" : 0,
+                        "gas" : 1,
+                        "value" : 0
+                    },
+                    "hash" : "0x708237ca0dfceaafb51bf7f9cb5efdebf0b109f7b60dad55d54f0284b5febed7",
+                    "txbytes" : "0xf90226010183015f9094c305c901078781c232a2a521c2af7980f8385ee980b901c430c8d1da00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000161000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9701000000000000000000000000000000000000000000000000000000000000001ba02c589cfead49893491fbe5d82a33402c366c905d77f160a5f01b2c08aa73b2c0a049202fc3f90d64bdfcdca492e1c4c294239e24244769d0296c9b7dba21eb9b7b",
+                    "logs" : "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"
+                },
+                {
+                    "indexes" : {
+                        "data" : 0,
+                        "gas" : 2,
+                        "value" : 0
+                    },
+                    "hash" : "0x66f21cbe1a60badc0952992953e337df1c6cd4441cc8ded116bf5c18e0a67db7",
+                    "txbytes" : "0xf9022601018301adb094c305c901078781c232a2a521c2af7980f8385ee980b901c430c8d1da00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000161000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9701000000000000000000000000000000000000000000000000000000000000001ba03d02bf4e787e1ea6225ff3c295e1d2c680489bbcbe88908aab279c15e136bdc1a04aa72430be82743a7c35c41e69a957e51e7ffbfd35edaff76257ed9f454955b9",
+                    "logs" : "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"
+                }
+            ]
+        },
+        "pre" : {
+            "0x0000000000000000000000000000000000000001" : {
+                "balance" : "0x01",
+                "code" : "0x",
+                "nonce" : "0x00",
+                "storage" : {
+                }
+            },
+            "0x0000000000000000000000000000000000000002" : {
+                "balance" : "0x01",
+                "code" : "0x",
+                "nonce" : "0x00",
+                "storage" : {
+                }
+            },
+            "0x0000000000000000000000000000000000000003" : {
+                "balance" : "0x01",
+                "code" : "0x",
+                "nonce" : "0x00",
+                "storage" : {
+                }
+            },
+            "0x0000000000000000000000000000000000000004" : {
+                "balance" : "0x01",
+                "code" : "0x",
+                "nonce" : "0x00",
+                "storage" : {
+                }
+            },
+            "0x0000000000000000000000000000000000000005" : {
+                "balance" : "0x01",
+                "code" : "0x",
+                "nonce" : "0x00",
+                "storage" : {
+                }
+            },
+            "0x0000000000000000000000000000000000000006" : {
+                "balance" : "0x01",
+                "code" : "0x",
+                "nonce" : "0x00",
+                "storage" : {
+                }
+            },
+            "0x0000000000000000000000000000000000000007" : {
+                "balance" : "0x01",
+                "code" : "0x",
+                "nonce" : "0x00",
+                "storage" : {
+                }
+            },
+            "0x0000000000000000000000000000000000000008" : {
+                "balance" : "0x01",
+                "code" : "0x",
+                "nonce" : "0x00",
+                "storage" : {
+                }
+            },
+            "0x3535353535353535353535353535353535353535" : {
+                "balance" : "0x0202fa",
+                "code" : "0x",
+                "nonce" : "0x00",
+                "storage" : {
+                }
+            },
+            "0x82a978b3f5962a5b0957d9ee9eef472ee55b42f1" : {
+                "balance" : "0x0de0b6b3a761fd06",
+                "code" : "0x",
+                "nonce" : "0x01",
+                "storage" : {
+                }
+            },
+            "0xc305c901078781c232a2a521c2af7980f8385ee9" : {
+                "balance" : "0x00",
+                "code" : "0x600035601c52740100000000000000000000000000000000000000006020526fffffffffffffffffffffffffffffffff6040527fffffffffffffffffffffffffffffffff000000000000000000000000000000016060527402540be3fffffffffffffffffffffffffdabf41c006080527ffffffffffffffffffffffffdabf41c00000000000000000000000002540be40060a0526330c8d1da600051141561012c576101856004356004013511151558576004356004013560200160043560040161014037600161034061014051610160600060056305f5e0fff11558576001610320526103206021806103808284600060046015f150505061038080516020820120905060005561038060206020820352604081510160206001820306601f820103905060208203f350005b",
+                "nonce" : "0x01",
+                "storage" : {
+                }
+            }
+        },
+        "transaction" : {
+            "data" : [
+                "0x30c8d1da00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000161000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff970100000000000000000000000000000000000000000000000000000000000000"
+            ],
+            "gasLimit" : [
+                "0x012490",
+                "0x015f90",
+                "0x01adb0",
+                "0x030d40"
+            ],
+            "gasPrice" : "0x01",
+            "nonce" : "0x01",
+            "secretKey" : "0x044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d",
+            "to" : "0xc305c901078781c232a2a521c2af7980f8385ee9",
+            "value" : [
+                "0x00"
+            ]
+        }
+    }
+}

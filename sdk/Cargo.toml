@@ -1,0 +1,15 @@
+[workspace.package]
+name = "sdk"
+version = "0.1.0"
+edition = "2021"
+nested = true
+
+[workspace]
+members=[
+    "arb",
+    "bindings",
+    "rebalance",
+]
+
+[workspace.dependencies]
+clap = { version = "4.3.2", features = ["derive"] }

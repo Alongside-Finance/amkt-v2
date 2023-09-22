@@ -1,0 +1,12 @@
+ds-test/=lib/forge-std/lib/ds-test/src/
+forge-std/=lib/forge-std/src/
+src/=src/
+invoke-modules/=src/invoke/
+core-libs/=src/lib/
+core-test/=test/core/
+mocks/=test/mocks/
+@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
+@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+@optimism/=lib/optimism/packages/contracts-bedrock/contracts
+@amkt/contracts/=lib/amkt-contracts/src
+@layerzero/contracts/=lib/solidity-examples/contracts/

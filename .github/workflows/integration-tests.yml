@@ -1,0 +1,34 @@
+name: Run integration tests on PR merge into main
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  test:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Set up environment
+        run: echo "PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}" >> $GITHUB_ENV
+
+      - name: Run tests
+        - run: rustup update
+        - uses: actions/cache@v3
+          continue-on-error: false
+          with:
+            path: |
+              ~/.cargo/bin/
+              ~/.cargo/registry/index/
+              ~/.cargo/registry/cache/
+              ~/.cargo/git/db/
+              target/
+            key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        - run: cargo build
+        - run: cargo test -- --include-ignored --nocapture
+
