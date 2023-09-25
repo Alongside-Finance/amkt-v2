@@ -79,7 +79,7 @@ contract CoreDeployScript is Script {
         });
 
         IndexToken newTokenImplementation = new IndexToken();
-        newTokenImplementation.initialize(address(0));
+        newTokenImplementation.initialize(address(1));
         deployed.newTokenImplementation = address(newTokenImplementation);
 
         // Deploy another set of bounty contracts to transfer to timelock controller, since bounty contracts are immutable.
