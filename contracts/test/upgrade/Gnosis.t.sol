@@ -107,9 +107,12 @@ contract GnosisTest is Test {
         return signature;
     }
 
-    function executeBatch(GnosisTransaction[] memory batch) public {
+    function executeBatch(
+        GnosisTransaction[] memory batch
+    ) public returns (bytes memory) {
         bytes memory data = getBatchExecutionData(batch);
         executeData(address(multiSendCallOnly), 1, data);
+        return data;
     }
 
     function getBatchExecutionData(

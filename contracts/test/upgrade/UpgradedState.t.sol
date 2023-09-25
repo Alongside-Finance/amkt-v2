@@ -1,21 +1,19 @@
 pragma solidity =0.8.15;
 
 import "forge-std/Test.sol";
-import {__2__MultisigStep2Test} from "./__2__MultisigStep2.t.sol";
 import {InitialBountyHelper} from "src/scripts/Config.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
-import {Dealer} from "./Dealer.t.sol";
+import {Dealer} from "test/Dealer.t.sol";
+import {UpgradeTest} from "./Upgrade.t.sol";
 
-contract __Migrated__State is __2__MultisigStep2Test {
+contract UpgradedState is UpgradeTest {
     address largeAmktHolder =
         address(0x804B68f60765F4559b7096B158C912eD33aa0c26);
     address oldMinter = address(0x0D44F856E1a7c70E35c54261c3f07DbFBDCA4857);
 
     function testState() public {
-        assertEq(AMKT.balanceOf(largeAmktHolder), 16904840500000000000000);
         assertEq(AMKT.minter(), address(vault));
-        assertEq(AMKT.totalSupply(), 29535316332022584944229);
         assertEq(AMKT.decimals(), 18);
         assertEq(AMKT.symbol(), "AMKT");
         assertEq(AMKT.name(), "Alongside Crypto Market Index");

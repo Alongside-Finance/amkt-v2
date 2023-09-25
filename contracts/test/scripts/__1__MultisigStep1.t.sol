@@ -6,7 +6,7 @@ import {MultisigStep1Script} from "src/scripts/__1__MultisigStep1.s.sol";
 import {InitialBountyHelper, MULTISIG} from "src/scripts/Config.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
-import {Dealer} from "./Dealer.t.sol";
+import {Dealer} from "test/Dealer.t.sol";
 
 contract __1__MultisigStep1Test is __0__CoreDeployTest {
     function setUp() public virtual override {
