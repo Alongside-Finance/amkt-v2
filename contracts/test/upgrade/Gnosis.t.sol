@@ -5,7 +5,6 @@ import {MULTISIG} from "src/scripts/Config.sol";
 
 struct GnosisTransaction {
     address to;
-    uint256 value;
     bytes data;
 }
 
@@ -124,7 +123,7 @@ contract GnosisTest is Test {
                 transactions,
                 uint8(0),
                 batch[i].to,
-                batch[i].value,
+                0, // value is assumed 0
                 batch[i].data.length,
                 batch[i].data
             );

@@ -76,15 +76,14 @@ contract UpgradeTest is GnosisTest {
         CoreDeployScript.DeployedContracts memory deployed
     ) public returns (GnosisTransaction[] memory) {
         // Initialize batch with known size
-        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
-        uint256 batchLength = tokens.length + 9;
+        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens(); // TODO: Replace token units with real values. Due before submission.
+        uint256 batchLength = tokens.length + 8;
         GnosisTransaction[] memory batch = new GnosisTransaction[](batchLength);
 
         // First 15 transactions are approving each token in the index for the issuance contract
         for (uint256 i = 0; i < 15; i++) {
             batch[i] = GnosisTransaction({
                 to: tokens[i].token,
-                value: 0,
                 data: abi.encodeWithSelector(
                     bytes4(keccak256("approve(address,uint256)")),
                     deployed.invokeableBounty,
@@ -105,7 +104,6 @@ contract UpgradeTest is GnosisTest {
 
         batch[15] = GnosisTransaction({
             to: address(deployed.activeBounty),
-            value: 0,
             data: abi.encodeWithSelector(
                 bytes4(keccak256("setHash(bytes32)")),
                 hashToSet
@@ -115,14 +113,12 @@ contract UpgradeTest is GnosisTest {
         // Accept ownership of Vault
         batch[16] = GnosisTransaction({
             to: address(deployed.vault),
-            value: 0,
             data: abi.encodeWithSelector(bytes4(keccak256("acceptOwnership()")))
         });
 
         // Fulfill initial bounty
         batch[17] = GnosisTransaction({
             to: address(deployed.invokeableBounty),
-            value: 0,
             data: abi.encodeWithSelector(
                 bytes4(
                     keccak256(
@@ -137,7 +133,6 @@ contract UpgradeTest is GnosisTest {
         // Upgrade and initialize
         batch[18] = GnosisTransaction({
             to: PROXY_ADMIN,
-            value: 0,
             data: abi.encodeWithSelector(
                 bytes4(keccak256("upgradeAndCall(address,address,bytes)")),
                 PROXY,
@@ -149,7 +144,6 @@ contract UpgradeTest is GnosisTest {
         // Set fee scaled
         batch[19] = GnosisTransaction({
             to: address(deployed.vault),
-            value: 0,
             data: abi.encodeWithSelector(
                 bytes4(keccak256("setFeeScaled(uint256)")),
                 FEE_SCALED
@@ -159,7 +153,6 @@ contract UpgradeTest is GnosisTest {
         // Set rebalancer to timeblock bounty
         batch[20] = GnosisTransaction({
             to: address(deployed.vault),
-            value: 0,
             data: abi.encodeWithSelector(
                 bytes4(keccak256("setRebalancer(address)")),
                 deployed.timelockInvokeableBounty
@@ -169,7 +162,6 @@ contract UpgradeTest is GnosisTest {
         // Transfer ownership to timelock
         batch[21] = GnosisTransaction({
             to: address(deployed.vault),
-            value: 0,
             data: abi.encodeWithSelector(
                 bytes4(keccak256("transferOwnership(address)")),
                 deployed.timelockController
@@ -179,7 +171,6 @@ contract UpgradeTest is GnosisTest {
         // Change proxy admin to timelock
         batch[22] = GnosisTransaction({
             to: PROXY_ADMIN,
-            value: 0,
             data: abi.encodeWithSelector(
                 bytes4(keccak256("changeProxyAdmin(address,address)")),
                 PROXY,
