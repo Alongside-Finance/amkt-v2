@@ -123,7 +123,7 @@ contract GnosisTest is Test {
                 transactions,
                 uint8(0),
                 batch[i].to,
-                0, // value is assumed 0
+                uint256(0), // value is assumed 0
                 batch[i].data.length,
                 batch[i].data
             );
