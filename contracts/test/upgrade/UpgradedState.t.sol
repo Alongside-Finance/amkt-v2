@@ -39,7 +39,43 @@ contract UpgradedState is UpgradeTest {
     }
 
     function testDeployedContracts() public {
-        // TODO: check that expected contract addresses match deployed contract addresses
+        assertEq(
+            address(vault),
+            address(0xD62A80368AdF5919f70193D15dCbD5C77EAf55ac)
+        );
+        assertEq(
+            address(issuance),
+            address(0x58AD9D36AfAc51206672f855Bf7e76037c5F5198)
+        );
+        assertEq(
+            address(invokeableBounty),
+            address(0x366A647DE921608bee3987025D23f12263da6884)
+        );
+        assertEq(
+            address(activeBounty),
+            address(0x12bc3CCaA2E213e9D50faB9752A9daFac01b962F)
+        );
+        assertEq(
+            address(governor),
+            address(payable(0x774045B30e6fC5DfE73bF386E8845CA1472fb45e))
+        );
+        assertEq(
+            address(timelockController),
+            address(payable(0xB3970Ae79fD2cD8f1060cF6BAeae27b8E2c05437))
+        );
+        assertEq(
+            newTokenImplementation,
+            address(0x775715D96cD3B3586728B7420A13Ec74f5dc9e8f)
+        );
+
+        assertEq(
+            address(timelockActiveBounty),
+            address(0x8D2A6bcB5713d4b57f2FffB119B7B6D0143e25ed)
+        );
+        assertEq(
+            address(timelockInvokeableBounty),
+            address(0x703814F9172D6E6EF10F89fCAdE3ff480d812a45)
+        );
     }
 
     function testProxyState() public {

@@ -32,32 +32,38 @@ contract UpgradeTest is GnosisTest {
         vm.createSelectFork(vm.envString("MAINNET_RPC"));
         enableSimulation();
 
-        CoreDeployScript.DeployedContracts
-            memory deployed = setDeployedContracts();
+        setDeployedContracts();
         mockSafeBalances(); // TODO: Remove when ready. Due before bundle submission.
         checkSafeBalances();
-        GnosisTransaction[] memory batch = createUpgradeBatch(deployed);
+        GnosisTransaction[] memory batch = createUpgradeBatch();
         bytes memory dataExecuted = executeBatch(batch);
         // console.logBytes(dataExecuted); // raw data to be sent to gnosis
     }
 
-    function setDeployedContracts()
-        internal
-        returns (CoreDeployScript.DeployedContracts memory)
-    {
+    function setDeployedContracts() internal {
         AMKT = IndexToken(AMKTAddress);
-        CoreDeployScript script = new CoreDeployScript(); // TODO: Remove when ready. Due before external review.
-        CoreDeployScript.DeployedContracts memory deployed = script.run(); // TODO: Remove when ready. Due vefore external review.
-        vault = deployed.vault;
-        issuance = deployed.issuance;
-        invokeableBounty = deployed.invokeableBounty;
-        activeBounty = deployed.activeBounty;
-        governor = deployed.governor;
-        timelockController = deployed.timelockController;
-        newTokenImplementation = deployed.newTokenImplementation;
-        timelockInvokeableBounty = deployed.timelockInvokeableBounty;
-        timelockActiveBounty = deployed.timelockActiveBounty;
-        return deployed;
+        vault = Vault(0xD62A80368AdF5919f70193D15dCbD5C77EAf55ac);
+        issuance = Issuance(0x58AD9D36AfAc51206672f855Bf7e76037c5F5198);
+        invokeableBounty = InvokeableBounty(
+            0x366A647DE921608bee3987025D23f12263da6884
+        );
+        activeBounty = ActiveBounty(0x12bc3CCaA2E213e9D50faB9752A9daFac01b962F);
+        governor = AlongsideGovernor(
+            payable(0x774045B30e6fC5DfE73bF386E8845CA1472fb45e)
+        );
+        timelockController = TimelockController(
+            payable(0xB3970Ae79fD2cD8f1060cF6BAeae27b8E2c05437)
+        );
+        newTokenImplementation = address(
+            0x775715D96cD3B3586728B7420A13Ec74f5dc9e8f
+        );
+
+        timelockActiveBounty = ActiveBounty(
+            0x8D2A6bcB5713d4b57f2FffB119B7B6D0143e25ed
+        );
+        timelockInvokeableBounty = InvokeableBounty(
+            0x703814F9172D6E6EF10F89fCAdE3ff480d812a45
+        );
     }
 
     function mockSafeBalances() internal {
@@ -86,9 +92,7 @@ contract UpgradeTest is GnosisTest {
         }
     }
 
-    function createUpgradeBatch(
-        CoreDeployScript.DeployedContracts memory deployed
-    ) public returns (GnosisTransaction[] memory) {
+    function createUpgradeBatch() public returns (GnosisTransaction[] memory) {
         // Initialize batch with known size
         TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens(); // TODO: Replace token units with real values. Due before submission.
         uint256 batchLength = tokens.length + 8;
@@ -100,7 +104,7 @@ contract UpgradeTest is GnosisTest {
                 to: tokens[i].token,
                 data: abi.encodeWithSelector(
                     bytes4(keccak256("approve(address,uint256)")),
-                    deployed.invokeableBounty,
+                    invokeableBounty,
                     2 ** 256 - 1
                 )
             });
@@ -113,11 +117,12 @@ contract UpgradeTest is GnosisTest {
             deadline: block.timestamp + 1
         });
 
-        bytes32 hashToSet = InvokeableBounty(deployed.invokeableBounty)
-            .hashBounty(_bountyToSet);
+        bytes32 hashToSet = InvokeableBounty(invokeableBounty).hashBounty(
+            _bountyToSet
+        );
 
         batch[15] = GnosisTransaction({
-            to: address(deployed.activeBounty),
+            to: address(activeBounty),
             data: abi.encodeWithSelector(
                 bytes4(keccak256("setHash(bytes32)")),
                 hashToSet
@@ -126,13 +131,13 @@ contract UpgradeTest is GnosisTest {
 
         // Accept ownership of Vault
         batch[16] = GnosisTransaction({
-            to: address(deployed.vault),
+            to: address(vault),
             data: abi.encodeWithSelector(bytes4(keccak256("acceptOwnership()")))
         });
 
         // Fulfill initial bounty
         batch[17] = GnosisTransaction({
-            to: address(deployed.invokeableBounty),
+            to: address(invokeableBounty),
             data: abi.encodeWithSelector(
                 bytes4(
                     keccak256(
@@ -150,14 +155,14 @@ contract UpgradeTest is GnosisTest {
             data: abi.encodeWithSelector(
                 bytes4(keccak256("upgradeAndCall(address,address,bytes)")),
                 PROXY,
-                deployed.newTokenImplementation,
-                abi.encodeWithSignature("initialize(address)", deployed.vault)
+                newTokenImplementation,
+                abi.encodeWithSignature("initialize(address)", vault)
             )
         });
 
         // Set fee scaled
         batch[19] = GnosisTransaction({
-            to: address(deployed.vault),
+            to: address(vault),
             data: abi.encodeWithSelector(
                 bytes4(keccak256("setFeeScaled(uint256)")),
                 FEE_SCALED
@@ -166,19 +171,19 @@ contract UpgradeTest is GnosisTest {
 
         // Set rebalancer to timeblock bounty
         batch[20] = GnosisTransaction({
-            to: address(deployed.vault),
+            to: address(vault),
             data: abi.encodeWithSelector(
                 bytes4(keccak256("setRebalancer(address)")),
-                deployed.timelockInvokeableBounty
+                timelockInvokeableBounty
             )
         });
 
         // Transfer ownership to timelock
         batch[21] = GnosisTransaction({
-            to: address(deployed.vault),
+            to: address(vault),
             data: abi.encodeWithSelector(
                 bytes4(keccak256("transferOwnership(address)")),
-                deployed.timelockController
+                timelockController
             )
         });
 
@@ -187,7 +192,7 @@ contract UpgradeTest is GnosisTest {
             to: PROXY_ADMIN,
             data: abi.encodeWithSelector(
                 bytes4(keccak256("transferOwnership(address)")),
-                deployed.timelockController
+                timelockController
             )
         });
         return batch;
