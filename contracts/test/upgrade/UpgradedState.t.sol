@@ -41,12 +41,46 @@ contract UpgradedState is UpgradeTest {
             address(timelockInvokeableBounty.activeBounty()),
             address(timelockActiveBounty)
         );
-        assertEq(timelockInvokeableBounty.version, 2);
-        assertEq(timelockInvokeableBounty.chainId, 1);
-        assertEq(
-            timelockActiveBounty.authority,
-            address(0xAeB9ef94b6542BE7112f3a295646B5AaAa9Fca13)
-        );
+        assertEq(timelockInvokeableBounty.version(), 0);
+        assertEq(timelockInvokeableBounty.chainId(), 1);
+        assertEq(timelockActiveBounty.authority(), address(timelockController));
+    }
+
+    function testTokens() public {
+        // for all tokens in vault, it should match tokens in bounty helper
+        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
+        address[] memory underlying = vault.underlying();
+        for (uint256 i = 0; i < tokens.length; i++) {
+            assertEq(underlying[i], tokens[i].token);
+        }
+    }
+
+    function testExpectedSafeBalances() public {
+        // for all tokens in vault, safe balance should be zero
+        address[] memory underlying = vault.underlying();
+        for (uint256 i = 0; i < vault.underlyingLength(); i++) {
+            IERC20 token = IERC20(underlying[i]);
+            assertEq(
+                token.balanceOf(
+                    address(0xAeB9ef94b6542BE7112f3a295646B5AaAa9Fca13)
+                ),
+                0
+            );
+        }
+    }
+
+    function testExpectedVaultBalances() public {
+        // for all tokens in vault, vault balance should match NAV
+        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
+        address[] memory underlying = vault.underlying();
+
+        for (uint256 i = 0; i < vault.underlyingLength(); i++) {
+            IERC20 token = IERC20(underlying[i]);
+            assertEq(
+                token.balanceOf(address(vault)),
+                (tokens[i].units * AMKT.totalSupply()) / 1e18
+            );
+        }
     }
 
     function testSetVotingDelay() public {

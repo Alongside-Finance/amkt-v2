@@ -34,8 +34,8 @@ contract UpgradeTest is GnosisTest {
 
         CoreDeployScript.DeployedContracts
             memory deployed = setDeployedContracts();
-        mockBalances(); // TODO: Remove when ready. Due before bundle submission.
-
+        mockSafeBalances(); // TODO: Remove when ready. Due before bundle submission.
+        checkSafeBalances();
         GnosisTransaction[] memory batch = createUpgradeBatch(deployed);
         bytes memory dataExecuted = executeBatch(batch);
         console.logBytes(dataExecuted); // raw data to be sent to gnosis
@@ -60,13 +60,27 @@ contract UpgradeTest is GnosisTest {
         return deployed;
     }
 
-    function mockBalances() internal {
+    function mockSafeBalances() internal {
         Dealer dealer = new Dealer();
         TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
         for (uint256 i = 0; i < tokens.length; i++) {
             dealer.dealToken(
                 tokens[i].token,
                 MULTISIG,
+                (tokens[i].units * AMKT.totalSupply()) / 1e18
+            );
+        }
+    }
+
+    function checkSafeBalances() internal {
+        // check that the safe balance matches exactly what the initial bounty helper expects
+        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
+        for (uint256 i = 0; i < tokens.length; i++) {
+            IERC20 token = IERC20(tokens[i].token);
+            assertEq(
+                token.balanceOf(
+                    address(0xAeB9ef94b6542BE7112f3a295646B5AaAa9Fca13)
+                ),
                 (tokens[i].units * AMKT.totalSupply()) / 1e18
             );
         }
