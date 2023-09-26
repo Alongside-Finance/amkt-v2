@@ -13,11 +13,136 @@ contract UpgradedState is UpgradeTest {
     address oldMinter = address(0x0D44F856E1a7c70E35c54261c3f07DbFBDCA4857);
 
     function testState() public {
+        assertEq(
+            address(AMKT),
+            address(0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D)
+        );
         assertEq(AMKT.minter(), address(vault));
         assertEq(AMKT.decimals(), 18);
         assertEq(AMKT.symbol(), "AMKT");
         assertEq(AMKT.name(), "Alongside Crypto Market Index");
         assertEq(vault.underlyingLength(), 15); // TODO: Increase to 15
+        assertEq(vault.issuance(), address(issuance));
+        assertEq(vault.rebalancer(), address(timelockInvokeableBounty));
+        assertEq(
+            vault.feeRecipient(),
+            0xC19a5b6E0a923519603985153515222D59cb3F2e
+        );
+        assertEq(
+            vault.emergencyResponder(),
+            address(0xAeB9ef94b6542BE7112f3a295646B5AaAa9Fca13)
+        );
+        assertEq(vault.emergency(), false);
+        assertEq(address(vault.indexToken()), address(AMKT));
+        assertEq(vault.feeScaled(), 26151474053915);
+        assertEq(address(timelockInvokeableBounty.indexToken()), address(AMKT));
+        assertEq(address(timelockInvokeableBounty.vault()), address(vault));
+        assertEq(
+            address(timelockInvokeableBounty.activeBounty()),
+            address(timelockActiveBounty)
+        );
+        assertEq(timelockInvokeableBounty.version, 2);
+        assertEq(timelockInvokeableBounty.chainId, 1);
+        assertEq(
+            timelockActiveBounty.authority,
+            address(0xAeB9ef94b6542BE7112f3a295646B5AaAa9Fca13)
+        );
+    }
+
+    function testSetVotingDelay() public {
+        uint256 AVG_BLOCK_TIME = 12;
+        // PROPOSE SETTING VOTING DELAY
+        bytes memory setVotingDelayData = abi.encodeWithSignature(
+            "setVotingDelay(uint256)",
+            1000
+        );
+        address[] memory targets = new address[](1);
+        targets[0] = address(governor);
+        uint256[] memory values = new uint256[](1);
+        values[0] = 0;
+        bytes[] memory calldatas = new bytes[](1);
+        calldatas[0] = setVotingDelayData;
+        string memory description = "Propose voting delay";
+
+        vm.startPrank(largeAmktHolder);
+        // DELEGATE VOTES TO SELF
+        AMKT.delegate(largeAmktHolder);
+        vm.roll(block.number + 1);
+
+        // PROPOSE
+        uint256 proposalId = governor.propose(
+            targets,
+            values,
+            calldatas,
+            description
+        );
+        bytes32 descriptionHash = keccak256(bytes(description));
+
+        // PROPOSE EXECUTING DELAY PROPOSAL
+        bytes memory executeData = abi.encodeWithSignature(
+            "execute(address[],uint256[],bytes[],bytes32)",
+            targets,
+            values,
+            calldatas,
+            descriptionHash
+        );
+
+        bytes[] memory newCalldatas = new bytes[](1);
+        newCalldatas[0] = executeData;
+        string memory newDescription = "Execute voting delay";
+        bytes32 newDescriptionHash = keccak256(bytes(newDescription));
+        uint256 newProposalId = governor.propose(
+            targets,
+            values,
+            newCalldatas,
+            newDescription
+        );
+        // VOTE AFTER 1 DAY
+        vm.expectRevert(); // voting before 1 day of delay should fail
+        governor.castVote(newProposalId, 1);
+        vm.roll(block.number + 1 days / AVG_BLOCK_TIME + 1);
+        governor.castVote(newProposalId, 1);
+        governor.castVote(proposalId, 1);
+        // QUEUE AFTER 1 DAY + 4 DAYS
+        vm.expectRevert(); // queueing before 4 days of voting should fail
+        governor.queue(targets, values, newCalldatas, newDescriptionHash);
+        vm.roll(block.number + 4 days / AVG_BLOCK_TIME);
+        governor.queue(targets, values, newCalldatas, newDescriptionHash);
+        governor.queue(targets, values, calldatas, descriptionHash);
+
+        // EXECUTE AFTER 1 DAY + 4 DAYS + 4 DAYS
+        bytes32 operationId = timelockController.hashOperationBatch(
+            targets,
+            values,
+            newCalldatas,
+            0,
+            newDescriptionHash
+        );
+        uint256 timestamp = timelockController.getTimestamp(operationId);
+        vm.warp(timestamp);
+        assertEq(timelockController.isOperation(operationId), true);
+        assertEq(timelockController.isOperationReady(operationId), true);
+        timelockController.executeBatch(
+            targets,
+            values,
+            newCalldatas,
+            0,
+            newDescriptionHash
+        );
+        assertEq(governor.votingDelay(), 1000);
+
+        vm.stopPrank();
+    }
+
+    function testTryInflation() public {
+        vm.prank(address(2));
+        uint256 beforeSupply = AMKT.totalSupply();
+        vault.tryInflation();
+        assertEq(AMKT.totalSupply(), beforeSupply);
+
+        vm.warp(block.timestamp + 1 days);
+        vault.tryInflation();
+        assertGe(AMKT.totalSupply(), beforeSupply);
     }
 
     function testVaultCanMint() public {
