@@ -37,7 +37,6 @@ contract UpgradeTest is GnosisTest {
         checkSafeBalances();
         GnosisTransaction[] memory batch = createUpgradeBatch();
         bytes memory dataExecuted = executeBatch(batch);
-        // console.logBytes(dataExecuted); // raw data to be sent to gnosis
     }
 
     function setDeployedContracts() internal {

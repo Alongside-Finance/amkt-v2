@@ -121,6 +121,16 @@ contract UpgradedState is UpgradeTest {
     }
 
     function testBountyState() public {
+        assertEq(address(invokeableBounty.indexToken()), address(AMKT));
+        assertEq(address(invokeableBounty.vault()), address(vault));
+        assertEq(
+            address(invokeableBounty.activeBounty()),
+            address(activeBounty)
+        );
+        assertEq(invokeableBounty.version(), 0);
+        assertEq(invokeableBounty.chainId(), 1);
+        assertEq(activeBounty.authority(), MULTISIG);
+
         assertEq(address(timelockInvokeableBounty.indexToken()), address(AMKT));
         assertEq(address(timelockInvokeableBounty.vault()), address(vault));
         assertEq(

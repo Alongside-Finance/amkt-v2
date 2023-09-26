@@ -49,8 +49,8 @@ contract UpgradedFunctionality is UpgradeTest {
         Dealer dealer = new Dealer();
         TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
 
-        uint256 initialDealtAmount = 5;
-        uint256 issuedAmount = 5;
+        uint256 initialDealtAmount = 1e18;
+        uint256 issuedAmount = 1e18;
 
         for (uint256 i = 0; i < tokens.length; i++) {
             IERC20 token = IERC20(tokens[i].token);
