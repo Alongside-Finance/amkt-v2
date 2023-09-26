@@ -38,7 +38,7 @@ contract UpgradeTest is GnosisTest {
         checkSafeBalances();
         GnosisTransaction[] memory batch = createUpgradeBatch(deployed);
         bytes memory dataExecuted = executeBatch(batch);
-        console.logBytes(dataExecuted); // raw data to be sent to gnosis
+        // console.logBytes(dataExecuted); // raw data to be sent to gnosis
     }
 
     function setDeployedContracts()
@@ -186,8 +186,7 @@ contract UpgradeTest is GnosisTest {
         batch[22] = GnosisTransaction({
             to: PROXY_ADMIN,
             data: abi.encodeWithSelector(
-                bytes4(keccak256("changeProxyAdmin(address,address)")),
-                PROXY,
+                bytes4(keccak256("transferOwnership(address)")),
                 deployed.timelockController
             )
         });
