@@ -322,10 +322,10 @@ contract Vault is Ownable2Step, IVault {
 
     /// @notice Returns the multiplier
     /// @return trackedTimestamp the new tracked timestamp
-    /// @return trackedMultiplier the new tracked multiplier, this is helpful to cache so we dont need to start from the beginning
+    /// @return trackedMultiplier the new tracked multiplier, this is helpful to cache so we don't need to start from the beginning
     /// @return newFeeAccrued the new fee from this call, does not account for the old tracked multiplier, this does not incude intermediate values and is how inflation accrual works
-    /// @return currentMultiplier the new multiplier for the current block timestamp, this is an intermediate value and not tracked, it is whats applied to the nominals
-    /// @dev view function so this doesnt actually do anything
+    /// @return currentMultiplier the new multiplier for the current block timestamp, this is an intermediate value and not tracked, it is what's applied to the nominals
+    /// @dev view function so this does't actually do anything
     function multiplier()
         public
         view
@@ -349,7 +349,7 @@ contract Vault is Ownable2Step, IVault {
     }
 
     /// @notice Checks that the vault is in a valid state
-    /// @notice ie. we can wind down to 0 safely
+    /// @notice i.e. we can wind down to 0 safely
     /// @notice reverts if the check fails
     function invariantCheck() public view {
         TokenInfo[] memory tokens = realUnits();
