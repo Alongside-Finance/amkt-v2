@@ -94,6 +94,10 @@ contract Issuance {
         vault.invokeERC20s(args);
     }
 
+    /// @notice Quote the amount of underlying tokens needed to issue index tokens
+    /// @param amount The amount of index tokens to issue
+    /// @return tokens The underlying tokens and amounts needed to issue index tokens
+    /// @dev subtract 1 from each unit to account for rounding if you need an exact redemption quote
     function quote(uint256 amount) external view returns (TokenInfo[] memory) {
         TokenInfo[] memory tokens = vault.realUnits();
 
