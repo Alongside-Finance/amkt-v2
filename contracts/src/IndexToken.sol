@@ -75,6 +75,8 @@ contract IndexToken is ERC20VotesUpgradeable, IIndexToken {
     /// Storage
     ///=============================================================================================
 
+    /// @notice Get the minter address
+    /// @return minter_ address
     function minter() public view override returns (address minter_) {
         assembly {
             minter_ := sload(MINTER_SLOT)

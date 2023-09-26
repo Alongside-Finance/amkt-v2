@@ -152,6 +152,9 @@ contract InvokeableBounty {
         emit BountyFulfilled(bounty, callback);
     }
 
+    /// @notice quote a bounty, returns the ins and outs
+    /// @dev the units in the bounty are the target units, ie amount of units per 1e18 amkt
+    /// @param bounty the bounty to quote
     function quoteBounty(
         Bounty calldata bounty
     ) external view returns (TokenInfo[] memory outs, TokenInfo[] memory) {
@@ -256,6 +259,8 @@ contract InvokeableBounty {
         return (outs, ins, nominals, underlyingTally);
     }
 
+    /// @notice hash a bounty
+    /// @param bounty, the bounty to hash
     function hashBounty(
         Bounty memory bounty
     ) public view returns (bytes32 hash) {

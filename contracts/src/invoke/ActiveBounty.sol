@@ -12,6 +12,9 @@ contract ActiveBounty {
         authority = _authority;
     }
 
+    /// @notice Set the active bounty hash
+    /// @param bountyHash The hash of the active bounty
+    /// @dev Only callable by the authority
     function setHash(bytes32 bountyHash) external {
         if (msg.sender != authority) revert ActiveBountyAuth();
         activeBounty = bountyHash;
