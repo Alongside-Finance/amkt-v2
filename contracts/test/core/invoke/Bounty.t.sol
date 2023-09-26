@@ -41,44 +41,6 @@ contract BountyTest is StatefulTest {
         }
     }
 
-    // TODO: Resolve this
-    // function testTwoBounties(uint256 quantity) public {
-    //     vm.assume(quantity > 1);
-    //     TokenInfo[] memory tokens = seedInitial(quantity);
-
-    //     TokenInfo[] memory newTokensNominals = new TokenInfo[](2);
-    //     newTokensNominals[0] = tokens[0];
-    //     newTokensNominals[1] = tokens[1];
-
-    //     // half the units
-    //     newTokensNominals[0].units = (newTokensNominals[0].units * 50) / 100;
-    //     newTokensNominals[1].units = (newTokensNominals[1].units * 50) / 100;
-
-    //     vm.warp(2 days);
-
-    //     Bounty memory _bounty = Bounty({
-    //         infos: newTokensNominals,
-    //         salt: keccak256("test"),
-    //         deadline: block.timestamp + 1000
-    //     });
-
-    //     bytes32 _hash = bounty.hashBounty(_bounty);
-
-    // vm.prank(authority);
-    // activeBounty.setHash(_hash);
-
-    //     bounty.fulfillBounty(_bounty);
-
-    //     rangeCheck({
-    //         target: newTokensNominals[0].units,
-    //         actual: (IERC20(address(tokens[0].token)).balanceOf(
-    //             address(vault)
-    //         ) * 1e18) / IERC20(address(indexToken)).totalSupply(),
-    //         rangeNumerator: 1,
-    //         rangeDenominator: 1e10
-    //     });
-    // }
-
     function testRemoveToken() public {
         TokenInfo[] memory tokens = seedInitial(5);
 
