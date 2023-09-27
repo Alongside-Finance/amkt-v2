@@ -348,15 +348,15 @@ contract Vault is Ownable2Step, IVault {
         );
     }
 
-    /// @notice Checks that the vault is in a valid state
+    /// @notice Checks that the vault is in a valid state for issuer
     /// @notice i.e. we can wind down to 0 safely
     /// @notice reverts if the check fails
     function issuanceInvariantCheck() public view {
         _invariantCheck(indexToken.totalSupply());
     }
 
-    /// @notice Checks that the vault is in a valid state
-    /// @notice i.e. we can wind down to 0 safely
+    /// @notice Checks that the vault is in a valid state for rebalancer
+    /// @notice i.e. we maintain the index value regardless of dT
     /// @notice reverts if the check fails
     function rebalancerInvariantCheck() public view {
         (, , , uint256 currentMultiplier) = multiplier();
@@ -376,12 +376,6 @@ contract Vault is Ownable2Step, IVault {
         TokenInfo[] memory tokens = realUnits();
 
         (, , , uint256 currentMultiplier) = multiplier();
-
-        // adjust total supply by inverse of intraday fee (inflation)
-        uint256 totalSupply = fmul(
-            fdiv(lastKnownMultiplier, currentMultiplier),
-            indexToken.totalSupply()
-        );
 
         for (uint256 i; i < tokens.length; ) {
             uint256 expectedAmount = fmul(tokens[i].units, totalSupply);
