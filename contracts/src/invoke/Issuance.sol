@@ -20,7 +20,7 @@ contract Issuance {
 
     modifier invariantCheck() {
         _;
-        vault.invariantCheck();
+        vault.issuanceInvariantCheck();
     }
 
     modifier ReentrancyGuard() {

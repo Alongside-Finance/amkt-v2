@@ -65,7 +65,7 @@ contract InvokeableBounty {
 
     modifier invariantCheck() {
         _;
-        vault.invariantCheck();
+        vault.rebalancerInvariantCheck();
     }
 
     constructor(

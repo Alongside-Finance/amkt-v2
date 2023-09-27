@@ -4,6 +4,7 @@ import {StatefulTest} from "core-test/State.t.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {SCALAR} from "src/lib/FixedPoint.sol";
+import {IVault} from "src/interfaces/IVault.sol";
 
 contract IssuanceTest is StatefulTest {
     function testShouldMintWithApprovedTokens() public {
@@ -22,6 +23,18 @@ contract IssuanceTest is StatefulTest {
         seedInitial(10);
         vm.expectRevert();
         issuance.issue(5e18);
+    }
+
+    function testIssuanceShouldNotBreakIntraday() public {
+        uint256 amountToMint = 5e18;
+        uint256 oneDayMark = block.timestamp + 1 days;
+        seedInitial(10);
+        TokenInfo[] memory tokens = issuance.quote(amountToMint);
+        for (uint256 i = 0; i < tokens.length; i++) {
+            IERC20(tokens[i].token).approve(address(issuance), tokens[i].units);
+        }
+        vm.warp(oneDayMark - 1);
+        issuance.issue(amountToMint);
     }
 
     function testIssuanceTakesCorrectAmounts() public {

@@ -79,6 +79,37 @@ contract BountyTest is StatefulTest {
     //     });
     // }
 
+    function testRebalance() public {
+        uint256 oneDayMark = block.timestamp + 1 days;
+        TokenInfo[] memory tokens = seedInitial(15);
+        TokenInfo[] memory newTokens = tokens;
+
+        for (uint256 i = 0; i < newTokens.length; i++) {
+            newTokens[i].units = (newTokens[i].units + 1);
+            IERC20(address(tokens[i].token)).approve(
+                address(bounty),
+                type(uint256).max
+            );
+            MockMintableToken(address(tokens[i].token)).mint(
+                address(this),
+                100e18
+            );
+        }
+
+        Bounty memory _bounty = Bounty({
+            infos: newTokens,
+            salt: keccak256("test"),
+            deadline: block.timestamp + 2 days
+        });
+
+        bytes32 _hash = bounty.hashBounty(_bounty);
+
+        vm.prank(authority);
+        activeBounty.setHash(_hash);
+        vm.warp(oneDayMark - 1);
+        bounty.fulfillBounty(_bounty, true);
+    }
+
     function testRemoveToken() public {
         TokenInfo[] memory tokens = seedInitial(5);
 
