@@ -32,7 +32,10 @@ contract IndexTokenTest is Test {
     }
 
     function testMintNotByMinterRevert(address randomAddress) public {
-        vm.assume(randomAddress != indexToken.minter());
+        vm.assume(
+            randomAddress != indexToken.minter() &&
+                randomAddress != address(DEFAULT_TEST_CONTRACT)
+        );
         vm.expectRevert();
         IndexToken(randomAddress).mint(address(this), 1000 ether);
     }

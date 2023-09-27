@@ -2,5 +2,8 @@
 src = "src"
 out = "out"
 libs = ["lib"]
+[fuzz]
+# The number of fuzz runs for fuzz tests
+runs = 256
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

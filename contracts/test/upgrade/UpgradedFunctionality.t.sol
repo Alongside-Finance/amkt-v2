@@ -5,6 +5,8 @@ import {Dealer} from "test/Dealer.t.sol";
 import {TokenInfo} from "src/Common.sol";
 import {InitialBountyHelper} from "src/scripts/Config.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
+import {fmul} from "src/lib/FixedPoint.sol";
+import {console} from "forge-std/console.sol";
 
 contract UpgradedFunctionality is UpgradeTest {
     address largeAmktHolder =
@@ -23,15 +25,38 @@ contract UpgradedFunctionality is UpgradeTest {
         assertGe(AMKT.totalSupply(), beforeSupply);
     }
 
+    function testCanRedeemLarge() public {
+        uint256 amount = 10e18;
+        vm.prank(largeAmktHolder);
+        AMKT.delegate(largeAmktHolder);
+        vm.roll(block.number + 1);
+        // uint256 amount = AMKT.balanceOf(largeAmktHolder);
+        // vm.assume(amount < AMKT.balanceOf(largeAmktHolder));
+        // vm.warp(block.timestamp + 2 days);
+        vault.tryInflation();
+        assertEq(AMKT.balanceOf(largeAmktHolder), 16704840500000000000000);
+        assertGe(AMKT.totalSupply(), AMKT.balanceOf(largeAmktHolder));
+        vm.startPrank(largeAmktHolder);
+        console.log(msg.sender);
+        console.log(largeAmktHolder);
+        AMKT.approve(address(issuance), AMKT.balanceOf(largeAmktHolder));
+
+        issuance.redeem(amount);
+        vm.stopPrank();
+    }
+
     function testVaultCanMint() public {
         vm.startPrank(address(vault));
         AMKT.mint(address(vault), 1);
         AMKT.burn(address(vault), 1);
+        vm.stopPrank();
     }
 
-    function testUserCanTransfer() public {
+    function testUserCanTransfer(uint256 amount) public {
+        vm.assume(amount < AMKT.balanceOf(largeAmktHolder));
         vm.startPrank(largeAmktHolder);
-        AMKT.transfer(address(vault), 1);
+        AMKT.transfer(address(vault), amount);
+        vm.stopPrank();
     }
 
     function testRevertOldMinterCanMint() public {
@@ -46,26 +71,34 @@ contract UpgradedFunctionality is UpgradeTest {
         AMKT.burn(largeAmktHolder, 1);
     }
 
-    function testIssuance() public {
+    function mint(uint256 amount) public {
         vault.tryInflation();
         Dealer dealer = new Dealer();
         TokenInfo[] memory tokens = vault.realUnits();
 
-        uint256 initialDealtAmount = 1e18;
-        uint256 issuedAmount = 1e18;
+        uint256 amountIncludingIntradayInflation = fmul(
+            vault.intradayMultiplier(),
+            amount
+        );
 
         for (uint256 i = 0; i < tokens.length; i++) {
             IERC20 token = IERC20(tokens[i].token);
             uint256 initialBalance = token.balanceOf(address(this));
-            dealer.dealToken(
-                address(token),
-                address(this),
-                (initialDealtAmount * tokens[i].units) / 1e18 + 1
-            );
+            uint256 underlyingAmount = fmul(
+                tokens[i].units,
+                amountIncludingIntradayInflation
+            ) + 1;
+            dealer.dealToken(address(token), address(this), underlyingAmount);
             token.approve(address(issuance), token.balanceOf(address(this)));
         }
 
-        issuance.issue(issuedAmount);
+        issuance.issue(amount);
+    }
+
+    function testIssuance(uint256 amount) public {
+        vm.assume(amount < 1e25);
+        mint(amount);
+        TokenInfo[] memory tokens = vault.realUnits();
 
         // Check the balances of address(this) after issuance
         for (uint256 i = 0; i < tokens.length; i++) {
@@ -74,7 +107,7 @@ contract UpgradedFunctionality is UpgradeTest {
         }
 
         // check that user can redeem afterwards
-        issuance.redeem(issuedAmount);
+        issuance.redeem(amount);
     }
 
     function testSetVotingDelay() public {
