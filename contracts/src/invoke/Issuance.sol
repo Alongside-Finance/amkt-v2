@@ -4,7 +4,7 @@ import {VerifiableAddressArray} from "../lib/VArray.sol";
 import {IIndexToken} from "../interfaces/IIndexToken.sol";
 import {TokenInfo} from "../Common.sol";
 import {IVault} from "../interfaces/IVault.sol";
-import {SCALAR, fmul} from "../lib/FixedPoint.sol";
+import {SCALAR, fmul, fdiv} from "../lib/FixedPoint.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -40,12 +40,21 @@ contract Issuance {
     /// @dev reentrancy guard in case callback in tokens
     function issue(uint256 amount) external invariantCheck ReentrancyGuard {
         vault.tryInflation();
+        (, uint256 lastKnownMultiplier, , uint256 currentMultiplier) = vault
+            .multiplier();
         TokenInfo[] memory tokens = vault.realUnits();
 
         require(tokens.length > 0, "No tokens in vault");
 
         for (uint256 i; i < tokens.length; ) {
-            uint256 underlyingAmount = fmul(tokens[i].units, amount) + 1;
+            uint256 amountIncludingInflation = fmul(
+                fdiv(lastKnownMultiplier, currentMultiplier),
+                amount
+            );
+            uint256 underlyingAmount = fmul(
+                tokens[i].units,
+                amountIncludingInflation
+            ) + 1;
 
             IERC20(tokens[i].token).safeTransferFrom(
                 msg.sender,
