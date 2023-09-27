@@ -4,7 +4,7 @@ import {VerifiableAddressArray} from "../lib/VArray.sol";
 import {IIndexToken} from "../interfaces/IIndexToken.sol";
 import {TokenInfo} from "../Common.sol";
 import {IVault} from "../interfaces/IVault.sol";
-import {SCALAR, fmul} from "../lib/FixedPoint.sol";
+import {SCALAR, fmul, fdiv} from "../lib/FixedPoint.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -44,8 +44,16 @@ contract Issuance {
 
         require(tokens.length > 0, "No tokens in vault");
 
+        uint256 amountIncludingIntradayInflation = fmul(
+            vault.intradayMultiplier(),
+            amount
+        );
+
         for (uint256 i; i < tokens.length; ) {
-            uint256 underlyingAmount = fmul(tokens[i].units, amount) + 1;
+            uint256 underlyingAmount = fmul(
+                tokens[i].units,
+                amountIncludingIntradayInflation
+            ) + 1;
 
             IERC20(tokens[i].token).safeTransferFrom(
                 msg.sender,
@@ -94,6 +102,10 @@ contract Issuance {
         vault.invokeERC20s(args);
     }
 
+    /// @notice Quote the amount of underlying tokens needed to issue index tokens
+    /// @param amount The amount of index tokens to issue
+    /// @return tokens The underlying tokens and amounts needed to issue index tokens
+    /// @dev subtract 1 from each unit to account for rounding if you need an exact redemption quote
     function quote(uint256 amount) external view returns (TokenInfo[] memory) {
         TokenInfo[] memory tokens = vault.realUnits();
 

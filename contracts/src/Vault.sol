@@ -86,21 +86,33 @@ contract Vault is Ownable2Step, IVault {
 
     ///////////////////////// OWNER /////////////////////////
 
+    /// @notice Set the issuance module for the vault
+    /// @param _issuance The issuance module address
+    /// @dev only owner
     function setIssuance(address _issuance) external only(owner()) {
         issuance = _issuance;
         emit VaultIssuanceSet(_issuance);
     }
 
+    /// @notice Set the rebalancer module for the vault
+    /// @param _rebalancer The rebalancer module address
+    /// @dev only owner
     function setRebalancer(address _rebalancer) external only(owner()) {
         rebalancer = _rebalancer;
         emit VaultRebalancerSet(_rebalancer);
     }
 
+    /// @notice Set the fee recipient
+    /// @param _feeRecipient The fee recipient address
+    /// @dev only owner
     function setFeeRecipient(address _feeRecipient) external only(owner()) {
         feeRecipient = _feeRecipient;
         emit VaultFeeRecipientSet(_feeRecipient);
     }
 
+    /// @notice Set the emergency responder
+    /// @param _emergencyResponder The emergency responder address
+    /// @dev only owner
     function setEmergencyResponder(
         address _emergencyResponder
     ) external only(owner()) {
@@ -108,6 +120,9 @@ contract Vault is Ownable2Step, IVault {
         emit VaultEmergencyResponderSet(_emergencyResponder);
     }
 
+    /// @notice Set the fee scaled
+    /// @param _feeScaled The fee scaled by 1e18
+    /// @dev only owner & accrues inflation
     function setFeeScaled(uint256 _feeScaled) external only(owner()) {
         if (_feeScaled > SCALAR) {
             revert AMKTVaultFeeTooLarge();
@@ -118,6 +133,9 @@ contract Vault is Ownable2Step, IVault {
         emit VaultFeeScaledSet(_feeScaled);
     }
 
+    /// @notice Set the emergency flag
+    /// @param _emergency The emergency flag
+    /// @dev only emergency responder
     function setEmergency(bool _emergency) external only(emergencyResponder) {
         emergency = _emergency;
         emit VaultEmergencySet(_emergency);
@@ -125,7 +143,8 @@ contract Vault is Ownable2Step, IVault {
 
     ///////////////////////// INFLATION /////////////////////////
 
-    /// Can be called by anyone. Only accrues inflation to the feeRecipient
+    /// @notice Try to accrue inflation
+    /// @dev returns the current multiplier
     function tryInflation() public returns (uint256) {
         uint256 startingSupply = indexToken.totalSupply();
 
@@ -154,6 +173,9 @@ contract Vault is Ownable2Step, IVault {
 
     ///////////////////////// REBALANCER /////////////////////////
 
+    /// @notice Set the nominal units of more than one token
+    /// @param args The SetNominalArgs[]
+    /// @dev only rebalancer
     function invokeSetNominals(
         SetNominalArgs[] calldata args
     ) external whenNotEmergency only(rebalancer) {
@@ -162,12 +184,19 @@ contract Vault is Ownable2Step, IVault {
         }
     }
 
+    /// @notice Set the nominal units of a token
+    /// @param args The SetNominalArgs
+    /// @dev only rebalancer
     function invokeSetNominal(
         SetNominalArgs calldata args
     ) external whenNotEmergency only(rebalancer) {
         _setNominal(args);
     }
 
+    /// @notice Set the multiplier
+    /// @param _multiplier The multiplier
+    /// @dev only rebalancer
+    /// @dev this is only used to set the multiplier to 1 after a rebalance so far
     function invokeSetMultiplier(
         uint256 _multiplier
     ) external whenNotEmergency only(rebalancer) {
@@ -176,6 +205,10 @@ contract Vault is Ownable2Step, IVault {
 
     ///////////////////////// ISSUANCE /////////////////////////
 
+    /// @notice Mint index tokens
+    /// @param to The recipient of the index tokens
+    /// @param amount The amount of index tokens to mint
+    /// @dev only issuance
     function invokeMint(
         address to,
         uint256 amount
@@ -183,12 +216,19 @@ contract Vault is Ownable2Step, IVault {
         indexToken.mint(to, amount);
     }
 
+    /// @notice Burn index tokens
+    /// @param from The owner of the index tokens
+    /// @param amount The amount of index tokens to burn
+    /// @dev only issuance
     function invokeBurn(address from, uint256 amount) external only(issuance) {
         indexToken.burn(from, amount);
     }
 
     ///////////////////////// INVOKERS /////////////////////////
 
+    /// @notice Invoke ERC20 transfers
+    /// @param args The InvokeERC20Args[]
+    /// @dev only invokers
     function invokeERC20s(
         InvokeERC20Args[] calldata args
     ) external onlyInvokers {
@@ -200,12 +240,18 @@ contract Vault is Ownable2Step, IVault {
         }
     }
 
+    /// @notice Invoke ERC20 transfer
+    /// @param args The InvokeERC20Args
+    /// @dev only invokers
     function invokeERC20(InvokeERC20Args calldata args) external onlyInvokers {
         _invokeERC20(args.token, args.to, args.amount);
     }
 
     ///////////////////////// VIEW ////////////////////////
 
+    /// @notice Returns true if the token is an underlying
+    /// @param _token address
+    /// @return bool true if underlying
     function isUnderlying(address _token) public view returns (bool) {
         return _underlying.includes(_token);
     }
@@ -262,14 +308,24 @@ contract Vault is Ownable2Step, IVault {
         return info;
     }
 
+    /// @notice Returns the underlying tokens
+    /// @return address[] memory of underlying tokens with nominal units > 0
     function underlying() external view returns (address[] memory) {
         return _underlying.toMemoryArray();
     }
 
+    /// @notice Returns the underlying tokens and their nominal units
+    /// @return the number of tokens backing the index
     function underlyingLength() external view returns (uint256) {
         return _underlying.size();
     }
 
+    /// @notice Returns the multiplier
+    /// @return trackedTimestamp the new tracked timestamp
+    /// @return trackedMultiplier the new tracked multiplier, this is helpful to cache so we don't need to start from the beginning
+    /// @return newFeeAccrued the new fee from this call, does not account for the old tracked multiplier, this does not incude intermediate values and is how inflation accrual works
+    /// @return currentMultiplier the new multiplier for the current block timestamp, this is an intermediate value and not tracked, it is what's applied to the nominals
+    /// @dev view function so this does't actually do anything
     function multiplier()
         public
         view
@@ -292,14 +348,15 @@ contract Vault is Ownable2Step, IVault {
         );
     }
 
+    /// @notice Checks that the vault is in a valid state
+    /// @notice i.e. we can wind down to 0 safely
+    /// @notice reverts if the check fails
     function invariantCheck() public view {
         TokenInfo[] memory tokens = realUnits();
 
-        (, , , uint256 currentMultiplier) = multiplier();
-
         // adjust total supply by inverse of intraday fee (inflation)
         uint256 totalSupply = fmul(
-            fdiv(lastKnownMultiplier, currentMultiplier),
+            intradayMultiplier(),
             indexToken.totalSupply()
         );
 
@@ -314,6 +371,21 @@ contract Vault is Ownable2Step, IVault {
                 ++i;
             }
         }
+    }
+
+    /// @notice Calculates the multiplier to be applied to the total supply to account for inflation
+    function intradayMultiplier() public view returns (uint256) {
+        (, , , uint256 currentMultiplier) = multiplier();
+        uint256 multiplierToReturn = fdiv(
+            lastKnownMultiplier,
+            currentMultiplier
+        );
+
+        // multiplier should never be less than 1
+        if (multiplierToReturn < SCALAR) {
+            revert VaultInvariant();
+        }
+        return multiplierToReturn;
     }
 
     ///////////////////////// INTERNAL /////////////////////////
