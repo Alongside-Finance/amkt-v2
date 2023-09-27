@@ -44,9 +44,12 @@ contract Issuance {
 
         require(tokens.length > 0, "No tokens in vault");
 
+        uint256 unmintedInflationMultiplier = vault
+            .unmintedInflationMultiplier();
+
         for (uint256 i; i < tokens.length; ) {
             uint256 amountIncludingInflation = fmul(
-                vault.unmintedInflationMultiplier(),
+                unmintedInflationMultiplier,
                 amount
             );
             uint256 underlyingAmount = fmul(
