@@ -29,13 +29,14 @@ contract UpgradeTest is GnosisTest {
     ActiveBounty timelockActiveBounty;
 
     function setUp() public {
-        vm.createSelectFork(vm.envString("MAINNET_RPC"));
+        vm.createSelectFork(vm.envString("MAINNET_RPC"), 18229914);
         enableSimulation();
 
         setDeployedContracts();
         mockSafeBalances(); // TODO: Remove when ready. Due before bundle submission.
         checkSafeBalances();
         GnosisTransaction[] memory batch = createUpgradeBatch();
+        // vm.warp(block.timestamp + 1 hours); // there will be some time after we craft the batch, and we execute it
         bytes memory dataExecuted = executeBatch(batch);
     }
 
@@ -63,6 +64,18 @@ contract UpgradeTest is GnosisTest {
         timelockInvokeableBounty = InvokeableBounty(
             0x703814F9172D6E6EF10F89fCAdE3ff480d812a45
         );
+        CoreDeployScript script = new CoreDeployScript(); // TODO: Remove when ready. Due before external review.
+        CoreDeployScript.DeployedContracts memory deployed = script.run(); // TODO: Remove when ready. Due vefore external review.
+        vault = deployed.vault;
+        issuance = deployed.issuance;
+        invokeableBounty = deployed.invokeableBounty;
+        activeBounty = deployed.activeBounty;
+        governor = deployed.governor;
+        timelockController = deployed.timelockController;
+        newTokenImplementation = deployed.newTokenImplementation;
+        timelockInvokeableBounty = deployed.timelockInvokeableBounty;
+        timelockActiveBounty = deployed.timelockActiveBounty;
+        vm.warp(block.timestamp + 7 days + 2 hours);
     }
 
     function mockSafeBalances() internal {
@@ -83,9 +96,7 @@ contract UpgradeTest is GnosisTest {
         for (uint256 i = 0; i < tokens.length; i++) {
             IERC20 token = IERC20(tokens[i].token);
             assertEq(
-                token.balanceOf(
-                    address(0xAeB9ef94b6542BE7112f3a295646B5AaAa9Fca13)
-                ),
+                token.balanceOf(MULTISIG),
                 (tokens[i].units * AMKT.totalSupply()) / 1e18
             );
         }
@@ -113,7 +124,7 @@ contract UpgradeTest is GnosisTest {
         Bounty memory _bountyToSet = Bounty({
             infos: tokens,
             salt: keccak256(abi.encode(block.timestamp)),
-            deadline: block.timestamp + 1
+            deadline: block.timestamp + 1 days
         });
 
         bytes32 hashToSet = InvokeableBounty(invokeableBounty).hashBounty(
