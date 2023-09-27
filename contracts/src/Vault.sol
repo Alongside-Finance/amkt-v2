@@ -354,11 +354,9 @@ contract Vault is Ownable2Step, IVault {
     function invariantCheck() public view {
         TokenInfo[] memory tokens = realUnits();
 
-        (, , , uint256 currentMultiplier) = multiplier();
-
         // adjust total supply by inverse of intraday fee (inflation)
         uint256 totalSupply = fmul(
-            fdiv(lastKnownMultiplier, currentMultiplier),
+            unmintedInflationMultiplier(),
             indexToken.totalSupply()
         );
 
@@ -373,6 +371,11 @@ contract Vault is Ownable2Step, IVault {
                 ++i;
             }
         }
+    }
+
+    function unmintedInflationMultiplier() public view returns (uint256) {
+        (, , , uint256 currentMultiplier) = multiplier();
+        return fdiv(lastKnownMultiplier, currentMultiplier);
     }
 
     ///////////////////////// INTERNAL /////////////////////////

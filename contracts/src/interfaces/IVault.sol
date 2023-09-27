@@ -57,6 +57,8 @@ interface IVault {
 
     function invariantCheck() external view;
 
+    function unmintedInflationMultiplier() external view returns (uint256);
+
     function isUnderlying(address target) external view returns (bool);
 
     function underlying() external view returns (address[] memory);

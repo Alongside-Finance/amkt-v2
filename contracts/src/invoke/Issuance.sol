@@ -40,15 +40,13 @@ contract Issuance {
     /// @dev reentrancy guard in case callback in tokens
     function issue(uint256 amount) external invariantCheck ReentrancyGuard {
         vault.tryInflation();
-        (, uint256 lastKnownMultiplier, , uint256 currentMultiplier) = vault
-            .multiplier();
         TokenInfo[] memory tokens = vault.realUnits();
 
         require(tokens.length > 0, "No tokens in vault");
 
         for (uint256 i; i < tokens.length; ) {
             uint256 amountIncludingInflation = fmul(
-                fdiv(lastKnownMultiplier, currentMultiplier),
+                vault.unmintedInflationMultiplier(),
                 amount
             );
             uint256 underlyingAmount = fmul(
