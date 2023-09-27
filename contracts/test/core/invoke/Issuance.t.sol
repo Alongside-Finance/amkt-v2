@@ -7,6 +7,47 @@ import {SCALAR} from "src/lib/FixedPoint.sol";
 import {IVault} from "src/interfaces/IVault.sol";
 
 contract IssuanceTest is StatefulTest {
+    function testToZero() public {
+        seedInitial(10);
+        mint(5e18);
+        burn(indexToken.totalSupply());
+        address[] memory underlying = vault.underlying();
+        assertEq(indexToken.totalSupply(), 0);
+        for (uint256 i; i < underlying.length; i++) {
+            assertEq(IERC20(underlying[i]).balanceOf(address(vault)), 1);
+        }
+    }
+
+    function testToZeroWithUnmintedInflation() public {
+        vault.setFeeRecipient(address(this));
+        seedInitial(10);
+        mint(5e18);
+        vm.warp(block.timestamp + 1 days - 1);
+        burn(indexToken.totalSupply());
+        assertGe(indexToken.totalSupply(), 0);
+        burn(indexToken.totalSupply());
+        address[] memory underlying = vault.underlying();
+        assertEq(indexToken.totalSupply(), 0);
+        for (uint256 i; i < underlying.length; i++) {
+            assertGe(IERC20(underlying[i]).balanceOf(address(vault)), 100);
+        }
+    }
+
+    function testToZeroWithMintedInflation() public {
+        vault.setFeeRecipient(address(this));
+        seedInitial(10);
+        mint(5e18);
+        vm.warp(block.timestamp + 1 days);
+        burn(indexToken.totalSupply());
+        assertGe(indexToken.totalSupply(), 0);
+        burn(indexToken.totalSupply());
+        address[] memory underlying = vault.underlying();
+        assertEq(indexToken.totalSupply(), 0);
+        for (uint256 i; i < underlying.length; i++) {
+            assertLe(IERC20(underlying[i]).balanceOf(address(vault)), 100);
+        }
+    }
+
     function testShouldMintWithApprovedTokens() public {
         seedInitial(10);
 

@@ -44,17 +44,16 @@ contract Issuance {
 
         require(tokens.length > 0, "No tokens in vault");
 
-        uint256 unmintedInflationMultiplier = vault
-            .unmintedInflationMultiplier();
+        uint256 intradayMultiplier = vault.intradayMultiplier();
 
         for (uint256 i; i < tokens.length; ) {
-            uint256 amountIncludingInflation = fmul(
-                unmintedInflationMultiplier,
+            uint256 amountIncludingIntradayInflation = fmul(
+                intradayMultiplier,
                 amount
             );
             uint256 underlyingAmount = fmul(
                 tokens[i].units,
-                amountIncludingInflation
+                amountIncludingIntradayInflation
             ) + 1;
 
             IERC20(tokens[i].token).safeTransferFrom(

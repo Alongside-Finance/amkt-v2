@@ -356,7 +356,7 @@ contract Vault is Ownable2Step, IVault {
 
         // adjust total supply by inverse of intraday fee (inflation)
         uint256 totalSupply = fmul(
-            unmintedInflationMultiplier(),
+            intradayMultiplier(),
             indexToken.totalSupply()
         );
 
@@ -374,7 +374,7 @@ contract Vault is Ownable2Step, IVault {
     }
 
     /// @notice Calculates the multiplier to be applied to the total supply to account for inflation
-    function unmintedInflationMultiplier() public view returns (uint256) {
+    function intradayMultiplier() public view returns (uint256) {
         (, , , uint256 currentMultiplier) = multiplier();
         uint256 multiplierToReturn = fdiv(
             lastKnownMultiplier,
