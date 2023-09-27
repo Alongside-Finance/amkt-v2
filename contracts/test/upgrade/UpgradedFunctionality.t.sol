@@ -12,6 +12,7 @@ contract UpgradedFunctionality is UpgradeTest {
     address oldMinter = address(0x0D44F856E1a7c70E35c54261c3f07DbFBDCA4857);
 
     function testTryInflation() public {
+        vault.tryInflation();
         vm.prank(address(2));
         uint256 beforeSupply = AMKT.totalSupply();
         vault.tryInflation();
@@ -46,8 +47,9 @@ contract UpgradedFunctionality is UpgradeTest {
     }
 
     function testIssuance() public {
+        vault.tryInflation();
         Dealer dealer = new Dealer();
-        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
+        TokenInfo[] memory tokens = vault.realUnits();
 
         uint256 initialDealtAmount = 1e18;
         uint256 issuedAmount = 1e18;
@@ -68,10 +70,6 @@ contract UpgradedFunctionality is UpgradeTest {
         // Check the balances of address(this) after issuance
         for (uint256 i = 0; i < tokens.length; i++) {
             IERC20 token = IERC20(tokens[i].token);
-            assertEq(
-                token.balanceOf(address(this)),
-                initialDealtAmount - issuedAmount
-            );
             assertEq(token.balanceOf(address(this)), 0);
         }
 
