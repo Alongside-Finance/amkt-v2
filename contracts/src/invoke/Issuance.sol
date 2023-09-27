@@ -83,16 +83,8 @@ contract Issuance {
             tokens.length
         );
 
-        uint256 amountIncludingIntradayInflation = fmul(
-            vault.intradayMultiplier(),
-            amount
-        );
-
         for (uint256 i; i < tokens.length; ) {
-            uint256 underlyingAmount = fmul(
-                tokens[i].units,
-                amountIncludingIntradayInflation
-            );
+            uint256 underlyingAmount = fmul(tokens[i].units, amount);
 
             args[i] = IVault.InvokeERC20Args({
                 token: tokens[i].token,

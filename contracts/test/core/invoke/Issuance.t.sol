@@ -7,7 +7,7 @@ import {SCALAR} from "src/lib/FixedPoint.sol";
 import {IVault} from "src/interfaces/IVault.sol";
 
 contract IssuanceTest is StatefulTest {
-    function testToZero() public {
+    function testGoToZero() public {
         seedInitial(10);
         mint(5e18);
         burn(indexToken.totalSupply());
@@ -18,7 +18,10 @@ contract IssuanceTest is StatefulTest {
         }
     }
 
-    function testToZeroWithUnmintedInflation() public {
+    function testCantGoToZeroWithUnmintedInflation() public {
+        // Q: Who keeps the intraday fee on the tokens that are being burnt? The user, vault, or the feeRecipient?
+        // A: For now, the vault keeps the intraday fee on the tokens that are being burnt.
+        // If this amount becomes meaningful, we can expose a function to withdraw it separately.
         vault.setFeeRecipient(address(this));
         seedInitial(10);
         mint(5e18);
@@ -29,11 +32,11 @@ contract IssuanceTest is StatefulTest {
         address[] memory underlying = vault.underlying();
         assertEq(indexToken.totalSupply(), 0);
         for (uint256 i; i < underlying.length; i++) {
-            assertLe(IERC20(underlying[i]).balanceOf(address(vault)), 100);
+            assertGe(IERC20(underlying[i]).balanceOf(address(vault)), 100);
         }
     }
 
-    function testToZeroWithMintedInflation() public {
+    function testGoToZeroWithMintedInflation() public {
         vault.setFeeRecipient(address(this));
         seedInitial(10);
         mint(5e18);
