@@ -29,7 +29,7 @@ contract IssuanceTest is StatefulTest {
         address[] memory underlying = vault.underlying();
         assertEq(indexToken.totalSupply(), 0);
         for (uint256 i; i < underlying.length; i++) {
-            assertGe(IERC20(underlying[i]).balanceOf(address(vault)), 100);
+            assertLe(IERC20(underlying[i]).balanceOf(address(vault)), 100);
         }
     }
 

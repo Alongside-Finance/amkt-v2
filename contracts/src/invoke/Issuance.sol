@@ -44,13 +44,12 @@ contract Issuance {
 
         require(tokens.length > 0, "No tokens in vault");
 
-        uint256 intradayMultiplier = vault.intradayMultiplier();
+        uint256 amountIncludingIntradayInflation = fmul(
+            vault.intradayMultiplier(),
+            amount
+        );
 
         for (uint256 i; i < tokens.length; ) {
-            uint256 amountIncludingIntradayInflation = fmul(
-                intradayMultiplier,
-                amount
-            );
             uint256 underlyingAmount = fmul(
                 tokens[i].units,
                 amountIncludingIntradayInflation
@@ -84,8 +83,16 @@ contract Issuance {
             tokens.length
         );
 
+        uint256 amountIncludingIntradayInflation = fmul(
+            vault.intradayMultiplier(),
+            amount
+        );
+
         for (uint256 i; i < tokens.length; ) {
-            uint256 underlyingAmount = fmul(tokens[i].units, amount);
+            uint256 underlyingAmount = fmul(
+                tokens[i].units,
+                amountIncludingIntradayInflation
+            );
 
             args[i] = IVault.InvokeERC20Args({
                 token: tokens[i].token,
