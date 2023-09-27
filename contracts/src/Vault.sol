@@ -373,9 +373,19 @@ contract Vault is Ownable2Step, IVault {
         }
     }
 
+    /// @notice Calculates the multiplier to be applied to the total supply to account for inflation
     function unmintedInflationMultiplier() public view returns (uint256) {
         (, , , uint256 currentMultiplier) = multiplier();
-        return fdiv(lastKnownMultiplier, currentMultiplier);
+        uint256 multiplierToReturn = fdiv(
+            lastKnownMultiplier,
+            currentMultiplier
+        );
+
+        // multiplier should never be less than 1
+        if (multiplierToReturn < SCALAR) {
+            revert VaultInvariant();
+        }
+        return multiplierToReturn;
     }
 
     ///////////////////////// INTERNAL /////////////////////////
