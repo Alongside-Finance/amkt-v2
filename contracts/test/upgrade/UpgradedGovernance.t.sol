@@ -49,14 +49,15 @@ contract UpgradedFunctionalityTest is UpgradeTest {
     ) public {
         uint256 maxDelay = 365 days;
         proposalDelayAmount = bound(proposalDelayAmount, 0, maxDelay);
-        voteDelayAmount = bound(voteDelayAmount, 0, maxDelay);
+        voteDelayAmount = bound(
+            voteDelayAmount,
+            0,
+            (VOTE_PERIOD + VOTE_DELAY) * AVG_BLOCK_TIME
+        );
         queueDelayAmount = bound(queueDelayAmount, 0, maxDelay);
         executeDelayAmount = bound(executeDelayAmount, 0, maxDelay);
         vm.assume(proposalDelayAmount > 1 * AVG_BLOCK_TIME); // at least one block should have passed since delegating
-        vm.assume(
-            voteDelayAmount > (VOTE_DELAY + 1) * AVG_BLOCK_TIME &&
-                voteDelayAmount < (VOTE_PERIOD + VOTE_DELAY) * AVG_BLOCK_TIME
-        );
+        vm.assume(voteDelayAmount > (VOTE_DELAY + 1) * AVG_BLOCK_TIME);
         vm.assume(queueDelayAmount > (VOTE_PERIOD + 1) * AVG_BLOCK_TIME);
         vm.assume(executeDelayAmount > CANCELLATION_PERIOD);
         // PROPOSE SETTING VOTING DELAY
