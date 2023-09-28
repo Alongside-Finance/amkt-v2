@@ -8,6 +8,7 @@ import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {fmul} from "src/lib/FixedPoint.sol";
 import {console} from "forge-std/console.sol";
 import {IGovernor} from "@openzeppelin/contracts/governance/IGovernor.sol";
+import {InvokeableBounty, IActiveBounty} from "src/invoke/Bounty.sol";
 
 contract UpgradedGovernanceTest is UpgradeTest {
     address largeAmktHolder =
@@ -38,6 +39,21 @@ contract UpgradedGovernanceTest is UpgradeTest {
         proposal.values[0] = value;
         proposal.calldatas[0] = data;
         return proposal;
+    }
+
+    function testRebalance() public {
+        Proposal memory proposal = createSingleItemProposal(
+            address(InvokeableBounty(vault.rebalancer()).activeBounty()),
+            0,
+            abi.encodeWithSignature("setHash(bytes32)", keccak256("hash")),
+            "Test set hash"
+        );
+        makeProposalPass(proposal);
+        assertEq(
+            IActiveBounty(InvokeableBounty(vault.rebalancer()).activeBounty())
+                .activeBounty(),
+            keccak256("hash")
+        );
     }
 
     function testAcceptVaultOwnership() public {
