@@ -15,6 +15,7 @@ import {Vault} from "src/Vault.sol";
 import {AlongsideGovernor} from "src/Governor.sol";
 import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
 import {Issuance} from "src/invoke/Issuance.sol";
+import {fmul} from "src/lib/FixedPoint.sol";
 
 contract UpgradeTest is GnosisTest {
     IndexToken AMKT;
@@ -75,7 +76,7 @@ contract UpgradeTest is GnosisTest {
         newTokenImplementation = deployed.newTokenImplementation;
         timelockInvokeableBounty = deployed.timelockInvokeableBounty;
         timelockActiveBounty = deployed.timelockActiveBounty;
-        warpForward(7 days + 2 hours);
+        warpForward(3 days + 2 hours);
     }
 
     function mockSafeBalances() internal {
@@ -85,7 +86,7 @@ contract UpgradeTest is GnosisTest {
             dealer.dealToken(
                 tokens[i].token,
                 MULTISIG,
-                (tokens[i].units * AMKT.totalSupply()) / 1e18
+                fmul(tokens[i].units, AMKT.totalSupply())
             );
         }
     }
@@ -97,7 +98,7 @@ contract UpgradeTest is GnosisTest {
             IERC20 token = IERC20(tokens[i].token);
             assertEq(
                 token.balanceOf(MULTISIG),
-                (tokens[i].units * AMKT.totalSupply()) / 1e18
+                fmul(tokens[i].units, AMKT.totalSupply())
             );
         }
     }

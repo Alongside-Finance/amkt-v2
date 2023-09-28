@@ -26,7 +26,7 @@ contract UpgradedFunctionalityTest is UpgradeTest {
     }
 
     function testCanRedeemLarge(uint256 amount) public {
-        vm.assume(amount < AMKT.balanceOf(largeAmktHolder));
+        vm.assume(amount <= AMKT.balanceOf(largeAmktHolder));
         vault.tryInflation();
         assertEq(AMKT.balanceOf(largeAmktHolder), 16704840500000000000000);
         assertGe(AMKT.totalSupply(), AMKT.balanceOf(largeAmktHolder));
@@ -36,15 +36,16 @@ contract UpgradedFunctionalityTest is UpgradeTest {
         vm.stopPrank();
     }
 
-    function testVaultCanMint() public {
+    function testVaultCanMint(uint256 amount) public {
+        vm.assume(amount < uint256(type(uint224).max));
         vm.startPrank(address(vault));
-        AMKT.mint(address(vault), 1);
-        AMKT.burn(address(vault), 1);
+        AMKT.mint(address(vault), amount);
+        AMKT.burn(address(vault), amount);
         vm.stopPrank();
     }
 
     function testUserCanTransfer(uint256 amount) public {
-        vm.assume(amount < AMKT.balanceOf(largeAmktHolder));
+        vm.assume(amount <= AMKT.balanceOf(largeAmktHolder));
         vm.startPrank(largeAmktHolder);
         AMKT.transfer(address(vault), amount);
         vm.stopPrank();

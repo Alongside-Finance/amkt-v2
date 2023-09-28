@@ -13,7 +13,7 @@ contract IndexToken is ERC20VotesUpgradeable, IIndexToken {
     /// Alongside
     ///=============================================================================================
 
-    /// @notice Slot for minter addres
+    /// @notice Slot for minter address
     /// @notice cast keccak Alongside::Token::MinterSlot
     bytes32 public constant MINTER_SLOT =
         0x1af730152eea9813c49583a406e8dd55a4df08cae9e33ae45721374fdde82bae;

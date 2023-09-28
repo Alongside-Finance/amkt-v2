@@ -7,8 +7,12 @@ import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {UpgradeTest} from "test/upgrade/helpers/Upgrade.t.sol";
 import {ITransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import {fmul} from "src/lib/FixedPoint.sol";
 
 contract UpgradedStateTest is UpgradeTest {
+    address largeAmktHolder =
+        address(0x804B68f60765F4559b7096B158C912eD33aa0c26);
+
     function testConfig() public {
         assertEq(FEE_RECEIPIENT, 0xC19a5b6E0a923519603985153515222D59cb3F2e);
         assertEq(MULTISIG, 0xAeB9ef94b6542BE7112f3a295646B5AaAa9Fca13);
@@ -41,6 +45,40 @@ contract UpgradedStateTest is UpgradeTest {
             (AMKT.totalSupply() * 5) / 100
         );
         assertEq(governor.name(), "Alongside Governor");
+        assertEq(governor.version(), "1");
+        assertEq(governor.getVotes(largeAmktHolder, block.number - 1), 0);
+    }
+
+    function testTimelockConfig() public {
+        assertEq(timelockController.getMinDelay(), 4 days);
+        assertEq(
+            timelockController.hasRole(
+                timelockController.EXECUTOR_ROLE(),
+                address(0)
+            ),
+            true
+        );
+        assertEq(
+            timelockController.hasRole(
+                timelockController.PROPOSER_ROLE(),
+                MULTISIG
+            ),
+            true
+        );
+        assertEq(
+            timelockController.hasRole(
+                timelockController.CANCELLER_ROLE(),
+                MULTISIG
+            ),
+            true
+        );
+        assertEq(
+            timelockController.hasRole(
+                timelockController.PROPOSER_ROLE(),
+                address(governor)
+            ),
+            true
+        );
     }
 
     // function testDeployedContracts() public {
@@ -110,6 +148,9 @@ contract UpgradedStateTest is UpgradeTest {
             100e18
         ); // random user with 100 balance
         assertEq(AMKT.totalSupply(), 29559270507524640614886);
+        assertEq(AMKT.getPastTotalSupply(block.number - 1), AMKT.totalSupply());
+        assertEq(AMKT.getPastTotalSupply(block.number - 2), 0);
+        assertEq(AMKT.numCheckpoints(largeAmktHolder), 0);
     }
 
     function testVaultState() public {
@@ -183,7 +224,7 @@ contract UpgradedStateTest is UpgradeTest {
             IERC20 token = IERC20(underlying[i]);
             assertEq(
                 token.balanceOf(address(vault)),
-                (tokens[i].units * AMKT.totalSupply()) / 1e18
+                fmul(tokens[i].units, AMKT.totalSupply())
             );
         }
     }
