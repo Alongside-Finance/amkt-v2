@@ -45,6 +45,18 @@ contract IndexToken is ERC20VotesUpgradeable, IIndexToken {
             sstore(102, hashedVersion)
         }
 
+        Checkpoint[] storage _totalSupplyCheckpoints;
+        assembly {
+            _totalSupplyCheckpoints.slot := 206
+        }
+
+        _totalSupplyCheckpoints.push(
+            Checkpoint({
+                fromBlock: uint32(block.number),
+                votes: uint224(totalSupply())
+            })
+        );
+
         assembly {
             sstore(MINTER_SLOT, _minter)
         }
