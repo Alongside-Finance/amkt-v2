@@ -7,20 +7,20 @@ import {TokenInfo} from "src/Common.sol";
 import {FEE_SCALED} from "src/scripts/Config.sol";
 
 contract VaultTest is StatefulTest {
-    function testIntradayMultiplier() public {
+    function testIntradayInflation() public {
         seedInitial(10);
         vm.warp(block.timestamp + 1 days);
-        vault.intradayMultiplier();
+        vault.intradayInflation();
     }
 
-    function testFuzzIntradayMultiplier(uint256 targetTimestamp) public {
+    function testFuzzIntradayInflation(uint256 targetTimestamp) public {
         vm.assume(
             targetTimestamp >= block.timestamp &&
                 targetTimestamp < block.timestamp + 2 days
         );
         seedInitial(10);
         vm.warp(targetTimestamp);
-        vault.intradayMultiplier();
+        vault.intradayInflation();
     }
 
     function testShouldAllowRebalancer() public {
