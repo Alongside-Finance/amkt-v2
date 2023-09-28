@@ -92,7 +92,7 @@ contract UpgradedFunctionalityTest is UpgradeTest {
         TokenInfo[] memory tokens = vault.realUnits();
 
         uint256 amountIncludingIntradayInflation = fmul(
-            vault.intradayMultiplier(),
+            vault.intradayInflation(),
             amount
         );
 
