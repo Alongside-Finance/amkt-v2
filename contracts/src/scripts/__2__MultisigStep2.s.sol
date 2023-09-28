@@ -24,10 +24,7 @@ contract MultisigStep2Script is Script {
         Vault(_vault).setFeeScaled(FEE_SCALED);
         Vault(_vault).setRebalancer(_timelockInvokeableBounty);
         Vault(_vault).transferOwnership(_timelockController);
-        ProxyAdmin(PROXY_ADMIN).changeProxyAdmin(
-            ITransparentUpgradeableProxy(PROXY),
-            _timelockController
-        );
+        ProxyAdmin(PROXY_ADMIN).transferOwnership(_timelockController);
         vm.stopBroadcast();
     }
 }
