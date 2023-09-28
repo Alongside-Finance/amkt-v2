@@ -78,6 +78,39 @@ contract UpgradedGovernanceTest is UpgradeTest {
         assertNotEq(vault.owner(), address(timelockController));
     }
 
+    /// forge-config: default.fuzz.runs = 10
+    function testDelegateVoting(address user1, address user2) public {
+        vm.assume(user1 != address(0));
+        vm.assume(user2 != address(0));
+        vm.prank(largeAmktHolder);
+        AMKT.delegate(user1); // intermediate hop to user 1
+        warpForward(1 * AVG_BLOCK_TIME);
+        vm.prank(largeAmktHolder);
+        AMKT.delegate(user2); // finally, delegate to user 2
+        warpForward(1 * AVG_BLOCK_TIME);
+        assertEq(AMKT.getVotes(user2), AMKT.balanceOf(largeAmktHolder));
+        assertEq(
+            AMKT.getPastVotes(user2, block.number - 1),
+            AMKT.balanceOf(largeAmktHolder)
+        );
+        Proposal memory proposal = createSingleItemProposal(
+            address(vault),
+            0,
+            abi.encodeWithSignature("acceptOwnership()"),
+            "Accept vault ownership"
+        );
+        vm.startPrank(user2);
+        uint256 proposalId = governor.propose(
+            proposal.targets,
+            proposal.values,
+            proposal.calldatas,
+            proposal.description
+        );
+        warpForward((VOTE_DELAY + 1) * AVG_BLOCK_TIME);
+        governor.castVote(proposalId, 1);
+        vm.stopPrank();
+    }
+
     function makeProposalPass(Proposal memory proposal) public {
         vm.startPrank(largeAmktHolder);
         AMKT.delegate(largeAmktHolder);
