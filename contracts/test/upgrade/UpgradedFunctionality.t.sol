@@ -25,22 +25,13 @@ contract UpgradedFunctionality is UpgradeTest {
         assertGe(AMKT.totalSupply(), beforeSupply);
     }
 
-    function testCanRedeemLarge() public {
-        uint256 amount = 10e18;
-        vm.prank(largeAmktHolder);
-        AMKT.delegate(largeAmktHolder);
-        vm.roll(block.number + 1);
-        // uint256 amount = AMKT.balanceOf(largeAmktHolder);
-        // vm.assume(amount < AMKT.balanceOf(largeAmktHolder));
-        // vm.warp(block.timestamp + 2 days);
+    function testCanRedeemLarge(uint256 amount) public {
+        vm.assume(amount < AMKT.balanceOf(largeAmktHolder));
         vault.tryInflation();
         assertEq(AMKT.balanceOf(largeAmktHolder), 16704840500000000000000);
         assertGe(AMKT.totalSupply(), AMKT.balanceOf(largeAmktHolder));
         vm.startPrank(largeAmktHolder);
-        console.log(msg.sender);
-        console.log(largeAmktHolder);
         AMKT.approve(address(issuance), AMKT.balanceOf(largeAmktHolder));
-
         issuance.redeem(amount);
         vm.stopPrank();
     }
