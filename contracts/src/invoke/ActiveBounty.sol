@@ -2,6 +2,8 @@ pragma solidity =0.8.15;
 
 contract ActiveBounty {
     error ActiveBountyAuth();
+    error ActiveBountyZeroCheck();
+
     event ActiveBountyHashSet(bytes32 bountyHash);
 
     address public immutable authority;
@@ -9,6 +11,7 @@ contract ActiveBounty {
     bytes32 public activeBounty;
 
     constructor(address _authority) {
+        if (_authority == address(0)) revert ActiveBountyZeroCheck();
         authority = _authority;
     }
 

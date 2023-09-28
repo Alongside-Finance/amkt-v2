@@ -9,6 +9,7 @@ interface IVault {
     error AMKTVaultFeeTooLarge();
     error AMKTVaultEmergency();
     error VaultInvariant();
+    error VaultZeroCheck();
 
     event VaultIssuanceSet(address issuance);
     event VaultRebalancerSet(address rebalancer);

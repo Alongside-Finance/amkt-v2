@@ -67,6 +67,9 @@ contract Vault is Ownable2Step, IVault {
         address _emergencyResponder,
         uint256 _feeScaled
     ) {
+        if (_owner == address(0)) revert VaultZeroCheck();
+        if (_feeRecipient == address(0)) revert VaultZeroCheck();
+        if (_emergencyResponder == address(0)) revert VaultZeroCheck();
         if (_feeScaled > SCALAR) {
             revert AMKTVaultFeeTooLarge();
         }
@@ -90,6 +93,7 @@ contract Vault is Ownable2Step, IVault {
     /// @param _issuance The issuance module address
     /// @dev only owner
     function setIssuance(address _issuance) external only(owner()) {
+        if (_issuance == address(0)) revert VaultZeroCheck();
         issuance = _issuance;
         emit VaultIssuanceSet(_issuance);
     }
@@ -98,6 +102,7 @@ contract Vault is Ownable2Step, IVault {
     /// @param _rebalancer The rebalancer module address
     /// @dev only owner
     function setRebalancer(address _rebalancer) external only(owner()) {
+        if (_rebalancer == address(0)) revert VaultZeroCheck();
         rebalancer = _rebalancer;
         emit VaultRebalancerSet(_rebalancer);
     }
@@ -106,6 +111,7 @@ contract Vault is Ownable2Step, IVault {
     /// @param _feeRecipient The fee recipient address
     /// @dev only owner
     function setFeeRecipient(address _feeRecipient) external only(owner()) {
+        if (_feeRecipient == address(0)) revert VaultZeroCheck();
         feeRecipient = _feeRecipient;
         emit VaultFeeRecipientSet(_feeRecipient);
     }
@@ -116,6 +122,7 @@ contract Vault is Ownable2Step, IVault {
     function setEmergencyResponder(
         address _emergencyResponder
     ) external only(owner()) {
+        if (_emergencyResponder == address(0)) revert VaultZeroCheck();
         emergencyResponder = _emergencyResponder;
         emit VaultEmergencyResponderSet(_emergencyResponder);
     }
