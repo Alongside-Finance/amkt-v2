@@ -26,10 +26,11 @@ import "../../../proxy/utils/Initializable.sol";
  * _Available since v4.2._
  */
 abstract contract ERC20VotesUpgradeable is Initializable, IVotesUpgradeable, ERC20PermitUpgradeable {
-    function __ERC20Votes_init() internal onlyInitializing {}
+    function __ERC20Votes_init() internal onlyInitializing {
+    }
 
-    function __ERC20Votes_init_unchained() internal onlyInitializing {}
-
+    function __ERC20Votes_init_unchained() internal onlyInitializing {
+    }
     struct Checkpoint {
         uint32 fromBlock;
         uint224 votes;
@@ -198,7 +199,11 @@ abstract contract ERC20VotesUpgradeable is Initializable, IVotesUpgradeable, ERC
      *
      * Emits a {IVotes-DelegateVotesChanged} event.
      */
-    function _afterTokenTransfer(address from, address to, uint256 amount) internal virtual override {
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal virtual override {
         super._afterTokenTransfer(from, to, amount);
 
         _moveVotingPower(delegates(from), delegates(to), amount);
@@ -219,7 +224,11 @@ abstract contract ERC20VotesUpgradeable is Initializable, IVotesUpgradeable, ERC
         _moveVotingPower(currentDelegate, delegatee, delegatorBalance);
     }
 
-    function _moveVotingPower(address src, address dst, uint256 amount) private {
+    function _moveVotingPower(
+        address src,
+        address dst,
+        uint256 amount
+    ) private {
         if (src != dst && amount > 0) {
             if (src != address(0)) {
                 (uint256 oldWeight, uint256 newWeight) = _writeCheckpoint(_checkpoints[src], _subtract, amount);
@@ -248,12 +257,7 @@ abstract contract ERC20VotesUpgradeable is Initializable, IVotesUpgradeable, ERC
         if (pos > 0 && oldCkpt.fromBlock == block.number) {
             _unsafeAccess(ckpts, pos - 1).votes = SafeCastUpgradeable.toUint224(newWeight);
         } else {
-            ckpts.push(
-                Checkpoint({
-                    fromBlock: SafeCastUpgradeable.toUint32(block.number),
-                    votes: SafeCastUpgradeable.toUint224(newWeight)
-                })
-            );
+            ckpts.push(Checkpoint({fromBlock: SafeCastUpgradeable.toUint32(block.number), votes: SafeCastUpgradeable.toUint224(newWeight)}));
         }
     }
 
