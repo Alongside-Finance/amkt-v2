@@ -16,4 +16,9 @@ contract BaseTest is Test {
 
         require(actual <= upper && actual >= lower, "rangeCheck");
     }
+
+    function warpForward(uint256 secondsToMove) internal {
+        vm.warp(block.timestamp + secondsToMove);
+        vm.roll(block.number + secondsToMove / 12);
+    }
 }

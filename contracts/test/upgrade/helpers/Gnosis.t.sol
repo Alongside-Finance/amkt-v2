@@ -1,6 +1,7 @@
 pragma solidity =0.8.15;
 
 import "forge-std/Test.sol";
+import {BaseTest} from "test/BaseTest.t.sol";
 import {MULTISIG} from "src/scripts/Config.sol";
 
 struct GnosisTransaction {
@@ -54,7 +55,7 @@ interface IMultiSendCallOnly {
     function multiSend(bytes memory transactions) external payable;
 }
 
-contract GnosisTest is Test {
+contract GnosisTest is BaseTest {
     using stdStorage for StdStorage;
     IGnosisSafe safe = IGnosisSafe(MULTISIG);
     IMultiSendCallOnly multiSendCallOnly =

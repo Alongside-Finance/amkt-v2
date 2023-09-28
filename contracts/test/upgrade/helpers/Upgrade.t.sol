@@ -36,7 +36,7 @@ contract UpgradeTest is GnosisTest {
         mockSafeBalances(); // TODO: Remove when ready. Due before bundle submission.
         checkSafeBalances();
         GnosisTransaction[] memory batch = createUpgradeBatch();
-        // vm.warp(block.timestamp + 1 hours); // there will be some time after we craft the batch, and we execute it
+        warpForward(1 hours); // there will be some time after we craft the batch, and we execute it
         bytes memory dataExecuted = executeBatch(batch);
     }
 
@@ -75,7 +75,7 @@ contract UpgradeTest is GnosisTest {
         newTokenImplementation = deployed.newTokenImplementation;
         timelockInvokeableBounty = deployed.timelockInvokeableBounty;
         timelockActiveBounty = deployed.timelockActiveBounty;
-        vm.warp(block.timestamp + 7 days + 2 hours);
+        warpForward(7 days + 2 hours);
     }
 
     function mockSafeBalances() internal {
