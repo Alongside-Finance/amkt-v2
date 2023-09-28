@@ -20,7 +20,7 @@ contract UpgradedFunctionalityTest is UpgradeTest {
         vault.tryInflation();
         assertEq(AMKT.totalSupply(), beforeSupply);
 
-        vm.warp(block.timestamp + 1 days);
+        vm.warp(block.timestamp + 1);
         vault.tryInflation();
         assertGe(AMKT.totalSupply(), beforeSupply);
     }
@@ -34,6 +34,11 @@ contract UpgradedFunctionalityTest is UpgradeTest {
         AMKT.approve(address(issuance), AMKT.balanceOf(largeAmktHolder));
         issuance.redeem(amount);
         vm.stopPrank();
+    }
+
+    function testCanRedeemAll() public {
+        deal(address(AMKT), address(this), AMKT.totalSupply());
+        issuance.redeem(AMKT.totalSupply());
     }
 
     function testVaultCanMint(uint256 amount) public {
@@ -63,9 +68,10 @@ contract UpgradedFunctionalityTest is UpgradeTest {
         AMKT.burn(largeAmktHolder, 1);
     }
 
-    function testIssuance(uint256 amount) public {
-        vm.assume(amount < 1e25);
-        assistedMint(address(this), amount);
+    function testIssuance(uint256 issueAmount, uint256 redeemAmount) public {
+        vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
+        vm.assume(redeemAmount <= issueAmount);
+        assistedMint(address(this), issueAmount);
         TokenInfo[] memory tokens = vault.realUnits();
 
         // Check the balances of address(this) after issuance
@@ -75,7 +81,7 @@ contract UpgradedFunctionalityTest is UpgradeTest {
         }
 
         // check that user can redeem afterwards
-        issuance.redeem(amount);
+        issuance.redeem(redeemAmount);
     }
 
     // Helpers
