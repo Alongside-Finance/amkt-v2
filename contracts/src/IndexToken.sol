@@ -52,7 +52,7 @@ contract IndexToken is ERC20VotesUpgradeable, IIndexToken {
 
         _totalSupplyCheckpoints.push(
             Checkpoint({
-                fromBlock: uint32(block.number),
+                fromBlock: uint32(block.number - 1),
                 votes: uint224(totalSupply())
             })
         );
