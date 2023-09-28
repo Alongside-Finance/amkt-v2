@@ -1,4 +1,4 @@
-pragma solidity =0.8.15;
+pragma solidity =0.8.18;
 
 import {IIndexToken} from "../interfaces/IIndexToken.sol";
 import {IVault} from "../interfaces/IVault.sol";

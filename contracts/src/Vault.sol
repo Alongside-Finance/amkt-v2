@@ -1,4 +1,4 @@
-pragma solidity =0.8.15;
+pragma solidity =0.8.18;
 
 import {VerifiableAddressArray} from "./lib/VArray.sol";
 import {IVault} from "./interfaces/IVault.sol";
