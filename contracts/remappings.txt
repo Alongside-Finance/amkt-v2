@@ -7,6 +7,3 @@ core-test/=test/core/
 mocks/=test/mocks/
 @openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
 @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
-@optimism/=lib/optimism/packages/contracts-bedrock/contracts
-@amkt/contracts/=lib/amkt-contracts/src
-@layerzero/contracts/=lib/solidity-examples/contracts/
