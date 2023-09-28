@@ -1,4 +1,4 @@
-pragma solidity =0.8.15;
+pragma solidity =0.8.18;
 
 import "forge-std/Test.sol";
 import {__1__MultisigStep1Test} from "./__1__MultisigStep1.t.sol";

@@ -1,4 +1,4 @@
-pragma solidity =0.8.15;
+pragma solidity =0.8.18;
 
 import {Script} from "forge-std/Script.sol";
 import {MULTISIG, PROXY, PROXY_ADMIN, FEE_SCALED} from "src/scripts/Config.sol";

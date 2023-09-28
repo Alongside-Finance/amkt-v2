@@ -1,4 +1,4 @@
-pragma solidity =0.8.15;
+pragma solidity =0.8.18;
 
 import {StatefulTest, Mocks} from "core-test/State.t.sol";
 import {InvokeableBounty, Bounty} from "invoke-modules/Bounty.sol";

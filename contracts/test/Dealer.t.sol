@@ -1,5 +1,5 @@
 //File: contracts/test/migration/Dealer.sol
-pragma solidity =0.8.15;
+pragma solidity =0.8.18;
 
 import "forge-std/Test.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";

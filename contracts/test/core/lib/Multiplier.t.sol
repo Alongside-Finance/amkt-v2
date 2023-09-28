@@ -1,4 +1,4 @@
-pragma solidity =0.8.15;
+pragma solidity =0.8.18;
 
 import {console} from "forge-std/console.sol";
 import {Multiplier} from "src/lib/Multiplier.sol";
