@@ -45,7 +45,7 @@ contract Issuance {
         require(tokens.length > 0, "No tokens in vault");
 
         uint256 amountIncludingIntradayInflation = fmul(
-            vault.intradayMultiplier(),
+            vault.intradayInflation(),
             amount
         );
 

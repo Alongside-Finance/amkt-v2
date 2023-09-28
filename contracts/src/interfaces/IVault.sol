@@ -57,7 +57,7 @@ interface IVault {
 
     function invariantCheck() external view;
 
-    function intradayMultiplier() external view returns (uint256);
+    function intradayInflation() external view returns (uint256);
 
     function isUnderlying(address target) external view returns (bool);
 
