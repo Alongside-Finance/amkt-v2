@@ -266,7 +266,7 @@ contract InvokeableBounty {
     ) public view returns (bytes32 hash) {
         return
             keccak256(
-                abi.encodePacked(
+                abi.encode(
                     "alongside::invoker::bounty",
                     abi.encode(version),
                     abi.encode(chainId),
