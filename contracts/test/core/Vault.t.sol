@@ -120,15 +120,15 @@ contract VaultTest is StatefulTest {
         if (toFail) vm.expectRevert();
         vault.transferOwnership(address(this));
         if (toFail) vm.expectRevert();
-        vault.setIssuance(address(0));
+        vault.setIssuance(address(1));
         if (toFail) vm.expectRevert();
-        vault.setRebalancer(address(0));
+        vault.setRebalancer(address(1));
         if (toFail) vm.expectRevert();
-        vault.setFeeRecipient(address(0));
+        vault.setFeeRecipient(address(1));
         if (toFail) vm.expectRevert();
         vault.setFeeScaled(0);
         if (toFail) vm.expectRevert();
-        vault.setEmergencyResponder(address(0));
+        vault.setEmergencyResponder(address(1));
     }
 
     function testRealUnits() public {
