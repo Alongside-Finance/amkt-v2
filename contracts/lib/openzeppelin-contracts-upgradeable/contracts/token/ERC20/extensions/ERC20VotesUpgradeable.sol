@@ -9,7 +9,6 @@ import "../../../governance/utils/IVotesUpgradeable.sol";
 import "../../../utils/math/SafeCastUpgradeable.sol";
 import "../../../utils/cryptography/ECDSAUpgradeable.sol";
 import "../../../proxy/utils/Initializable.sol";
-import {console} from "forge-std/console.sol";
 
 /**
  * @dev Extension of ERC20 to support Compound-like voting and delegation. This version is more generic than Compound's,
@@ -190,9 +189,8 @@ abstract contract ERC20VotesUpgradeable is Initializable, IVotesUpgradeable, ERC
      */
     function _burn(address account, uint256 amount) internal virtual override {
         super._burn(account, amount);
-        console.log("before _writeCheckpoint");
+
         _writeCheckpoint(_totalSupplyCheckpoints, _subtract, amount);
-        console.log("after _writeCheckpoint");
     }
 
     /**
@@ -241,7 +239,6 @@ abstract contract ERC20VotesUpgradeable is Initializable, IVotesUpgradeable, ERC
         uint256 delta
     ) private returns (uint256 oldWeight, uint256 newWeight) {
         uint256 pos = ckpts.length;
-        console.log("pos: %s", pos);
 
         Checkpoint memory oldCkpt = pos == 0 ? Checkpoint(0, 0) : _unsafeAccess(ckpts, pos - 1);
 

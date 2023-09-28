@@ -7,7 +7,6 @@ import "../../utils/Counters.sol";
 import "../../utils/Checkpoints.sol";
 import "../../utils/cryptography/EIP712.sol";
 import "./IVotes.sol";
-import {console} from "forge-std/console.sol";
 
 /**
  * @dev This is a base abstract contract that tracks voting units, which are a measure of voting power that can be
@@ -138,7 +137,6 @@ abstract contract Votes is IVotes, Context, EIP712 {
      * should be zero. Total supply of voting units will be adjusted with mints and burns.
      */
     function _transferVotingUnits(address from, address to, uint256 amount) internal virtual {
-        console.log("_transferVotingUnits");
         if (from == address(0)) {
             _totalCheckpoints.push(_add, amount);
         }
