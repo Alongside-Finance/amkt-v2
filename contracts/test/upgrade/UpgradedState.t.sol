@@ -256,4 +256,18 @@ contract UpgradedStateTest is UpgradeTest {
         );
         assertEq(AMKT.DOMAIN_SEPARATOR(), expectedDomainSeparator);
     }
+
+    function testInitializeAssembly() public {
+        address target = address(AMKT);
+        assertEq(
+            vm.load(target, bytes32(uint256(101))),
+            keccak256(bytes(AMKT.name()))
+        );
+        assertEq(vm.load(target, bytes32(uint256(102))), keccak256(bytes("2")));
+        assertEq(
+            vm.load(target, keccak256("Alongside::Token::MinterSlot")),
+            bytes32(uint256(uint160(AMKT.minter())))
+        );
+        // TODO: add tests for total supply checkpoints
+    }
 }
