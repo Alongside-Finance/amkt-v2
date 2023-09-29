@@ -15,7 +15,7 @@ uint256 constant AVG_BLOCK_TIME = 12; // seconds
 uint256 constant VOTE_DELAY = 1 days / AVG_BLOCK_TIME;
 uint256 constant VOTE_PERIOD = 4 days / AVG_BLOCK_TIME;
 uint256 constant PROPOSAL_THRESHOLD = 100e18; // Number of votes required to create a proposal
-uint256 constant GOVERNOR_NUMERATOR = 5;
+uint256 constant GOVERNOR_NUMERATOR = 250;
 
 address constant MULTISIG = address(0xAeB9ef94b6542BE7112f3a295646B5AaAa9Fca13);
 
