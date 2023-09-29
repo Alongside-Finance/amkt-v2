@@ -8,7 +8,7 @@ import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {fmul} from "src/lib/FixedPoint.sol";
 import {console} from "forge-std/console.sol";
 
-contract UpgradedFunctionalityTest is UpgradeTest {
+contract UpgradedIssuanceTest is UpgradeTest {
     address largeAmktHolder =
         address(0x804B68f60765F4559b7096B158C912eD33aa0c26);
     address oldMinter = address(0x0D44F856E1a7c70E35c54261c3f07DbFBDCA4857);

@@ -135,6 +135,19 @@ contract UpgradedGovernanceTest is UpgradeTest {
         vm.stopPrank();
     }
 
+    function testMultisigTimelockProposal() public {
+        vm.startPrank(MULTISIG);
+        timelockController.schedule(
+            address(vault),
+            0,
+            abi.encodeWithSignature("acceptOwnership()"),
+            0,
+            keccak256("hash"),
+            timelockController.getMinDelay()
+        );
+        vm.stopPrank();
+    }
+
     function makeProposalPass(Proposal memory proposal) public {
         vm.startPrank(largeAmktHolder);
         AMKT.delegate(largeAmktHolder);
