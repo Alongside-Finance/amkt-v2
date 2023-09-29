@@ -9,6 +9,7 @@ import {SCALAR, fdiv, fmul, finv} from "./lib/FixedPoint.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import {console} from "forge-std/console.sol";
 
 contract Vault is Ownable2Step, IVault {
     using VerifiableAddressArray for VerifiableAddressArray.VerifiableArray;
@@ -368,11 +369,14 @@ contract Vault is Ownable2Step, IVault {
         );
 
         for (uint256 i; i < tokens.length; ) {
+            uint256 balance = IERC20(tokens[i].token).balanceOf(address(this));
             uint256 expectedAmount = fmul(tokens[i].units, totalSupply);
-            if (
-                IERC20(tokens[i].token).balanceOf(address(this)) <
-                expectedAmount
-            ) revert VaultInvariant();
+
+            if (balance < expectedAmount) {
+                console.log(balance);
+                console.log(expectedAmount);
+                revert VaultInvariant();
+            }
 
             unchecked {
                 ++i;

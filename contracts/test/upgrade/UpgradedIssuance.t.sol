@@ -84,8 +84,33 @@ contract UpgradedIssuanceTest is UpgradeTest {
         issuance.redeem(redeemAmount);
     }
 
-    // Helpers
+    /// forge-config: default.fuzz.runs = 2048
+    function testIssuanceWithJitter(
+        uint256 issueAmount,
+        uint256 redeemAmount,
+        uint256 jitter
+    ) public {
+        issueAmount = bound(issueAmount, 0, 10_000_000e18);
+        redeemAmount = bound(redeemAmount, 0, issueAmount);
+        vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
+        vm.assume(redeemAmount <= issueAmount);
+        vm.assume(jitter < 365 days);
+        warpForward(jitter);
+        assistedMint(address(this), issueAmount);
+        TokenInfo[] memory tokens = vault.realUnits();
 
+        // Check the balances of address(this) after issuance
+        for (uint256 i = 0; i < tokens.length; i++) {
+            IERC20 token = IERC20(tokens[i].token);
+            assertEq(token.balanceOf(address(this)), 0);
+        }
+
+        // check that user can redeem afterwards
+        warpForward(jitter);
+        issuance.redeem(redeemAmount);
+    }
+
+    // Helpers
     function assistedMint(address to, uint256 amount) internal {
         vault.tryInflation();
         Dealer dealer = new Dealer();
