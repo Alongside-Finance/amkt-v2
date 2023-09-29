@@ -89,6 +89,16 @@ contract AlongsideGovernor is
         return super.proposalThreshold();
     }
 
+    function quorumDenominator()
+        public
+        view
+        virtual
+        override(GovernorVotesQuorumFraction)
+        returns (uint256)
+    {
+        return 10000;
+    }
+
     function _execute(
         uint256 proposalId,
         address[] memory targets,
