@@ -87,9 +87,28 @@ contract UpgradedIssuanceTest is UpgradeTest {
     /// forge-config: default.fuzz.runs = 2048
     function testIssuanceWithJitter(
         uint256 issueAmount,
+        uint256 jitter
+    ) public {
+        console.log("issueAmount: %s", issueAmount);
+        console.log("jitter: %s", jitter);
+        issueAmount = bound(issueAmount, 0, 10_000_000e18);
+        vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
+        vm.assume(jitter < 365 days);
+        warpForward(jitter);
+        assistedMint(address(this), issueAmount);
+        warpForward(jitter);
+        assistedMint(address(this), issueAmount);
+    }
+
+    /// forge-config: default.fuzz.runs = 2048
+    function testIssuanceAndRedemptionWithJitter(
+        uint256 issueAmount,
         uint256 redeemAmount,
         uint256 jitter
     ) public {
+        console.log("issueAmount: %s", issueAmount);
+        console.log("redeemAmount: %s", redeemAmount);
+        console.log("jitter: %s", jitter);
         issueAmount = bound(issueAmount, 0, 10_000_000e18);
         redeemAmount = bound(redeemAmount, 0, issueAmount);
         vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
