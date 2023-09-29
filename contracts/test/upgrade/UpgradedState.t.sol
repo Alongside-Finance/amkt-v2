@@ -268,6 +268,23 @@ contract UpgradedStateTest is UpgradeTest {
             vm.load(target, keccak256("Alongside::Token::MinterSlot")),
             bytes32(uint256(uint160(AMKT.minter())))
         );
-        // TODO: add tests for total supply checkpoints
+        bytes32 totalSupplyCheckpointsHash = keccak256(
+            abi.encodePacked(uint256(206))
+        );
+        // block.number is casted to 32 bits by SafeCastUpgradeable.toUint32
+        assertEq(
+            vm.load(target, totalSupplyCheckpointsHash),
+            (bytes32(block.number - 1)) | (bytes32(AMKT.totalSupply()) << 32)
+        );
+        // check 5 more indices to make sure they are all zero
+        for (uint256 i = 0; i < 5; i++) {
+            assertEq(
+                vm.load(
+                    target,
+                    bytes32(uint256(totalSupplyCheckpointsHash) + i + 1)
+                ),
+                bytes32(uint256(0))
+            );
+        }
     }
 }
