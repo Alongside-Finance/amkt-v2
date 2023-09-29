@@ -78,19 +78,43 @@ contract UpgradedGovernanceTest is UpgradeTest {
         assertNotEq(vault.owner(), address(timelockController));
     }
 
+    function testTransfers() public {
+        uint256 balance = AMKT.balanceOf(largeAmktHolder);
+        vm.prank(largeAmktHolder);
+        AMKT.transfer(address(1), balance / 2);
+        assertEq(AMKT.getVotes(largeAmktHolder), 0);
+        assertEq(AMKT.getVotes(address(1)), 0);
+        vm.prank(largeAmktHolder);
+        AMKT.delegate(address(1));
+        assertEq(AMKT.getVotes(address(1)), balance / 2);
+        vm.prank(largeAmktHolder);
+        AMKT.transfer(address(2), 1e18);
+
+        assertEq(AMKT.getVotes(largeAmktHolder), 0);
+        assertEq(AMKT.getVotes(address(1)), balance / 2 - 1e18);
+        assertEq(AMKT.getVotes(address(2)), 0);
+
+        vm.prank(address(1));
+        AMKT.delegate(largeAmktHolder);
+
+        assertEq(AMKT.getVotes(largeAmktHolder), balance / 2);
+        assertEq(AMKT.getVotes(address(1)), balance / 2 - 1e18);
+
+        vm.prank(address(2));
+        AMKT.delegate(address(2));
+
+        assertEq(AMKT.getVotes(address(2)), 1e18);
+    }
+
     /// forge-config: default.fuzz.runs = 10
-    function testDelegateVoting(address user1, address user2) public {
-        vm.assume(user1 != address(0));
-        vm.assume(user2 != address(0));
+    function testDelegateVoting(address user) public {
+        vm.assume(user != address(0));
         vm.prank(largeAmktHolder);
-        AMKT.delegate(user1); // intermediate hop to user 1
+        AMKT.delegate(user); // intermediate hop to user 1
         warpForward(1 * AVG_BLOCK_TIME);
-        vm.prank(largeAmktHolder);
-        AMKT.delegate(user2); // finally, delegate to user 2
-        warpForward(1 * AVG_BLOCK_TIME);
-        assertEq(AMKT.getVotes(user2), AMKT.balanceOf(largeAmktHolder));
+        assertEq(AMKT.getVotes(user), AMKT.balanceOf(largeAmktHolder));
         assertEq(
-            AMKT.getPastVotes(user2, block.number - 1),
+            AMKT.getPastVotes(user, block.number - 1),
             AMKT.balanceOf(largeAmktHolder)
         );
         Proposal memory proposal = createSingleItemProposal(
@@ -99,7 +123,7 @@ contract UpgradedGovernanceTest is UpgradeTest {
             abi.encodeWithSignature("acceptOwnership()"),
             "Accept vault ownership"
         );
-        vm.startPrank(user2);
+        vm.startPrank(user);
         uint256 proposalId = governor.propose(
             proposal.targets,
             proposal.values,

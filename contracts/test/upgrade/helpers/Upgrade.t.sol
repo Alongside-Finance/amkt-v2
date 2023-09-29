@@ -32,7 +32,6 @@ contract UpgradeTest is GnosisTest {
     function setUp() public {
         vm.createSelectFork(vm.envString("MAINNET_RPC"), 18229914);
         enableSimulation();
-
         setDeployedContracts();
         mockSafeBalances(); // TODO: Remove when ready. Due before bundle submission.
         checkSafeBalances();
@@ -43,28 +42,28 @@ contract UpgradeTest is GnosisTest {
 
     function setDeployedContracts() internal {
         AMKT = IndexToken(AMKTAddress);
-        vault = Vault(0xD62A80368AdF5919f70193D15dCbD5C77EAf55ac);
-        issuance = Issuance(0x58AD9D36AfAc51206672f855Bf7e76037c5F5198);
-        invokeableBounty = InvokeableBounty(
-            0x366A647DE921608bee3987025D23f12263da6884
-        );
-        activeBounty = ActiveBounty(0x12bc3CCaA2E213e9D50faB9752A9daFac01b962F);
-        governor = AlongsideGovernor(
-            payable(0x774045B30e6fC5DfE73bF386E8845CA1472fb45e)
-        );
-        timelockController = TimelockController(
-            payable(0xB3970Ae79fD2cD8f1060cF6BAeae27b8E2c05437)
-        );
-        newTokenImplementation = address(
-            0x775715D96cD3B3586728B7420A13Ec74f5dc9e8f
-        );
+        // vault = Vault(0xD62A80368AdF5919f70193D15dCbD5C77EAf55ac);
+        // issuance = Issuance(0x58AD9D36AfAc51206672f855Bf7e76037c5F5198);
+        // invokeableBounty = InvokeableBounty(
+        //     0x366A647DE921608bee3987025D23f12263da6884
+        // );
+        // activeBounty = ActiveBounty(0x12bc3CCaA2E213e9D50faB9752A9daFac01b962F);
+        // governor = AlongsideGovernor(
+        //     payable(0x774045B30e6fC5DfE73bF386E8845CA1472fb45e)
+        // );
+        // timelockController = TimelockController(
+        //     payable(0xB3970Ae79fD2cD8f1060cF6BAeae27b8E2c05437)
+        // );
+        // newTokenImplementation = address(
+        //     0x775715D96cD3B3586728B7420A13Ec74f5dc9e8f
+        // );
 
-        timelockActiveBounty = ActiveBounty(
-            0x8D2A6bcB5713d4b57f2FffB119B7B6D0143e25ed
-        );
-        timelockInvokeableBounty = InvokeableBounty(
-            0x703814F9172D6E6EF10F89fCAdE3ff480d812a45
-        );
+        // timelockActiveBounty = ActiveBounty(
+        //     0x8D2A6bcB5713d4b57f2FffB119B7B6D0143e25ed
+        // );
+        // timelockInvokeableBounty = InvokeableBounty(
+        //     0x703814F9172D6E6EF10F89fCAdE3ff480d812a45
+        // );
         CoreDeployScript script = new CoreDeployScript(); // TODO: Remove when ready. Due before external review.
         CoreDeployScript.DeployedContracts memory deployed = script.run(); // TODO: Remove when ready. Due vefore external review.
         vault = deployed.vault;
@@ -189,7 +188,7 @@ contract UpgradeTest is GnosisTest {
             )
         });
 
-        // Transfer ownership to timelock
+        // Transfer vault ownership to timelock
         batch[21] = GnosisTransaction({
             to: address(vault),
             data: abi.encodeWithSelector(
@@ -198,7 +197,7 @@ contract UpgradeTest is GnosisTest {
             )
         });
 
-        // Change proxy admin to timelock
+        // Transfer proxyAdmin ownership to timelock
         batch[22] = GnosisTransaction({
             to: PROXY_ADMIN,
             data: abi.encodeWithSelector(
