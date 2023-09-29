@@ -276,6 +276,16 @@ contract UpgradedStateTest is UpgradeTest {
             vm.load(target, totalSupplyCheckpointsHash),
             (bytes32(block.number - 1)) | (bytes32(AMKT.totalSupply()) << 32)
         );
+        // check using encodePacked too
+        assertEq(
+            vm.load(target, totalSupplyCheckpointsHash),
+            bytes32(
+                abi.encodePacked(
+                    uint224(AMKT.totalSupply()),
+                    uint32(block.number - 1)
+                )
+            )
+        );
         // check 5 more indices to make sure they are all zero
         for (uint256 i = 0; i < 5; i++) {
             assertEq(
