@@ -47,11 +47,11 @@ contract Issuance {
         uint256 amountIncludingIntradayInflation = fmul(
             vault.intradayInflation(),
             amount
-        );
+        ) + 1;
 
         for (uint256 i; i < tokens.length; ) {
             uint256 underlyingAmount = fmul(
-                tokens[i].units,
+                tokens[i].units + 1,
                 amountIncludingIntradayInflation
             ) + 1;
 
