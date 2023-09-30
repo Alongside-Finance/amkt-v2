@@ -23,8 +23,8 @@ contract BountyTest is StatefulTest {
         TokenInfo[] memory tokens = seedInitial(quantity);
 
         // assert the multiplier has been resset
-        (, , uint256 current, ) = vault.multiplier();
-        assertEq(current, SCALAR);
+        (, , uint256 currentMultiplier) = vault.multiplier();
+        assertEq(currentMultiplier, SCALAR);
 
         // seedInitial() just uses acsending token mock
         for (uint256 i = 0; i < tokens.length; i++) {

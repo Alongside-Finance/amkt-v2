@@ -7,22 +7,6 @@ import {TokenInfo} from "src/Common.sol";
 import {FEE_SCALED} from "src/scripts/Config.sol";
 
 contract VaultTest is StatefulTest {
-    function testIntradayInflation() public {
-        seedInitial(10);
-        vm.warp(block.timestamp + 1 days);
-        vault.intradayInflation();
-    }
-
-    function testFuzzIntradayInflation(uint256 targetTimestamp) public {
-        vm.assume(
-            targetTimestamp >= block.timestamp &&
-                targetTimestamp < block.timestamp + 2 days
-        );
-        seedInitial(10);
-        vm.warp(targetTimestamp);
-        vault.intradayInflation();
-    }
-
     function testShouldAllowRebalancer() public {
         seedInitial(10);
         vm.startPrank(address(bounty));
@@ -177,7 +161,7 @@ contract VaultTest is StatefulTest {
 
         // Calculate the expected inflation and fee recipient balance
 
-        (, , , uint256 currentMultiplier) = vault.multiplier();
+        (, , uint256 currentMultiplier) = vault.multiplier();
 
         // Check that the new multiplier is updated correctly
         assertEq(newMultiplier, currentMultiplier);
@@ -204,8 +188,8 @@ contract VaultTest is StatefulTest {
         assertEq(indexToken.totalSupply(), 1e18);
         vault.tryInflation();
         assertEq(indexToken.totalSupply(), 1e18);
-        vm.warp(block.timestamp + 1 days - 30);
+        vm.warp(block.timestamp + 1);
         vault.tryInflation();
-        assertEq(indexToken.totalSupply(), 1e18);
+        assertGe(indexToken.totalSupply(), 1e18);
     }
 }

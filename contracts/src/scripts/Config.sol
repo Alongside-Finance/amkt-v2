@@ -23,7 +23,7 @@ address constant FEE_RECEIPIENT = address(
     0xC19a5b6E0a923519603985153515222D59cb3F2e
 );
 
-uint256 constant FEE_SCALED = 26151474053915;
+uint256 constant FEE_SCALED = 302679097;
 
 address constant PROXY = address(0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D);
 address constant PROXY_ADMIN = address(
@@ -74,7 +74,7 @@ contract InitialBountyHelper {
         tokens[5] = TokenInfo(SHIB, 1e19);
         tokens[6] = TokenInfo(AVAX, 1e18);
         tokens[7] = TokenInfo(LINK, 1e17);
-        tokens[8] = TokenInfo(UNI, 16);
+        tokens[8] = TokenInfo(UNI, 1e16);
         tokens[9] = TokenInfo(LDO, 1e15);
         tokens[10] = TokenInfo(MNT, 1e14);
         tokens[11] = TokenInfo(CRO, 1e13);

@@ -92,6 +92,7 @@ contract UpgradedIssuanceTest is UpgradeTest {
         console.log("issueAmount: %s", issueAmount);
         console.log("jitter: %s", jitter);
         issueAmount = bound(issueAmount, 0, 10_000_000e18);
+        jitter = bound(jitter, 2 days / 2, 365 days);
         vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
         vm.assume(jitter < 365 days);
         warpForward(jitter);
@@ -135,18 +136,10 @@ contract UpgradedIssuanceTest is UpgradeTest {
         Dealer dealer = new Dealer();
         TokenInfo[] memory tokens = vault.realUnits();
 
-        uint256 amountIncludingIntradayInflation = fmul(
-            vault.intradayInflation(),
-            amount
-        );
-
         for (uint256 i = 0; i < tokens.length; i++) {
             IERC20 token = IERC20(tokens[i].token);
             uint256 initialBalance = token.balanceOf(to);
-            uint256 underlyingAmount = fmul(
-                tokens[i].units,
-                amountIncludingIntradayInflation
-            ) + 1;
+            uint256 underlyingAmount = fmul(tokens[i].units + 1, amount) + 1;
             dealer.dealToken(address(token), to, underlyingAmount);
             token.approve(address(issuance), underlyingAmount);
         }

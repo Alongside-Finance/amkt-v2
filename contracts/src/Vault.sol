@@ -157,23 +157,20 @@ contract Vault is Ownable2Step, IVault {
         uint256 startingSupply = indexToken.totalSupply();
 
         (
-            uint256 timestamp,
-            uint256 trackedMultiplier,
-            uint256 newFeeAccrued,
+            uint256 feeToAccrue,
+            uint256 currentTimestamp,
             uint256 currentMultiplier
         ) = multiplier();
 
-        if (newFeeAccrued < SCALAR) {
-            uint256 inflation = fmul(startingSupply, finv(newFeeAccrued)) -
+        if (currentMultiplier < SCALAR) {
+            uint256 inflation = fdiv(startingSupply, feeToAccrue) -
                 startingSupply;
 
-            lastKnownMultiplier = trackedMultiplier;
-            lastKnownTimestamp = timestamp;
+            lastKnownMultiplier = currentMultiplier;
+            lastKnownTimestamp = currentTimestamp;
 
-            if (inflation > 0) {
-                indexToken.mint(feeRecipient, inflation);
-                emit VaultFeeMinted(feeRecipient, inflation);
-            }
+            indexToken.mint(feeRecipient, inflation);
+            emit VaultFeeMinted(feeRecipient, inflation);
         }
 
         return currentMultiplier;
@@ -274,7 +271,7 @@ contract Vault is Ownable2Step, IVault {
 
     /// @notice Returns the virtual units of all tokens
     /// @return TokenInfo[] memory
-    function virtualUnits() external view returns (TokenInfo[] memory) {
+    function virtualUnits() public view returns (TokenInfo[] memory) {
         address[] storage stor = _underlying.toStorageArray();
         uint256 len = stor.length;
 
@@ -291,7 +288,7 @@ contract Vault is Ownable2Step, IVault {
     /// @notice Returns the real units of a token
     /// @dev warning! does not revert on non-underlying token
     function realUnits(address token) external view returns (uint256) {
-        (, , , uint256 currentMultiplier) = multiplier();
+        (, , uint256 currentMultiplier) = multiplier();
         return _computeRealUnits(token, currentMultiplier);
     }
 
@@ -303,7 +300,7 @@ contract Vault is Ownable2Step, IVault {
 
         TokenInfo[] memory info = new TokenInfo[](len);
 
-        (, , , uint256 currentMultiplier) = multiplier();
+        (, , uint256 currentMultiplier) = multiplier();
 
         for (uint256 i; i < len; i++) {
             address token = stor[i];
@@ -328,32 +325,23 @@ contract Vault is Ownable2Step, IVault {
         return _underlying.size();
     }
 
-    /// @notice Returns the multiplier
-    /// @return trackedTimestamp the new tracked timestamp
-    /// @return trackedMultiplier the new tracked multiplier, this is helpful to cache so we don't need to start from the beginning
-    /// @return newFeeAccrued the new fee from this call, does not account for the old tracked multiplier, this does not incude intermediate values and is how inflation accrual works
-    /// @return currentMultiplier the new multiplier for the current block timestamp, this is an intermediate value and not tracked, it is what's applied to the nominals
+    // TODO: new natspec
     /// @dev view function so this does't actually do anything
     function multiplier()
         public
         view
         returns (
-            uint256 trackedTimestamp,
-            uint256 trackedMultiplier,
-            uint256 newFeeAccrued,
+            uint256 feeToAccrue,
+            uint256 currentTimestamp,
             uint256 currentMultiplier
         )
     {
-        (
-            trackedTimestamp,
-            trackedMultiplier,
-            newFeeAccrued,
-            currentMultiplier
-        ) = Multiplier.computeMultiplier(
-            lastKnownTimestamp,
-            lastKnownMultiplier,
-            feeScaled
-        );
+        (feeToAccrue, currentTimestamp, currentMultiplier) = Multiplier
+            .computeMultiplier(
+                lastKnownTimestamp,
+                lastKnownMultiplier,
+                feeScaled
+            );
     }
 
     /// @notice Checks that the vault is in a valid state
@@ -362,17 +350,25 @@ contract Vault is Ownable2Step, IVault {
     function invariantCheck() public view {
         TokenInfo[] memory tokens = realUnits();
 
-        // adjust total supply by inverse of intraday fee (inflation)
-        uint256 totalSupply = fmul(
-            intradayInflation(),
-            indexToken.totalSupply()
-        );
-
         for (uint256 i; i < tokens.length; ) {
             uint256 balance = IERC20(tokens[i].token).balanceOf(address(this));
-            uint256 expectedAmount = fmul(tokens[i].units, totalSupply);
+            uint256 expectedAmount = fmul(
+                tokens[i].units,
+                indexToken.totalSupply()
+            );
+
+            if (
+                tokens[i].token ==
+                address(0x4a220E6096B25EADb88358cb44068A3248254675)
+            ) {
+                console.log("Total supply: ", indexToken.totalSupply());
+                console.log("QNT real units: ", tokens[i].units);
+                console.log("QNT balance: ", balance);
+                console.log("QNT expected: ", expectedAmount);
+            }
 
             if (balance < expectedAmount) {
+                console.log("Token failed: ", tokens[i].token);
                 console.log(balance);
                 console.log(expectedAmount);
                 revert VaultInvariant();
@@ -382,18 +378,6 @@ contract Vault is Ownable2Step, IVault {
                 ++i;
             }
         }
-    }
-
-    /// @notice Calculates the intraday inflation
-    function intradayInflation() public view returns (uint256) {
-        (, , , uint256 currentMultiplier) = multiplier();
-        uint256 inflation = fdiv(lastKnownMultiplier, currentMultiplier);
-
-        // multiplier should never be less than 1
-        if (inflation < SCALAR) {
-            revert VaultInvariant();
-        }
-        return inflation;
     }
 
     ///////////////////////// INTERNAL /////////////////////////

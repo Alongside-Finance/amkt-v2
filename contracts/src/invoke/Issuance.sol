@@ -7,6 +7,7 @@ import {IVault} from "../interfaces/IVault.sol";
 import {SCALAR, fmul, fdiv} from "../lib/FixedPoint.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {console} from "forge-std/console.sol";
 
 contract Issuance {
     error IssuanceReentrant();
@@ -44,16 +45,19 @@ contract Issuance {
 
         require(tokens.length > 0, "No tokens in vault");
 
-        uint256 amountIncludingIntradayInflation = fmul(
-            vault.intradayInflation(),
-            amount
-        );
-
         for (uint256 i; i < tokens.length; ) {
-            uint256 underlyingAmount = fmul(
-                tokens[i].units,
-                amountIncludingIntradayInflation
-            ) + 1;
+            if (
+                tokens[i].token ==
+                address(0x4a220E6096B25EADb88358cb44068A3248254675)
+            ) {
+                console.log("Issuing: %s", amount);
+                console.log("QNT Real Units: %s", tokens[i].units);
+                console.log(
+                    "QNT fmul amount: %s",
+                    fmul(tokens[i].units, amount)
+                );
+            }
+            uint256 underlyingAmount = fmul(tokens[i].units + 1, amount) + 1;
 
             IERC20(tokens[i].token).safeTransferFrom(
                 msg.sender,

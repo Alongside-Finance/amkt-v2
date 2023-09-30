@@ -52,13 +52,13 @@ interface IVault {
 
     function virtualUnits(address token) external view returns (uint256);
 
+    function virtualUnits() external view returns (TokenInfo[] memory);
+
     function realUnits(address token) external view returns (uint256);
 
     function realUnits() external view returns (TokenInfo[] memory);
 
     function invariantCheck() external view;
-
-    function intradayInflation() external view returns (uint256);
 
     function isUnderlying(address target) external view returns (bool);
 
@@ -76,9 +76,8 @@ interface IVault {
         external
         view
         returns (
-            uint256 lastTrackedTimestamp,
-            uint256 lastTrackedMultiplier,
-            uint256 newFeeAccrued,
-            uint256 multiplier
+            uint256 feeToAccrue,
+            uint256 currentTimestamp,
+            uint256 currentMultiplier
         );
 }

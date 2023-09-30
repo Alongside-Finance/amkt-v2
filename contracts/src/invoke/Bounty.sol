@@ -29,7 +29,6 @@ struct Bounty {
 struct QuoteInput {
     TokenInfo[] targets;
     uint256 supply;
-    uint256 trackedMultiplier;
 }
 
 contract InvokeableBounty {
@@ -106,8 +105,6 @@ contract InvokeableBounty {
 
         vault.tryInflation();
 
-        (, uint256 trackedMultiplier, , ) = vault.multiplier();
-
         uint256 startingSupply = indexToken.totalSupply();
 
         (
@@ -115,7 +112,7 @@ contract InvokeableBounty {
             TokenInfo[] memory ins,
             IVault.SetNominalArgs[] memory nominals,
             uint256 underlyingTally
-        ) = _quote(QuoteInput(bounty.infos, startingSupply, trackedMultiplier));
+        ) = _quote(QuoteInput(bounty.infos, startingSupply));
 
         if (underlyingTally < vault.underlyingLength())
             revert BountyMustIncludeAllUnderlyings();
@@ -158,8 +155,6 @@ contract InvokeableBounty {
     function quoteBounty(
         Bounty calldata bounty
     ) external view returns (TokenInfo[] memory outs, TokenInfo[] memory) {
-        (, uint256 trackedMultipler, , ) = vault.multiplier();
-
         uint256 startingSupply = indexToken.totalSupply();
 
         TokenInfo[] memory targets = bounty.infos;
@@ -169,7 +164,7 @@ contract InvokeableBounty {
             TokenInfo[] memory ins,
             ,
 
-        ) = _quote(QuoteInput(targets, startingSupply, trackedMultipler));
+        ) = _quote(QuoteInput(targets, startingSupply));
 
         outs = intoTokenInfo(_outs);
         return (outs, ins);
@@ -206,31 +201,22 @@ contract InvokeableBounty {
             // number of target units per 1e18 amkt
             uint256 targetUnits = input.targets[i].units;
 
-            uint256 realUnitsAtLastFeeTimestamp = fmul(
-                vault.virtualUnits(token),
-                input.trackedMultiplier
-            );
+            uint256 realUnits = vault.realUnits(input.targets[i].token);
 
-            if (realUnitsAtLastFeeTimestamp > targetUnits) {
+            if (realUnits > targetUnits) {
                 outs[lenOuts] = IVault.InvokeERC20Args(
                     token,
                     msg.sender,
-                    fmul(
-                        realUnitsAtLastFeeTimestamp - targetUnits,
-                        input.supply
-                    )
+                    fmul(realUnits - targetUnits, input.supply)
                 );
 
                 unchecked {
                     lenOuts++;
                 }
-            } else if (targetUnits > realUnitsAtLastFeeTimestamp) {
+            } else if (targetUnits > realUnits) {
                 ins[lenIns] = TokenInfo(
                     token,
-                    fmul(
-                        targetUnits - realUnitsAtLastFeeTimestamp,
-                        input.supply
-                    )
+                    fmul(targetUnits - realUnits, input.supply)
                 );
 
                 unchecked {

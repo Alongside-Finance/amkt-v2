@@ -15,28 +15,21 @@ contract MultiplierHelper {
         external
         view
         returns (
-            uint256 trackedTimestamp,
-            uint256 trackedMultiplier,
-            uint256 newFeeAccrued,
+            uint256 feeToAccrue,
+            uint256 currentTimestamp,
             uint256 currentMultiplier
         )
     {
         (
-            uint256 trackedTimestamp,
-            uint256 trackedMultiplier,
-            uint256 newFeeAccrued,
+            uint256 feeToAccrue,
+            uint256 currentTimestamp,
             uint256 currentMultiplier
         ) = Multiplier.computeMultiplier(
                 lastTrackedTimestamp,
                 lastTrackedMultiplier,
                 feeScaled
             );
-        return (
-            trackedTimestamp,
-            trackedMultiplier,
-            newFeeAccrued,
-            currentMultiplier
-        );
+        return (feeToAccrue, currentTimestamp, currentMultiplier);
     }
 }
 
@@ -50,10 +43,9 @@ contract MultiplierTest is Test {
         uint256 feeScaled = 1234;
 
         (
+            uint256 feeToAccrue,
             uint256 newTrackedTimestamp,
-            uint256 newTrackedMultiplier,
-            ,
-
+            uint256 newTrackedMultiplier
         ) = multiplierHelper.computeMultiplier(
                 lastTrackedTimestamp,
                 lastTrackedMultiplier,
@@ -69,15 +61,18 @@ contract MultiplierTest is Test {
         uint256 lastTrackedMultiplier = SCALAR;
         uint256 feeScaled = 1234; // 2% fee
 
-        (uint256 newTrackedTimestamp, , uint256 newFeeAccrued, ) = Multiplier
-            .computeMultiplier(
+        (
+            uint256 feeToAccrue,
+            uint256 currentTimestamp,
+            uint256 currentMultiplier
+        ) = Multiplier.computeMultiplier(
                 lastTrackedTimestamp,
                 lastTrackedMultiplier,
                 feeScaled
             );
 
-        assertEq(newTrackedTimestamp, block.timestamp);
-        assertEq(newFeeAccrued, SCALAR);
+        assertEq(currentTimestamp, block.timestamp);
+        assertEq(currentMultiplier, SCALAR);
     }
 
     function testHighFeeShouldRevert() public {
@@ -101,10 +96,9 @@ contract MultiplierTest is Test {
         uint256 feeScaled = 1234;
 
         (
-            uint256 newTrackedTimestamp,
-            ,
-            uint256 newFeeAccrued,
-
+            uint256 feeToAccrue,
+            uint256 currentTimestamp,
+            uint256 currentMultiplier
         ) = multiplierHelper.computeMultiplier(
                 lastTrackedTimestamp,
                 lastTrackedMultiplier,
@@ -112,10 +106,10 @@ contract MultiplierTest is Test {
             );
 
         assertEq(
-            newTrackedTimestamp,
+            currentTimestamp,
             block.timestamp - (block.timestamp % 1 days)
         );
-        assertTrue(newFeeAccrued < SCALAR);
+        assertTrue(currentMultiplier < SCALAR);
     }
 
     function testComputeMultiplierWithNonZero_dT() public {
@@ -127,7 +121,7 @@ contract MultiplierTest is Test {
         vm.warp(lastTrackedTimestamp + 5000);
 
         // Call the computeMultiplier function
-        (, , , uint256 currentMultiplier) = multiplierHelper.computeMultiplier(
+        (, , uint256 currentMultiplier) = multiplierHelper.computeMultiplier(
             lastTrackedTimestamp,
             lastTrackedMultiplier,
             feeScaled
@@ -135,7 +129,7 @@ contract MultiplierTest is Test {
 
         // Calculating the expected currentMultiplier manually
         uint256 dT = 5000;
-        uint256 feePerSecondScaled = feeScaled / 1 days;
+        uint256 feePerSecondScaled = feeScaled;
         uint256 expectedCurrentMultiplier = (lastTrackedMultiplier *
             (SCALAR - feePerSecondScaled * dT)) / SCALAR; // Ensure division by SCALAR for fixed point operations
 
