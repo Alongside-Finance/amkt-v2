@@ -56,6 +56,8 @@ interface IVault {
 
     function realUnits() external view returns (TokenInfo[] memory);
 
+    function virtualUnits() external view returns (TokenInfo[] memory);
+
     function invariantCheck() external view;
 
     function intradayInflation() external view returns (uint256);
