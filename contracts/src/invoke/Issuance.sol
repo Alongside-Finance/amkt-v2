@@ -47,11 +47,11 @@ contract Issuance {
         uint256 amountIncludingIntradayInflation = fmul(
             vault.intradayInflation(),
             amount
-        );
+        ) + 1;
 
         for (uint256 i; i < tokens.length; ) {
             uint256 underlyingAmount = fmul(
-                tokens[i].units,
+                tokens[i].units + 1,
                 amountIncludingIntradayInflation
             ) + 1;
 
@@ -100,19 +100,5 @@ contract Issuance {
         vault.invokeBurn(msg.sender, amount);
 
         vault.invokeERC20s(args);
-    }
-
-    /// @notice Quote the amount of underlying tokens needed to issue index tokens
-    /// @param amount The amount of index tokens to issue
-    /// @return tokens The underlying tokens and amounts needed to issue index tokens
-    /// @dev subtract 1 from each unit to account for rounding if you need an exact redemption quote
-    function quote(uint256 amount) external view returns (TokenInfo[] memory) {
-        TokenInfo[] memory tokens = vault.realUnits();
-
-        for (uint256 i; i < tokens.length; i++) {
-            tokens[i].units = fmul(tokens[i].units, amount) + 1;
-        }
-
-        return tokens;
     }
 }
