@@ -182,9 +182,16 @@ contract IssuanceTest is StatefulTest {
 
         TokenInfo[] memory tokens = issuanceQuoter.quoteIssue(5e18);
         TokenInfo[] memory realUnits = vault.realUnits();
-
+        uint256 amountIncludingIntradayInflation = fmul(
+            vault.intradayInflation(),
+            5e18
+        ) + 1;
         for (uint256 i; i < tokens.length; i++) {
-            assertEq(tokens[i].units, fmul(realUnits[i].units + 1, 5e18) + 1);
+            assertEq(
+                tokens[i].units,
+                fmul(realUnits[i].units + 1, amountIncludingIntradayInflation) +
+                    1
+            );
         }
     }
 
