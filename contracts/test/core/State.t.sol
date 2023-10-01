@@ -11,12 +11,14 @@ import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {BaseTest} from "../BaseTest.t.sol";
 import {IIndexToken} from "src/interfaces/IIndexToken.sol";
 import {FEE_SCALED} from "src/scripts/Config.sol";
+import {IssuanceQuoter} from "periphery/IssuanceQuoter.sol";
 
 contract StatefulTest is BaseTest, Rebalancer {
     Vault vault;
     InvokeableBounty bounty;
     Issuance issuance;
     ActiveBounty activeBounty;
+    IssuanceQuoter issuanceQuoter;
 
     MockMintableToken indexToken;
 
@@ -41,6 +43,8 @@ contract StatefulTest is BaseTest, Rebalancer {
         );
 
         issuance = new Issuance(address(vault));
+
+        issuanceQuoter = new IssuanceQuoter(address(vault));
 
         bounty = new InvokeableBounty(
             address(vault),
@@ -77,7 +81,7 @@ contract StatefulTest is BaseTest, Rebalancer {
     }
 
     function mint(uint256 amount) internal {
-        TokenInfo[] memory tokens = issuance.quote(amount);
+        TokenInfo[] memory tokens = issuanceQuoter.quoteIssue(amount);
         for (uint256 i = 0; i < tokens.length; i++) {
             IERC20(tokens[i].token).approve(address(issuance), tokens[i].units);
         }

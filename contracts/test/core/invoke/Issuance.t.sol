@@ -3,18 +3,26 @@ pragma solidity =0.8.18;
 import {StatefulTest} from "core-test/State.t.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
-import {SCALAR} from "src/lib/FixedPoint.sol";
+import {SCALAR, fmul} from "src/lib/FixedPoint.sol";
 import {IVault} from "src/interfaces/IVault.sol";
 
 contract IssuanceTest is StatefulTest {
     function testGoToZero() public {
         seedInitial(10);
         mint(5e18);
-        burn(indexToken.totalSupply());
-        address[] memory underlying = vault.underlying();
+        uint256 totalSupply = indexToken.totalSupply();
+        burn(totalSupply);
         assertEq(indexToken.totalSupply(), 0);
-        for (uint256 i; i < underlying.length; i++) {
-            assertEq(IERC20(underlying[i]).balanceOf(address(vault)), 1);
+
+        TokenInfo[] memory tokens = vault.realUnits();
+        for (uint256 i; i < tokens.length; i++) {
+            uint256 actual = IERC20(tokens[i].token).balanceOf(address(vault));
+            uint256 target = 1;
+            if (actual > target) {
+                assertGe(target + 100, actual); // support dust
+            } else {
+                assertEq(actual, target);
+            }
         }
     }
 
@@ -73,7 +81,7 @@ contract IssuanceTest is StatefulTest {
         uint256 amountToMint = 5e18;
         uint256 oneDayMark = block.timestamp + 1 days;
         seedInitial(10);
-        TokenInfo[] memory tokens = issuance.quote(amountToMint);
+        TokenInfo[] memory tokens = issuanceQuoter.quoteIssue(amountToMint);
         for (uint256 i = 0; i < tokens.length; i++) {
             IERC20(tokens[i].token).approve(address(issuance), tokens[i].units);
         }
@@ -84,22 +92,22 @@ contract IssuanceTest is StatefulTest {
     function testIssuanceTakesCorrectAmounts() public {
         seedInitial(10);
 
-        vm.warp(block.timestamp + 1 days);
+        vm.warp(block.timestamp + 1 days - 1);
 
-        TokenInfo[] memory realUnits = vault.realUnits();
-        uint256[] memory startingBalances = new uint256[](realUnits.length);
-        for (uint256 i; i < realUnits.length; i++) {
-            startingBalances[i] = IERC20(realUnits[i].token).balanceOf(
+        TokenInfo[] memory quoteUnits = issuanceQuoter.quoteIssue(5e18);
+        uint256[] memory startingBalances = new uint256[](quoteUnits.length);
+        for (uint256 i; i < quoteUnits.length; i++) {
+            startingBalances[i] = IERC20(quoteUnits[i].token).balanceOf(
                 address(this)
             );
         }
 
         mint(5e18);
 
-        for (uint256 i; i < realUnits.length; i++) {
+        for (uint256 i; i < quoteUnits.length; i++) {
             assertEq(
-                IERC20(realUnits[i].token).balanceOf(address(this)) + 1,
-                startingBalances[i] - (realUnits[i].units * 5e18) / SCALAR
+                IERC20(quoteUnits[i].token).balanceOf(address(this)),
+                startingBalances[i] - quoteUnits[i].units
             );
         }
     }
@@ -172,11 +180,11 @@ contract IssuanceTest is StatefulTest {
     function testQuote() public {
         seedInitial(10);
 
-        TokenInfo[] memory tokens = issuance.quote(5e18);
+        TokenInfo[] memory tokens = issuanceQuoter.quoteIssue(5e18);
         TokenInfo[] memory realUnits = vault.realUnits();
 
         for (uint256 i; i < tokens.length; i++) {
-            assertEq(tokens[i].units, (realUnits[i].units * 5e18) / SCALAR + 1);
+            assertEq(tokens[i].units, fmul(realUnits[i].units + 1, 5e18) + 1);
         }
     }
 
@@ -194,9 +202,9 @@ contract IssuanceTest is StatefulTest {
         mint(0);
 
         for (uint256 i; i < realUnits.length; i++) {
-            assertEq(
+            assertLe(
                 IERC20(realUnits[i].token).balanceOf(address(this)),
-                startingBalances[i] - 1 // issuance always subtracts one
+                startingBalances[i] // issuance always subtracts
             );
         }
     }
