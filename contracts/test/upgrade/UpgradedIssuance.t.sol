@@ -98,12 +98,15 @@ contract UpgradedIssuanceTest is UpgradeTest {
         uint256 amount,
         uint256 jitter
     ) public {
+        vm.assume(jitter < JITTER_MAX);
         vm.assume(amount <= AMKT.balanceOf(largeAmktHolder));
-        vm.prank(largeAmktHolder);
-        AMKT.transfer(address(2), amount);
-        _warpForward(jitter);
-        vm.prank(address(2));
+        vm.startPrank(largeAmktHolder);
         AMKT.transfer(address(3), amount);
+        vm.stopPrank();
+        _warpForward(jitter);
+        vm.startPrank(address(3));
+        AMKT.transfer(address(4), amount);
+        vm.stopPrank();
     }
 
     function testRevertOldMinterCanMint() public {
