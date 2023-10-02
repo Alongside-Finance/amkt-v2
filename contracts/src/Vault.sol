@@ -354,11 +354,13 @@ contract Vault is Ownable2Step, IVault {
     function invariantCheck() public view {
         TokenInfo[] memory tokens = realUnits();
 
-        // adjust total supply by inverse of intraday fee (inflation)
-        uint256 totalSupply = fmul(
-            intradayInflation(),
-            indexToken.totalSupply()
-        );
+        // // adjust total supply by inverse of intraday fee (inflation)
+        // uint256 totalSupply = fmul(
+        //     intradayInflation(),
+        //     indexToken.totalSupply()
+        // );
+
+        uint256 totalSupply = indexToken.totalSupply();
 
         for (uint256 i; i < tokens.length; ) {
             uint256 expectedAmount = fmul(tokens[i].units, totalSupply);

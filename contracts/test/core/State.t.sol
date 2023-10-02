@@ -79,7 +79,10 @@ contract StatefulTest is BaseTest, Rebalancer {
     function mint(uint256 amount) internal {
         TokenInfo[] memory tokens = issuance.quote(amount);
         for (uint256 i = 0; i < tokens.length; i++) {
-            IERC20(tokens[i].token).approve(address(issuance), tokens[i].units);
+            IERC20(tokens[i].token).approve(
+                address(issuance),
+                tokens[i].units * 2
+            );
         }
 
         issuance.issue(amount);

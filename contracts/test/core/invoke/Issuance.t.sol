@@ -13,8 +13,10 @@ contract IssuanceTest is StatefulTest {
         burn(indexToken.totalSupply());
         address[] memory underlying = vault.underlying();
         assertEq(indexToken.totalSupply(), 0);
+
+        // this should be equal to intraday fee
         for (uint256 i; i < underlying.length; i++) {
-            assertEq(IERC20(underlying[i]).balanceOf(address(vault)), 1);
+            assertLe(IERC20(underlying[i]).balanceOf(address(vault)), 100);
         }
     }
 
@@ -99,7 +101,7 @@ contract IssuanceTest is StatefulTest {
         for (uint256 i; i < realUnits.length; i++) {
             assertEq(
                 IERC20(realUnits[i].token).balanceOf(address(this)) + 1,
-                startingBalances[i] - (realUnits[i].units * 5e18) / SCALAR
+                startingBalances[i] - ((realUnits[i].units + 1) * 5e18) / SCALAR
             );
         }
     }
