@@ -14,37 +14,30 @@ contract UpgradedIssuanceTest is UpgradeTest {
         address(0x804B68f60765F4559b7096B158C912eD33aa0c26);
     address oldMinter = address(0x0D44F856E1a7c70E35c54261c3f07DbFBDCA4857);
 
-    /// forge-config: default.fuzz.runs = 2048
     function testIssuanceWithJitter(
         uint256 issueAmount,
         uint256 jitter
     ) public {
-        console.log("issueAmount: %s", issueAmount);
-        console.log("jitter: %s", jitter);
         issueAmount = bound(issueAmount, 0, 10_000_000e18);
         vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
-        vm.assume(jitter < 365 days);
-        warpForward(jitter);
+        vm.assume(jitter < JITTER_MAX);
+        _warpForward(jitter);
         assistedMint(address(this), issueAmount);
-        warpForward(jitter);
+        _warpForward(jitter);
         assistedMint(address(this), issueAmount);
     }
 
-    /// forge-config: default.fuzz.runs = 2048
     function testIssuanceAndRedemptionWithJitter(
         uint256 issueAmount,
         uint256 redeemAmount,
         uint256 jitter
     ) public {
-        console.log("issueAmount: %s", issueAmount);
-        console.log("redeemAmount: %s", redeemAmount);
-        console.log("jitter: %s", jitter);
         issueAmount = bound(issueAmount, 0, 10_000_000e18);
         redeemAmount = bound(redeemAmount, 0, issueAmount);
         vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
         vm.assume(redeemAmount <= issueAmount);
-        vm.assume(jitter < 365 days);
-        warpForward(jitter);
+        vm.assume(jitter < JITTER_MAX);
+        _warpForward(jitter);
         assistedMint(address(this), issueAmount);
         TokenInfo[] memory tokens = vault.realUnits();
 
@@ -55,29 +48,35 @@ contract UpgradedIssuanceTest is UpgradeTest {
         }
 
         // check that user can redeem afterwards
-        warpForward(jitter);
+        _warpForward(jitter);
         issuance.redeem(redeemAmount);
     }
 
-    function testTryInflation() public {
+    function testTryInflationWithJitter(uint256 jitter) public {
+        vm.assume(jitter < JITTER_MAX);
+        _warpForward(jitter);
         vault.tryInflation();
         vm.prank(address(2));
         uint256 beforeSupply = AMKT.totalSupply();
         vault.tryInflation();
         assertEq(AMKT.totalSupply(), beforeSupply);
-
-        vm.warp(block.timestamp + 1);
+        _warpForward(jitter);
         vault.tryInflation();
         assertGe(AMKT.totalSupply(), beforeSupply);
     }
 
-    function testCanRedeemLarge(uint256 amount) public {
+    function testCanRedeemLargeWithJitter(
+        uint256 amount,
+        uint256 jitter
+    ) public {
+        vm.assume(jitter < JITTER_MAX);
         vm.assume(amount <= AMKT.balanceOf(largeAmktHolder));
         vault.tryInflation();
         assertEq(AMKT.balanceOf(largeAmktHolder), 16704840500000000000000);
         assertGe(AMKT.totalSupply(), AMKT.balanceOf(largeAmktHolder));
         vm.startPrank(largeAmktHolder);
         AMKT.approve(address(issuance), AMKT.balanceOf(largeAmktHolder));
+        _warpForward(jitter);
         issuance.redeem(amount);
         vm.stopPrank();
     }
@@ -95,11 +94,16 @@ contract UpgradedIssuanceTest is UpgradeTest {
         vm.stopPrank();
     }
 
-    function testUserCanTransfer(uint256 amount) public {
+    function testUsersCanTransferWithJitter(
+        uint256 amount,
+        uint256 jitter
+    ) public {
         vm.assume(amount <= AMKT.balanceOf(largeAmktHolder));
-        vm.startPrank(largeAmktHolder);
-        AMKT.transfer(address(vault), amount);
-        vm.stopPrank();
+        vm.prank(largeAmktHolder);
+        AMKT.transfer(address(2), amount);
+        _warpForward(jitter);
+        vm.prank(address(2));
+        AMKT.transfer(address(3), amount);
     }
 
     function testRevertOldMinterCanMint() public {

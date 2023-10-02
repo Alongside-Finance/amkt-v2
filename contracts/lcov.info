@@ -593,8 +593,8 @@ DA:15,0
 DA:17,0
 BRDA:17,0,0,-
 BRDA:17,0,1,-
-FN:20,BaseTest.warpForward
-FNDA:0,BaseTest.warpForward
+FN:20,BaseTest._warpForward
+FNDA:0,BaseTest._warpForward
 DA:21,0
 DA:22,0
 FNF:2

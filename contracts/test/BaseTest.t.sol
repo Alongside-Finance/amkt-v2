@@ -2,6 +2,7 @@ import {Test} from "forge-std/Test.sol";
 
 contract BaseTest is Test {
     uint256 AVG_BLOCK_TIME = 12;
+    uint256 JITTER_MAX = 365 days;
 
     function rangeCheck(
         uint256 target,
@@ -19,7 +20,7 @@ contract BaseTest is Test {
         require(actual <= upper && actual >= lower, "rangeCheck");
     }
 
-    function resetTimeAndBlock(
+    function _resetTimeAndBlock(
         uint256 timestamp,
         uint256 blockNumber
     ) internal {
@@ -27,7 +28,7 @@ contract BaseTest is Test {
         vm.roll(blockNumber);
     }
 
-    function warpForward(uint256 secondsToMove) internal {
+    function _warpForward(uint256 secondsToMove) internal {
         vm.warp(block.timestamp + secondsToMove);
         vm.roll(block.number + secondsToMove / 12);
     }

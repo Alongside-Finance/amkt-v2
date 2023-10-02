@@ -117,6 +117,14 @@ contract IssuanceTest is StatefulTest {
         mint(5e18);
     }
 
+    function testShouldRedeemWhenEmergency() public {
+        seedInitial(10);
+        mint(5e18);
+        vm.prank(emergencyResponder);
+        vault.setEmergency(true);
+        burn(5e18);
+    }
+
     function testFailShouldNotMintWhenEmergency() public {
         seedInitial(10);
         vm.prank(emergencyResponder);

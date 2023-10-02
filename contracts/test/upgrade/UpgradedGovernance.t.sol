@@ -111,7 +111,7 @@ contract UpgradedGovernanceTest is UpgradeTest {
         vm.assume(user != address(0));
         vm.prank(largeAmktHolder);
         AMKT.delegate(user); // intermediate hop to user 1
-        warpForward(1 * AVG_BLOCK_TIME);
+        _warpForward(1 * AVG_BLOCK_TIME);
         assertEq(AMKT.getVotes(user), AMKT.balanceOf(largeAmktHolder));
         assertEq(
             AMKT.getPastVotes(user, block.number - 1),
@@ -130,7 +130,7 @@ contract UpgradedGovernanceTest is UpgradeTest {
             proposal.calldatas,
             proposal.description
         );
-        warpForward((VOTE_DELAY + 1) * AVG_BLOCK_TIME);
+        _warpForward((VOTE_DELAY + 1) * AVG_BLOCK_TIME);
         governor.castVote(proposalId, 1);
         vm.stopPrank();
     }
@@ -151,23 +151,23 @@ contract UpgradedGovernanceTest is UpgradeTest {
     function makeProposalPass(Proposal memory proposal) public {
         vm.startPrank(largeAmktHolder);
         AMKT.delegate(largeAmktHolder);
-        warpForward(1 * AVG_BLOCK_TIME);
+        _warpForward(1 * AVG_BLOCK_TIME);
         uint256 proposalId = governor.propose(
             proposal.targets,
             proposal.values,
             proposal.calldatas,
             proposal.description
         );
-        warpForward((VOTE_DELAY + 1) * AVG_BLOCK_TIME);
+        _warpForward((VOTE_DELAY + 1) * AVG_BLOCK_TIME);
         governor.castVote(proposalId, 1);
-        warpForward((VOTE_PERIOD + 1) * AVG_BLOCK_TIME);
+        _warpForward((VOTE_PERIOD + 1) * AVG_BLOCK_TIME);
         governor.queue(
             proposal.targets,
             proposal.values,
             proposal.calldatas,
             proposal.descriptionHash
         );
-        warpForward(CANCELLATION_PERIOD);
+        _warpForward(CANCELLATION_PERIOD);
         governor.execute(
             proposal.targets,
             proposal.values,
@@ -190,16 +190,16 @@ contract UpgradedGovernanceTest is UpgradeTest {
     function makeProposalCancel(Proposal memory proposal) public {
         vm.startPrank(largeAmktHolder);
         AMKT.delegate(largeAmktHolder);
-        warpForward(1 * AVG_BLOCK_TIME);
+        _warpForward(1 * AVG_BLOCK_TIME);
         uint256 proposalId = governor.propose(
             proposal.targets,
             proposal.values,
             proposal.calldatas,
             proposal.description
         );
-        warpForward((VOTE_DELAY + 1) * AVG_BLOCK_TIME);
+        _warpForward((VOTE_DELAY + 1) * AVG_BLOCK_TIME);
         governor.castVote(proposalId, 1);
-        warpForward((VOTE_PERIOD + 1) * AVG_BLOCK_TIME);
+        _warpForward((VOTE_PERIOD + 1) * AVG_BLOCK_TIME);
         governor.queue(
             proposal.targets,
             proposal.values,
@@ -208,7 +208,7 @@ contract UpgradedGovernanceTest is UpgradeTest {
         );
         vm.stopPrank();
 
-        warpForward(CANCELLATION_PERIOD - 1);
+        _warpForward(CANCELLATION_PERIOD - 1);
 
         bytes32 operationId = timelockController.hashOperationBatch(
             proposal.targets,
@@ -254,7 +254,7 @@ contract UpgradedGovernanceTest is UpgradeTest {
         vm.startPrank(largeAmktHolder);
         // DELEGATE VOTES TO SELF
         AMKT.delegate(largeAmktHolder);
-        warpForward(proposalDelayAmount);
+        _warpForward(proposalDelayAmount);
 
         // PROPOSE
         uint256 proposalId = governor.propose(
@@ -289,7 +289,7 @@ contract UpgradedGovernanceTest is UpgradeTest {
         uint256 proposalBlock = block.number;
         vm.expectRevert("Governor: vote not currently active"); // voting before 1 day of delay should fail
         governor.castVote(newProposalId, 1);
-        warpForward(voteDelayAmount);
+        _warpForward(voteDelayAmount);
         assertGe(block.number, governor.proposalSnapshot(proposalId));
         assertEq(
             uint256(governor.state(newProposalId)),
@@ -305,9 +305,9 @@ contract UpgradedGovernanceTest is UpgradeTest {
             executeSetVoteDelayProposal.calldatas,
             executeSetVoteDelayProposal.descriptionHash
         );
-        resetTimeAndBlock(proposalTimestamp, proposalBlock);
-        warpForward((VOTE_DELAY + VOTE_PERIOD + 1) * AVG_BLOCK_TIME);
-        warpForward(queueDelayAmount);
+        _resetTimeAndBlock(proposalTimestamp, proposalBlock);
+        _warpForward((VOTE_DELAY + VOTE_PERIOD + 1) * AVG_BLOCK_TIME);
+        _warpForward(queueDelayAmount);
         governor.queue(
             executeSetVoteDelayProposal.targets,
             executeSetVoteDelayProposal.values,
@@ -329,7 +329,7 @@ contract UpgradedGovernanceTest is UpgradeTest {
             0,
             executeSetVoteDelayProposal.descriptionHash
         );
-        warpForward(executeDelayAmount);
+        _warpForward(executeDelayAmount);
         assertGe(block.timestamp, timelockController.getTimestamp(operationId));
         assertEq(timelockController.isOperation(operationId), true);
         assertEq(timelockController.isOperationReady(operationId), true);
