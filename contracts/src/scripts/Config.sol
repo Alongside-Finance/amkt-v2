@@ -35,7 +35,7 @@ address constant AMKT = address(0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D);
 contract InitialBountyHelper {
     // Native
     address constant BTC = address(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599);
-    address constant ETH = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+    address constant ETH = address(0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0);
     address constant MATIC =
         address(0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0);
     address constant FTM = address(0x4E15361FD6b4BB609Fa63C81A2be19d873717870);
@@ -66,21 +66,21 @@ contract InitialBountyHelper {
         // The amounts will be determined shortly before the bounty is proposed.
         // The goal is to have the bounty be equivalent the net asset value of AMKT at the time of proposal.
         // 15 assets to be included in the index
-        tokens[0] = TokenInfo(BTC, 1);
-        tokens[1] = TokenInfo(ETH, 1);
-        tokens[2] = TokenInfo(BNB, 1);
-        tokens[3] = TokenInfo(SOL, 1);
-        tokens[4] = TokenInfo(MATIC, 1);
-        tokens[5] = TokenInfo(SHIB, 1);
-        tokens[6] = TokenInfo(AVAX, 1);
-        tokens[7] = TokenInfo(LINK, 1);
-        tokens[8] = TokenInfo(UNI, 1);
-        tokens[9] = TokenInfo(LDO, 1);
-        tokens[10] = TokenInfo(MNT, 1);
-        tokens[11] = TokenInfo(CRO, 1);
-        tokens[12] = TokenInfo(QNT, 1);
-        tokens[13] = TokenInfo(ARB, 1);
-        tokens[14] = TokenInfo(MKR, 1);
+        tokens[0] = TokenInfo(BTC, 1e22);
+        tokens[1] = TokenInfo(ETH, 1e21);
+        tokens[2] = TokenInfo(BNB, 1e20);
+        tokens[3] = TokenInfo(SOL, 1e19);
+        tokens[4] = TokenInfo(MATIC, 1e18);
+        tokens[5] = TokenInfo(SHIB, 1e17);
+        tokens[6] = TokenInfo(AVAX, 1e16);
+        tokens[7] = TokenInfo(LINK, 1e15);
+        tokens[8] = TokenInfo(UNI, 1e14);
+        tokens[9] = TokenInfo(LDO, 1e13);
+        tokens[10] = TokenInfo(MNT, 1e12);
+        tokens[11] = TokenInfo(CRO, 1e11);
+        tokens[12] = TokenInfo(QNT, 1e10);
+        tokens[13] = TokenInfo(ARB, 1e9);
+        tokens[14] = TokenInfo(MKR, 1e8);
         // tokens[15] = TokenInfo(NEAR, 1);
         // tokens[16] = TokenInfo(OP, 1);
         // tokens[17] = TokenInfo(AAVE, 1);
