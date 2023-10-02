@@ -22,10 +22,6 @@ contract BountyTest is StatefulTest {
     function testInitialBounty(uint256 quantity) public {
         TokenInfo[] memory tokens = seedInitial(quantity);
 
-        // assert the multiplier has been resset
-        (, , uint256 current, ) = vault.multiplier();
-        assertEq(current, SCALAR);
-
         // seedInitial() just uses acsending token mock
         for (uint256 i = 0; i < tokens.length; i++) {
             address token = tokens[i].token;
@@ -60,6 +56,7 @@ contract BountyTest is StatefulTest {
 
         Bounty memory _bounty = Bounty({
             infos: newTokens,
+            fulfiller: address(0),
             salt: keccak256("test"),
             deadline: block.timestamp + 2 days
         });
@@ -89,6 +86,7 @@ contract BountyTest is StatefulTest {
 
         Bounty memory _bounty = Bounty({
             infos: newTokensNominals,
+            fulfiller: address(0),
             salt: keccak256("test"),
             deadline: block.timestamp + 1000
         });
@@ -130,6 +128,7 @@ contract BountyTest is StatefulTest {
         TokenInfo[] memory tokens = seedInitial(5);
         Bounty memory invalidBounty = Bounty({
             infos: tokens,
+            fulfiller: address(0),
             deadline: block.timestamp + 1000,
             salt: keccak256("invalid")
         });
@@ -142,6 +141,7 @@ contract BountyTest is StatefulTest {
         TokenInfo[] memory tokens = seedInitial(5);
         Bounty memory _bounty = Bounty({
             infos: tokens,
+            fulfiller: address(0),
             deadline: block.timestamp + 1000,
             salt: keccak256("test")
         });
@@ -166,6 +166,7 @@ contract BountyTest is StatefulTest {
 
         Bounty memory _bounty = Bounty({
             infos: newTokens,
+            fulfiller: address(0),
             deadline: block.timestamp + 1000,
             salt: keccak256("test")
         });
@@ -184,6 +185,7 @@ contract BountyTest is StatefulTest {
         TokenInfo[] memory tokens = seedInitial(5);
         Bounty memory _bounty = Bounty({
             infos: tokens,
+            fulfiller: address(0),
             deadline: block.timestamp + 1000,
             salt: keccak256("test")
         });
@@ -198,6 +200,7 @@ contract BountyTest is StatefulTest {
         TokenInfo[] memory tokens = seedInitial(5);
         Bounty memory _bounty = Bounty({
             infos: tokens,
+            fulfiller: address(0),
             deadline: block.timestamp + 1000,
             salt: keccak256("test")
         });

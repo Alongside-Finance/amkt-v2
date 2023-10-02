@@ -7,22 +7,6 @@ import {TokenInfo} from "src/Common.sol";
 import {FEE_SCALED} from "src/scripts/Config.sol";
 
 contract VaultTest is StatefulTest {
-    function testIntradayInflation() public {
-        seedInitial(10);
-        vm.warp(block.timestamp + 1 days);
-        vault.intradayInflation();
-    }
-
-    function testFuzzIntradayInflation(uint256 targetTimestamp) public {
-        vm.assume(
-            targetTimestamp >= block.timestamp &&
-                targetTimestamp < block.timestamp + 2 days
-        );
-        seedInitial(10);
-        vm.warp(targetTimestamp);
-        vault.intradayInflation();
-    }
-
     function testShouldAllowRebalancer() public {
         seedInitial(10);
         vm.startPrank(address(bounty));
@@ -98,8 +82,7 @@ contract VaultTest is StatefulTest {
     function rebalancerFunctions(bool toFail) public {
         if (toFail) vm.expectRevert();
         vault.invokeSetNominal(IVault.SetNominalArgs(address(0), 1));
-        if (toFail) vm.expectRevert();
-        vault.invokeSetMultiplier(0);
+        // TODO: set nominals
     }
 
     function issuanceFunctions(bool toFail) public {
@@ -131,22 +114,6 @@ contract VaultTest is StatefulTest {
         vault.setEmergencyResponder(address(1));
     }
 
-    function testRealUnits() public {
-        TokenInfo[] memory tokens = seedInitial(10);
-
-        address[] memory underlyingTokens = vault.underlying();
-        for (uint256 i = 0; i < underlyingTokens.length; i++) {
-            address token = underlyingTokens[i];
-            uint256 realUnits = vault.realUnits(token);
-
-            assertEq(
-                realUnits,
-                tokens[i].units,
-                "Real units should match the expected value"
-            );
-        }
-    }
-
     function testVirtualUnits() public {
         TokenInfo[] memory tokens = seedInitial(10);
 
@@ -170,21 +137,17 @@ contract VaultTest is StatefulTest {
         uint256 initialFeeRecipientBalance = indexToken.balanceOf(feeReciever);
         vm.warp(block.timestamp + 1 days * 365);
 
-        uint256 newMultiplier = vault.tryInflation();
+        vm.prank(feeReciever);
+        vault.tryInflation();
 
         uint256 newSupply = indexToken.totalSupply();
         uint256 newFeeRecipientBalance = indexToken.balanceOf(feeReciever);
 
         // Calculate the expected inflation and fee recipient balance
 
-        (, , , uint256 currentMultiplier) = vault.multiplier();
-
-        // Check that the new multiplier is updated correctly
-        assertEq(newMultiplier, currentMultiplier);
-
         // Check that the total supply has increased by the expected inflation
         rangeCheck({
-            target: 1009591115598182735, //(1 - (95 / 10000))^(-1) * startingBalance = expectedTotalSupply
+            target: 1009591115598182735, // TODO: NEW MATH
             actual: newSupply,
             rangeNumerator: 1,
             rangeDenominator: 1e16
@@ -193,7 +156,7 @@ contract VaultTest is StatefulTest {
         // // Check that the fee recipient's balance has increased by the expected inflation
 
         rangeCheck({
-            target: 9591115598182735,
+            target: 9591115598182735, // TODO: NEW MATH
             actual: newFeeRecipientBalance,
             rangeNumerator: 1,
             rangeDenominator: 1e12
@@ -201,11 +164,9 @@ contract VaultTest is StatefulTest {
     }
 
     function testZeroInflation() public {
+        vm.startPrank(feeReciever);
         assertEq(indexToken.totalSupply(), 1e18);
+        vm.expectRevert(IVault.AMKTVaultFeeTooEarly.selector);
         vault.tryInflation();
-        assertEq(indexToken.totalSupply(), 1e18);
-        vm.warp(block.timestamp + 1 days - 30);
-        vault.tryInflation();
-        assertEq(indexToken.totalSupply(), 1e18);
     }
 }

@@ -133,6 +133,7 @@ library Mocks {
         return
             Bounty({
                 infos: tokens,
+                fulfiller: address(0),
                 salt: keccak256(abi.encode(block.timestamp)),
                 deadline: block.timestamp + 1000000000
             });

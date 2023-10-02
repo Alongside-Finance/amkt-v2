@@ -123,6 +123,7 @@ contract UpgradeTest is GnosisTest {
         // Set hash to ActiveBounty for initial bounty
         Bounty memory _bountyToSet = Bounty({
             infos: tokens,
+            fulfiller: MULTISIG,
             salt: keccak256(abi.encode(block.timestamp)),
             deadline: block.timestamp + 1 days
         });
@@ -151,7 +152,7 @@ contract UpgradeTest is GnosisTest {
             data: abi.encodeWithSelector(
                 bytes4(
                     keccak256(
-                        "fulfillBounty(((address,uint256)[],uint256,bytes32),bool)"
+                        "fulfillBounty(((address,uint256)[],address,uint256,bytes32),bool)"
                     )
                 ),
                 _bountyToSet,

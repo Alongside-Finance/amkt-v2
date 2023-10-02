@@ -14,7 +14,7 @@ contract IssuanceTest is StatefulTest {
         burn(totalSupply);
         assertEq(indexToken.totalSupply(), 0);
 
-        TokenInfo[] memory tokens = vault.realUnits();
+        TokenInfo[] memory tokens = vault.virtualUnits();
         for (uint256 i; i < tokens.length; i++) {
             uint256 actual = IERC20(tokens[i].token).balanceOf(address(vault));
             uint256 target = 1;
@@ -23,24 +23,6 @@ contract IssuanceTest is StatefulTest {
             } else {
                 assertEq(actual, target);
             }
-        }
-    }
-
-    function testCantGoToZeroWithUnmintedInflation() public {
-        // Q: Who keeps the intraday fee on the tokens that are being burnt? The user, vault, or the feeRecipient?
-        // A: For now, the vault keeps the intraday fee on the tokens that are being burnt.
-        // If this amount becomes meaningful, we can expose a function to withdraw it separately.
-        vault.setFeeRecipient(address(this));
-        seedInitial(10);
-        mint(5e18);
-        vm.warp(block.timestamp + 1 days - 1);
-        burn(indexToken.totalSupply());
-        assertGe(indexToken.totalSupply(), 0);
-        burn(indexToken.totalSupply());
-        address[] memory underlying = vault.underlying();
-        assertEq(indexToken.totalSupply(), 0);
-        for (uint256 i; i < underlying.length; i++) {
-            assertGe(IERC20(underlying[i]).balanceOf(address(vault)), 100);
         }
     }
 
@@ -166,10 +148,10 @@ contract IssuanceTest is StatefulTest {
         // Mint some tokens first
         mint(5e18);
 
-        TokenInfo[] memory realUnits = vault.realUnits();
-        uint256[] memory startingBalances = new uint256[](realUnits.length);
-        for (uint256 i; i < realUnits.length; i++) {
-            startingBalances[i] = IERC20(realUnits[i].token).balanceOf(
+        TokenInfo[] memory virtualUnits = vault.virtualUnits();
+        uint256[] memory startingBalances = new uint256[](virtualUnits.length);
+        for (uint256 i; i < virtualUnits.length; i++) {
+            startingBalances[i] = IERC20(virtualUnits[i].token).balanceOf(
                 address(this)
             );
         }
@@ -177,10 +159,10 @@ contract IssuanceTest is StatefulTest {
         // Redeem tokens
         burn(2e18);
 
-        for (uint256 i; i < realUnits.length; i++) {
+        for (uint256 i; i < virtualUnits.length; i++) {
             assertEq(
-                IERC20(realUnits[i].token).balanceOf(address(this)),
-                startingBalances[i] + (realUnits[i].units * 2e18) / SCALAR
+                IERC20(virtualUnits[i].token).balanceOf(address(this)),
+                startingBalances[i] + (virtualUnits[i].units * 2e18) / SCALAR
             );
         }
     }
@@ -189,16 +171,12 @@ contract IssuanceTest is StatefulTest {
         seedInitial(10);
 
         TokenInfo[] memory tokens = issuanceQuoter.quoteIssue(5e18);
-        TokenInfo[] memory realUnits = vault.realUnits();
-        uint256 amountIncludingIntradayInflation = fmul(
-            vault.intradayInflation(),
-            5e18
-        ) + 1;
+        TokenInfo[] memory virtualUnits = vault.virtualUnits();
+
         for (uint256 i; i < tokens.length; i++) {
             assertEq(
                 tokens[i].units,
-                fmul(realUnits[i].units + 1, amountIncludingIntradayInflation) +
-                    1
+                fmul(virtualUnits[i].units + 1, 5e18) + 1
             );
         }
     }
@@ -206,19 +184,19 @@ contract IssuanceTest is StatefulTest {
     function testIssueWithNoUnderlyingAmount() public {
         seedInitial(10);
 
-        TokenInfo[] memory realUnits = vault.realUnits();
-        uint256[] memory startingBalances = new uint256[](realUnits.length);
-        for (uint256 i; i < realUnits.length; i++) {
-            startingBalances[i] = IERC20(realUnits[i].token).balanceOf(
+        TokenInfo[] memory virtualUnits = vault.virtualUnits();
+        uint256[] memory startingBalances = new uint256[](virtualUnits.length);
+        for (uint256 i; i < virtualUnits.length; i++) {
+            startingBalances[i] = IERC20(virtualUnits[i].token).balanceOf(
                 address(this)
             );
         }
 
         mint(0);
 
-        for (uint256 i; i < realUnits.length; i++) {
+        for (uint256 i; i < virtualUnits.length; i++) {
             assertLe(
-                IERC20(realUnits[i].token).balanceOf(address(this)),
+                IERC20(virtualUnits[i].token).balanceOf(address(this)),
                 startingBalances[i] // issuance always subtracts
             );
         }
@@ -230,10 +208,10 @@ contract IssuanceTest is StatefulTest {
         // Mint some tokens first
         mint(5e18);
 
-        TokenInfo[] memory realUnits = vault.realUnits();
-        uint256[] memory startingBalances = new uint256[](realUnits.length);
-        for (uint256 i; i < realUnits.length; i++) {
-            startingBalances[i] = IERC20(realUnits[i].token).balanceOf(
+        TokenInfo[] memory virtualUnits = vault.virtualUnits();
+        uint256[] memory startingBalances = new uint256[](virtualUnits.length);
+        for (uint256 i; i < virtualUnits.length; i++) {
+            startingBalances[i] = IERC20(virtualUnits[i].token).balanceOf(
                 address(this)
             );
         }
@@ -241,9 +219,9 @@ contract IssuanceTest is StatefulTest {
         // Redeem tokens with no underlying amount
         burn(0);
 
-        for (uint256 i; i < realUnits.length; i++) {
+        for (uint256 i; i < virtualUnits.length; i++) {
             assertEq(
-                IERC20(realUnits[i].token).balanceOf(address(this)),
+                IERC20(virtualUnits[i].token).balanceOf(address(this)),
                 startingBalances[i]
             );
         }

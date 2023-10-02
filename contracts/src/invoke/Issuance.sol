@@ -39,21 +39,12 @@ contract Issuance {
     /// @dev requires approval of underlying tokens
     /// @dev reentrancy guard in case callback in tokens
     function issue(uint256 amount) external invariantCheck ReentrancyGuard {
-        vault.tryInflation();
-        TokenInfo[] memory tokens = vault.realUnits();
+        TokenInfo[] memory tokens = vault.virtualUnits();
 
         require(tokens.length > 0, "No tokens in vault");
 
-        uint256 amountIncludingIntradayInflation = fmul(
-            vault.intradayInflation(),
-            amount
-        ) + 1;
-
         for (uint256 i; i < tokens.length; ) {
-            uint256 underlyingAmount = fmul(
-                tokens[i].units + 1,
-                amountIncludingIntradayInflation
-            ) + 1;
+            uint256 underlyingAmount = fmul(tokens[i].units + 1, amount) + 1;
 
             IERC20(tokens[i].token).safeTransferFrom(
                 msg.sender,
@@ -74,8 +65,7 @@ contract Issuance {
     /// @dev requies approval of index token
     /// @dev reentrancy guard in case callback in tokens
     function redeem(uint256 amount) external invariantCheck ReentrancyGuard {
-        vault.tryInflation();
-        TokenInfo[] memory tokens = vault.realUnits();
+        TokenInfo[] memory tokens = vault.virtualUnits();
 
         require(tokens.length > 0, "No tokens in vault");
 

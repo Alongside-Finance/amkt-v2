@@ -7,6 +7,7 @@ interface IVault {
     error AMKTVaultOnlyInvokers();
     error AMKTVaultOnly(address who);
     error AMKTVaultFeeTooLarge();
+    error AMKTVaultFeeTooEarly();
     error AMKTVaultEmergency();
     error VaultInvariant();
     error VaultZeroCheck();
@@ -34,11 +35,13 @@ interface IVault {
 
     function rebalancer() external view returns (address);
 
-    function tryInflation() external returns (uint256);
+    function tryInflation() external;
 
     function feeScaled() external view returns (uint256);
 
     function feeRecipient() external view returns (address);
+
+    function lastKnownTimestamp() external view returns (uint256);
 
     function invokeERC20s(InvokeERC20Args[] calldata args) external;
 
@@ -48,19 +51,11 @@ interface IVault {
 
     function invokeSetNominal(SetNominalArgs calldata args) external;
 
-    function invokeSetMultiplier(uint256 multiplier) external;
-
     function virtualUnits(address token) external view returns (uint256);
-
-    function realUnits(address token) external view returns (uint256);
-
-    function realUnits() external view returns (TokenInfo[] memory);
 
     function virtualUnits() external view returns (TokenInfo[] memory);
 
     function invariantCheck() external view;
-
-    function intradayInflation() external view returns (uint256);
 
     function isUnderlying(address target) external view returns (bool);
 
@@ -73,14 +68,4 @@ interface IVault {
     function invokeBurn(address from, uint256 amount) external;
 
     function indexToken() external view returns (IIndexToken);
-
-    function multiplier()
-        external
-        view
-        returns (
-            uint256 lastTrackedTimestamp,
-            uint256 lastTrackedMultiplier,
-            uint256 newFeeAccrued,
-            uint256 multiplier
-        );
 }

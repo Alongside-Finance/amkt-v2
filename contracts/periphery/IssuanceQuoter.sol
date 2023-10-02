@@ -17,20 +17,12 @@ contract IssuanceQuoter {
     function quoteIssue(
         uint256 amount
     ) external view returns (TokenInfo[] memory) {
-        TokenInfo[] memory tokens = vault.realUnits();
+        TokenInfo[] memory tokens = vault.virtualUnits();
 
         require(tokens.length > 0, "No tokens in vault");
 
-        uint256 amountIncludingIntradayInflation = fmul(
-            vault.intradayInflation(),
-            amount
-        ) + 1;
-
         for (uint256 i; i < tokens.length; i++) {
-            uint256 underlyingAmount = fmul(
-                tokens[i].units + 1,
-                amountIncludingIntradayInflation
-            ) + 1;
+            uint256 underlyingAmount = fmul(tokens[i].units + 1, amount) + 1;
 
             tokens[i].units = underlyingAmount;
         }

@@ -8,6 +8,7 @@ import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {fmul} from "src/lib/FixedPoint.sol";
 import {console} from "forge-std/console.sol";
 import {IssuanceQuoter} from "periphery/IssuanceQuoter.sol";
+import {IVault} from "src/interfaces/IVault.sol";
 
 contract UpgradedIssuanceTest is UpgradeTest {
     address largeAmktHolder =
@@ -22,8 +23,10 @@ contract UpgradedIssuanceTest is UpgradeTest {
         vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
         vm.assume(jitter < JITTER_MAX);
         _warpForward(jitter);
+        feeRecipientTryInflation();
         assistedMint(address(this), issueAmount);
         _warpForward(jitter);
+        feeRecipientTryInflation();
         assistedMint(address(this), issueAmount);
     }
 
@@ -38,8 +41,9 @@ contract UpgradedIssuanceTest is UpgradeTest {
         vm.assume(redeemAmount <= issueAmount);
         vm.assume(jitter < JITTER_MAX);
         _warpForward(jitter);
+        feeRecipientTryInflation();
         assistedMint(address(this), issueAmount);
-        TokenInfo[] memory tokens = vault.realUnits();
+        TokenInfo[] memory tokens = vault.virtualUnits();
 
         // Check the balances of address(this) after issuance
         for (uint256 i = 0; i < tokens.length; i++) {
@@ -49,20 +53,25 @@ contract UpgradedIssuanceTest is UpgradeTest {
 
         // check that user can redeem afterwards
         _warpForward(jitter);
+        feeRecipientTryInflation();
         issuance.redeem(redeemAmount);
     }
 
     function testTryInflationWithJitter(uint256 jitter) public {
         vm.assume(jitter < JITTER_MAX);
         _warpForward(jitter);
-        vault.tryInflation();
+        feeRecipientTryInflation();
         vm.prank(address(2));
         uint256 beforeSupply = AMKT.totalSupply();
-        vault.tryInflation();
+        feeRecipientTryInflation();
         assertEq(AMKT.totalSupply(), beforeSupply);
         _warpForward(jitter);
-        vault.tryInflation();
-        assertGe(AMKT.totalSupply(), beforeSupply);
+        feeRecipientTryInflation();
+        if (jitter > 1 days) {
+            assertGe(AMKT.totalSupply(), beforeSupply);
+        } else {
+            assertEq(AMKT.totalSupply(), beforeSupply);
+        }
     }
 
     function testCanRedeemLargeWithJitter(
@@ -71,14 +80,17 @@ contract UpgradedIssuanceTest is UpgradeTest {
     ) public {
         vm.assume(jitter < JITTER_MAX);
         vm.assume(amount <= AMKT.balanceOf(largeAmktHolder));
+        vm.prank(vault.feeRecipient());
         vault.tryInflation();
         assertEq(AMKT.balanceOf(largeAmktHolder), 16704840500000000000000);
         assertGe(AMKT.totalSupply(), AMKT.balanceOf(largeAmktHolder));
         vm.startPrank(largeAmktHolder);
         AMKT.approve(address(issuance), AMKT.balanceOf(largeAmktHolder));
-        _warpForward(jitter);
-        issuance.redeem(amount);
         vm.stopPrank();
+        _warpForward(jitter);
+        feeRecipientTryInflation();
+        vm.prank(largeAmktHolder);
+        issuance.redeem(amount);
     }
 
     function testCanRedeemAll() public {
@@ -104,6 +116,7 @@ contract UpgradedIssuanceTest is UpgradeTest {
         AMKT.transfer(address(3), amount);
         vm.stopPrank();
         _warpForward(jitter);
+        feeRecipientTryInflation();
         vm.startPrank(address(3));
         AMKT.transfer(address(4), amount);
         vm.stopPrank();
@@ -125,7 +138,7 @@ contract UpgradedIssuanceTest is UpgradeTest {
         vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
         vm.assume(redeemAmount <= issueAmount);
         assistedMint(address(this), issueAmount);
-        TokenInfo[] memory tokens = vault.realUnits();
+        TokenInfo[] memory tokens = vault.virtualUnits();
 
         // Check the balances of address(this) after issuance
         for (uint256 i = 0; i < tokens.length; i++) {
@@ -141,7 +154,6 @@ contract UpgradedIssuanceTest is UpgradeTest {
 
     function assistedMint(address to, uint256 amount) internal {
         IssuanceQuoter issuanceQuoter = new IssuanceQuoter(address(vault));
-        vault.tryInflation();
         Dealer dealer = new Dealer();
         TokenInfo[] memory tokens = issuanceQuoter.quoteIssue(amount);
         for (uint256 i = 0; i < tokens.length; i++) {
@@ -150,5 +162,14 @@ contract UpgradedIssuanceTest is UpgradeTest {
             token.approve(address(issuance), tokens[i].units);
         }
         issuance.issue(amount);
+    }
+
+    function feeRecipientTryInflation() public {
+        vm.startPrank(vault.feeRecipient());
+        if (block.timestamp - vault.lastKnownTimestamp() <= 1 days) {
+            vm.expectRevert(IVault.AMKTVaultFeeTooEarly.selector);
+        }
+        vault.tryInflation();
+        vm.stopPrank();
     }
 }
