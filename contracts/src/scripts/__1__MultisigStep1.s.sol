@@ -17,6 +17,7 @@ contract MultisigStep1Script is Script {
         vm.startBroadcast(MULTISIG);
         Bounty memory _bountyToSet = Bounty({
             infos: tokens,
+            fulfiller: MULTISIG,
             salt: keccak256(abi.encode(block.timestamp)),
             deadline: block.timestamp + 1
         });

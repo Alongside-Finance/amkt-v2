@@ -22,6 +22,7 @@ interface IActiveBounty {
 
 struct Bounty {
     TokenInfo[] infos;
+    address fulfiller;
     uint256 deadline;
     bytes32 salt;
 }
@@ -29,7 +30,6 @@ struct Bounty {
 struct QuoteInput {
     TokenInfo[] targets;
     uint256 supply;
-    uint256 trackedMultiplier;
 }
 
 contract InvokeableBounty {
@@ -40,6 +40,7 @@ contract InvokeableBounty {
     error BountyAMKTSupplyChange();
     error BountyReentrant();
     error BountyMustIncludeAllUnderlyings();
+    error BountyInvalidFulfiller();
 
     event BountyFulfilled(Bounty bounty, bool callback);
 
@@ -81,7 +82,6 @@ contract InvokeableBounty {
         chainId = _chainId;
     }
 
-    /// @notice fulfill a bounty, were going to reset the multiplier to 1 (SCALAR) here
     /// @dev we send out the tokens first, so we need to check for weird supply stuff
     /// @dev also we dont follow CEI so we need to check for reentrancy
     /// @dev the units in the bounty are the target units, ie amount of units per 1e18 amkt
@@ -104,9 +104,8 @@ contract InvokeableBounty {
 
         if (block.timestamp > bounty.deadline) revert BountyPastDeadline();
 
-        vault.tryInflation();
-
-        (, uint256 trackedMultiplier, , ) = vault.multiplier();
+        if (bounty.fulfiller != address(0) && bounty.fulfiller != msg.sender)
+            revert BountyInvalidFulfiller();
 
         uint256 startingSupply = indexToken.totalSupply();
 
@@ -115,7 +114,7 @@ contract InvokeableBounty {
             TokenInfo[] memory ins,
             IVault.SetNominalArgs[] memory nominals,
             uint256 underlyingTally
-        ) = _quote(QuoteInput(bounty.infos, startingSupply, trackedMultiplier));
+        ) = _quote(QuoteInput(bounty.infos, startingSupply));
 
         if (underlyingTally < vault.underlyingLength())
             revert BountyMustIncludeAllUnderlyings();
@@ -146,7 +145,6 @@ contract InvokeableBounty {
         }
 
         vault.invokeSetNominals(nominals);
-        vault.invokeSetMultiplier(SCALAR);
 
         completedBounties[bountyHash] = true;
         emit BountyFulfilled(bounty, callback);
@@ -158,8 +156,6 @@ contract InvokeableBounty {
     function quoteBounty(
         Bounty calldata bounty
     ) external view returns (TokenInfo[] memory outs, TokenInfo[] memory) {
-        (, uint256 trackedMultipler, , ) = vault.multiplier();
-
         uint256 startingSupply = indexToken.totalSupply();
 
         TokenInfo[] memory targets = bounty.infos;
@@ -169,7 +165,7 @@ contract InvokeableBounty {
             TokenInfo[] memory ins,
             ,
 
-        ) = _quote(QuoteInput(targets, startingSupply, trackedMultipler));
+        ) = _quote(QuoteInput(targets, startingSupply));
 
         outs = intoTokenInfo(_outs);
         return (outs, ins);
@@ -206,31 +202,22 @@ contract InvokeableBounty {
             // number of target units per 1e18 amkt
             uint256 targetUnits = input.targets[i].units;
 
-            uint256 realUnitsAtLastFeeTimestamp = fmul(
-                vault.virtualUnits(token),
-                input.trackedMultiplier
-            );
+            uint256 virtualUnits = vault.virtualUnits(token);
 
-            if (realUnitsAtLastFeeTimestamp > targetUnits) {
+            if (virtualUnits > targetUnits) {
                 outs[lenOuts] = IVault.InvokeERC20Args(
                     token,
                     msg.sender,
-                    fmul(
-                        realUnitsAtLastFeeTimestamp - targetUnits,
-                        input.supply
-                    )
+                    fmul(virtualUnits - targetUnits, input.supply)
                 );
 
                 unchecked {
                     lenOuts++;
                 }
-            } else if (targetUnits > realUnitsAtLastFeeTimestamp) {
+            } else if (targetUnits > virtualUnits) {
                 ins[lenIns] = TokenInfo(
                     token,
-                    fmul(
-                        targetUnits - realUnitsAtLastFeeTimestamp,
-                        input.supply
-                    )
+                    fmul(targetUnits - virtualUnits, input.supply)
                 );
 
                 unchecked {

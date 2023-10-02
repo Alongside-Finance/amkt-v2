@@ -2,7 +2,6 @@ pragma solidity =0.8.15;
 
 import {VerifiableAddressArray} from "./lib/VArray.sol";
 import {IVault} from "./interfaces/IVault.sol";
-import {Multiplier} from "./lib/Multiplier.sol";
 import {TokenInfo} from "./Common.sol";
 import {IIndexToken} from "./interfaces/IIndexToken.sol";
 import {SCALAR, fdiv, fmul, finv} from "./lib/FixedPoint.sol";
@@ -25,9 +24,7 @@ contract Vault is Ownable2Step, IVault {
 
     uint256 public feeScaled;
 
-    // exposed in multiplier()
-    uint256 internal lastKnownTimestamp;
-    uint256 internal lastKnownMultiplier;
+    uint256 public lastKnownTimestamp;
 
     VerifiableAddressArray.VerifiableArray internal _underlying;
     mapping(address => uint256) internal nominals;
@@ -80,7 +77,6 @@ contract Vault is Ownable2Step, IVault {
         feeRecipient = _feeRecipient;
         feeScaled = _feeScaled;
 
-        lastKnownMultiplier = SCALAR;
         lastKnownTimestamp = block.timestamp;
     }
 
@@ -127,8 +123,6 @@ contract Vault is Ownable2Step, IVault {
         if (_feeScaled > SCALAR) {
             revert AMKTVaultFeeTooLarge();
         }
-
-        tryInflation();
         feeScaled = _feeScaled;
         emit VaultFeeScaledSet(_feeScaled);
     }
@@ -144,31 +138,30 @@ contract Vault is Ownable2Step, IVault {
     ///////////////////////// INFLATION /////////////////////////
 
     /// @notice Try to accrue inflation
-    /// @dev returns the current multiplier
-    function tryInflation() public returns (uint256) {
+    function tryInflation() external only(feeRecipient) {
+        if (block.timestamp < lastKnownTimestamp + 1 days)
+            revert AMKTVaultFeeTooEarly();
         uint256 startingSupply = indexToken.totalSupply();
+        uint256 timestampDiff = block.timestamp - lastKnownTimestamp;
+        uint256 feeMultiplier = SCALAR - (timestampDiff * feeScaled);
+        uint256 inflation = fdiv(startingSupply, feeMultiplier) -
+            startingSupply;
+        if (inflation == 0) revert AMKTVaultFeeTooEarly();
 
-        (
-            uint256 timestamp,
-            uint256 trackedMultiplier,
-            uint256 newFeeAccrued,
-            uint256 currentMultiplier
-        ) = multiplier();
+        lastKnownTimestamp = block.timestamp;
 
-        if (newFeeAccrued < SCALAR) {
-            uint256 inflation = fmul(startingSupply, finv(newFeeAccrued)) -
-                startingSupply;
-
-            lastKnownMultiplier = trackedMultiplier;
-            lastKnownTimestamp = timestamp;
-
-            if (inflation > 0) {
-                indexToken.mint(feeRecipient, inflation);
-                emit VaultFeeMinted(feeRecipient, inflation);
-            }
+        TokenInfo[] memory tokens = virtualUnits();
+        for (uint256 i = 0; i < tokens.length; i++) {
+            _setNominal(
+                SetNominalArgs({
+                    token: tokens[i].token,
+                    virtualUnits: fmul(tokens[i].units, feeMultiplier)
+                })
+            );
         }
 
-        return currentMultiplier;
+        indexToken.mint(feeRecipient, inflation);
+        emit VaultFeeMinted(feeRecipient, inflation);
     }
 
     ///////////////////////// REBALANCER /////////////////////////
@@ -191,16 +184,6 @@ contract Vault is Ownable2Step, IVault {
         SetNominalArgs calldata args
     ) external whenNotEmergency only(rebalancer) {
         _setNominal(args);
-    }
-
-    /// @notice Set the multiplier
-    /// @param _multiplier The multiplier
-    /// @dev only rebalancer
-    /// @dev this is only used to set the multiplier to 1 after a rebalance so far
-    function invokeSetMultiplier(
-        uint256 _multiplier
-    ) external whenNotEmergency only(rebalancer) {
-        lastKnownMultiplier = _multiplier;
     }
 
     ///////////////////////// ISSUANCE /////////////////////////
@@ -266,7 +249,7 @@ contract Vault is Ownable2Step, IVault {
 
     /// @notice Returns the virtual units of all tokens
     /// @return TokenInfo[] memory
-    function virtualUnits() external view returns (TokenInfo[] memory) {
+    function virtualUnits() public view returns (TokenInfo[] memory) {
         address[] storage stor = _underlying.toStorageArray();
         uint256 len = stor.length;
 
@@ -275,34 +258,6 @@ contract Vault is Ownable2Step, IVault {
         for (uint256 i; i < len; i++) {
             address token = stor[i];
             info[i] = TokenInfo({token: token, units: nominals[token]});
-        }
-
-        return info;
-    }
-
-    /// @notice Returns the real units of a token
-    /// @dev warning! does not revert on non-underlying token
-    function realUnits(address token) external view returns (uint256) {
-        (, , , uint256 currentMultiplier) = multiplier();
-        return _computeRealUnits(token, currentMultiplier);
-    }
-
-    /// @notice Returns the real units of all tokens
-    /// @return TokenInfo[] memory
-    function realUnits() public view returns (TokenInfo[] memory) {
-        address[] storage stor = _underlying.toStorageArray();
-        uint256 len = stor.length;
-
-        TokenInfo[] memory info = new TokenInfo[](len);
-
-        (, , , uint256 currentMultiplier) = multiplier();
-
-        for (uint256 i; i < len; i++) {
-            address token = stor[i];
-            info[i] = TokenInfo({
-                token: token,
-                units: _computeRealUnits(token, currentMultiplier)
-            });
         }
 
         return info;
@@ -320,50 +275,17 @@ contract Vault is Ownable2Step, IVault {
         return _underlying.size();
     }
 
-    /// @notice Returns the multiplier
-    /// @return trackedTimestamp the new tracked timestamp
-    /// @return trackedMultiplier the new tracked multiplier, this is helpful to cache so we don't need to start from the beginning
-    /// @return newFeeAccrued the new fee from this call, does not account for the old tracked multiplier, this does not incude intermediate values and is how inflation accrual works
-    /// @return currentMultiplier the new multiplier for the current block timestamp, this is an intermediate value and not tracked, it is what's applied to the nominals
-    /// @dev view function so this does't actually do anything
-    function multiplier()
-        public
-        view
-        returns (
-            uint256 trackedTimestamp,
-            uint256 trackedMultiplier,
-            uint256 newFeeAccrued,
-            uint256 currentMultiplier
-        )
-    {
-        (
-            trackedTimestamp,
-            trackedMultiplier,
-            newFeeAccrued,
-            currentMultiplier
-        ) = Multiplier.computeMultiplier(
-            lastKnownTimestamp,
-            lastKnownMultiplier,
-            feeScaled
-        );
-    }
-
     /// @notice Checks that the vault is in a valid state
     /// @notice i.e. we can wind down to 0 safely
     /// @notice reverts if the check fails
     function invariantCheck() public view {
-        TokenInfo[] memory tokens = realUnits();
-
-        (, , , uint256 currentMultiplier) = multiplier();
-
-        // adjust total supply by inverse of intraday fee (inflation)
-        uint256 totalSupply = fmul(
-            fdiv(lastKnownMultiplier, currentMultiplier),
-            indexToken.totalSupply()
-        );
+        TokenInfo[] memory tokens = virtualUnits();
 
         for (uint256 i; i < tokens.length; ) {
-            uint256 expectedAmount = fmul(tokens[i].units, totalSupply);
+            uint256 expectedAmount = fmul(
+                tokens[i].units,
+                indexToken.totalSupply()
+            );
             if (
                 IERC20(tokens[i].token).balanceOf(address(this)) <
                 expectedAmount
@@ -396,12 +318,5 @@ contract Vault is Ownable2Step, IVault {
 
     function _invokeERC20(address token, address to, uint256 amount) internal {
         IERC20(token).safeTransfer(to, amount);
-    }
-
-    function _computeRealUnits(
-        address token,
-        uint256 _multiplier
-    ) internal view returns (uint256) {
-        return fmul(virtualUnits(token), _multiplier);
     }
 }

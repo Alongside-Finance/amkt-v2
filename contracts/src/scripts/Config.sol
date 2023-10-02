@@ -23,7 +23,7 @@ address constant FEE_RECEIPIENT = address(
     0xC19a5b6E0a923519603985153515222D59cb3F2e
 );
 
-uint256 constant FEE_SCALED = 26151474053915;
+uint256 constant FEE_SCALED = 302679097; // TODO: Derive this
 
 address constant PROXY = address(0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D);
 address constant PROXY_ADMIN = address(
