@@ -5,6 +5,7 @@ import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {SCALAR, fmul} from "src/lib/FixedPoint.sol";
 import {IVault} from "src/interfaces/IVault.sol";
+import {Issuance} from "src/invoke/Issuance.sol";
 
 contract IssuanceTest is StatefulTest {
     function testGoToZero() public {
@@ -225,5 +226,45 @@ contract IssuanceTest is StatefulTest {
                 startingBalances[i]
             );
         }
+    }
+
+    function testInflation() public {
+        seedInitial(10);
+
+        uint256 initialSupply = indexToken.totalSupply();
+        uint256 initialFeeRecipientBalance = indexToken.balanceOf(feeReciever);
+        vm.warp(block.timestamp + 1 days * 365);
+
+        vm.prank(feeReciever);
+        issuance.tryInflation();
+
+        uint256 newSupply = indexToken.totalSupply();
+        uint256 newFeeRecipientBalance = indexToken.balanceOf(feeReciever);
+
+        // Calculate the expected inflation and fee recipient balance
+
+        // Check that the total supply has increased by the expected inflation
+        rangeCheck({
+            target: 1009591115598182735, // TODO: NEW MATH
+            actual: newSupply,
+            rangeNumerator: 1,
+            rangeDenominator: 1e16
+        });
+
+        // // Check that the fee recipient's balance has increased by the expected inflation
+
+        rangeCheck({
+            target: 9591115598182735, // TODO: NEW MATH
+            actual: newFeeRecipientBalance,
+            rangeNumerator: 1,
+            rangeDenominator: 1e12
+        });
+    }
+
+    function testZeroInflation() public {
+        vm.startPrank(feeReciever);
+        assertEq(indexToken.totalSupply(), 1e18);
+        vm.expectRevert(Issuance.IssuanceFeeTooEarly.selector);
+        issuance.tryInflation();
     }
 }

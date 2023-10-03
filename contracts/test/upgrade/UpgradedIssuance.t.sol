@@ -8,7 +8,7 @@ import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {fmul} from "src/lib/FixedPoint.sol";
 import {console} from "forge-std/console.sol";
 import {IssuanceQuoter} from "periphery/IssuanceQuoter.sol";
-import {IVault} from "src/interfaces/IVault.sol";
+import {Issuance} from "src/invoke/Issuance.sol";
 
 contract UpgradedIssuanceTest is UpgradeTest {
     address largeAmktHolder =
@@ -81,7 +81,7 @@ contract UpgradedIssuanceTest is UpgradeTest {
         vm.assume(jitter < JITTER_MAX);
         vm.assume(amount <= AMKT.balanceOf(largeAmktHolder));
         vm.prank(vault.feeRecipient());
-        vault.tryInflation();
+        issuance.tryInflation();
         assertEq(AMKT.balanceOf(largeAmktHolder), 16704840500000000000000);
         assertGe(AMKT.totalSupply(), AMKT.balanceOf(largeAmktHolder));
         vm.startPrank(largeAmktHolder);
@@ -167,9 +167,9 @@ contract UpgradedIssuanceTest is UpgradeTest {
     function feeRecipientTryInflation() public {
         vm.startPrank(vault.feeRecipient());
         if (block.timestamp - vault.lastKnownTimestamp() <= 1 days) {
-            vm.expectRevert(IVault.AMKTVaultFeeTooEarly.selector);
+            vm.expectRevert(Issuance.IssuanceFeeTooEarly.selector);
         }
-        vault.tryInflation();
+        issuance.tryInflation();
         vm.stopPrank();
     }
 }
