@@ -146,8 +146,9 @@ contract VaultTest is StatefulTest {
         // Calculate the expected inflation and fee recipient balance
 
         // Check that the total supply has increased by the expected inflation
+
         rangeCheck({
-            target: 1009591115598182735, // TODO: NEW MATH
+            target: 1009591115598182735, //
             actual: newSupply,
             rangeNumerator: 1,
             rangeDenominator: 1e16
