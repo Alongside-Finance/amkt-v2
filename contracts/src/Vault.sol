@@ -143,7 +143,7 @@ contract Vault is Ownable2Step, IVault {
             revert AMKTVaultFeeTooEarly();
         uint256 startingSupply = indexToken.totalSupply();
         uint256 timestampDiff = block.timestamp - lastKnownTimestamp;
-        uint256 feeMultiplier = SCALAR - (timestampDiff * feeScaled);
+        uint256 feeMultiplier = timestampDiff * feeScaled;
         uint256 inflation = fdiv(startingSupply, feeMultiplier) -
             startingSupply;
         if (inflation == 0) revert AMKTVaultFeeTooEarly();
