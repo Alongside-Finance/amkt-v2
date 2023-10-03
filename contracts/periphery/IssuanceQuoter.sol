@@ -4,7 +4,7 @@ import {fmul} from "src/lib/FixedPoint.sol";
 import {TokenInfo} from "src/Common.sol";
 
 contract IssuanceQuoter {
-    IVault vault;
+    IVault immutable vault;
 
     constructor(address _vault) {
         vault = IVault(_vault);
