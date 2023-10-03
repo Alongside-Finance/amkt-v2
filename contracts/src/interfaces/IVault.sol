@@ -6,9 +6,8 @@ import {IIndexToken} from "./IIndexToken.sol";
 interface IVault {
     error AMKTVaultOnlyInvokers();
     error AMKTVaultOnly(address who);
-    error AMKTVaultFeeTooLarge();
-    error AMKTVaultFeeTooEarly();
     error AMKTVaultEmergency();
+    error AMKTVaultFeeTooLarge();
     error VaultInvariant();
 
     event VaultIssuanceSet(address issuance);
@@ -33,8 +32,6 @@ interface IVault {
     function issuance() external view returns (address);
 
     function rebalancer() external view returns (address);
-
-    function tryInflation() external;
 
     function feeScaled() external view returns (uint256);
 
@@ -65,6 +62,8 @@ interface IVault {
     function invokeMint(address to, uint256 amount) external;
 
     function invokeBurn(address from, uint256 amount) external;
+
+    function invokeMintFee(uint256 amount) external;
 
     function indexToken() external view returns (IIndexToken);
 }

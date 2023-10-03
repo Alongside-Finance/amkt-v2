@@ -10,6 +10,8 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 contract Issuance {
     error IssuanceReentrant();
+    error IssuanceNotFeeRecipient();
+    error IssuanceFeeTooEarly();
 
     using VerifiableAddressArray for VerifiableAddressArray.VerifiableArray;
     using SafeERC20 for IERC20;
@@ -90,5 +92,42 @@ contract Issuance {
         vault.invokeBurn(msg.sender, amount);
 
         vault.invokeERC20s(args);
+    }
+
+    ///////////////////////// INFLATION /////////////////////////
+
+    /// @notice Try to accrue inflation
+    function tryInflation() external invariantCheck {
+        if (msg.sender != vault.feeRecipient())
+            revert IssuanceNotFeeRecipient();
+        if (block.timestamp < vault.lastKnownTimestamp() + 1 days)
+            revert IssuanceFeeTooEarly();
+        uint256 startingSupply = vault.indexToken().totalSupply();
+        uint256 timestampDiff = block.timestamp - vault.lastKnownTimestamp();
+        uint256 feeMultiplier = timestampDiff * vault.feeScaled();
+        uint256 inflation = fdiv(startingSupply, feeMultiplier) -
+            startingSupply;
+        if (inflation == 0) revert IssuanceFeeTooEarly();
+
+        TokenInfo[] memory tokens = vault.virtualUnits();
+
+        IVault.SetNominalArgs[] memory args = new IVault.SetNominalArgs[](
+            tokens.length
+        );
+
+        for (uint256 i; i < tokens.length; ) {
+            args[i] = IVault.SetNominalArgs({
+                token: tokens[i].token,
+                virtualUnits: fmul(tokens[i].units, feeMultiplier)
+            });
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        vault.invokeSetNominals(args);
+
+        vault.invokeMintFee(inflation);
     }
 }

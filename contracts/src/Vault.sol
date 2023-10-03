@@ -135,57 +135,6 @@ contract Vault is Ownable2Step, IVault {
         emit VaultEmergencySet(_emergency);
     }
 
-    ///////////////////////// INFLATION /////////////////////////
-
-    /// @notice Try to accrue inflation
-    function tryInflation() external only(feeRecipient) {
-        if (block.timestamp < lastKnownTimestamp + 1 days)
-            revert AMKTVaultFeeTooEarly();
-        uint256 startingSupply = indexToken.totalSupply();
-        uint256 timestampDiff = block.timestamp - lastKnownTimestamp;
-        uint256 feeMultiplier = timestampDiff * feeScaled;
-        uint256 inflation = fdiv(startingSupply, feeMultiplier) -
-            startingSupply;
-        if (inflation == 0) revert AMKTVaultFeeTooEarly();
-
-        lastKnownTimestamp = block.timestamp;
-
-        TokenInfo[] memory tokens = virtualUnits();
-        for (uint256 i = 0; i < tokens.length; i++) {
-            _setNominal(
-                SetNominalArgs({
-                    token: tokens[i].token,
-                    virtualUnits: fmul(tokens[i].units, feeMultiplier)
-                })
-            );
-        }
-
-        indexToken.mint(feeRecipient, inflation);
-        emit VaultFeeMinted(feeRecipient, inflation);
-    }
-
-    ///////////////////////// REBALANCER /////////////////////////
-
-    /// @notice Set the nominal units of more than one token
-    /// @param args The SetNominalArgs[]
-    /// @dev only rebalancer
-    function invokeSetNominals(
-        SetNominalArgs[] calldata args
-    ) external whenNotEmergency only(rebalancer) {
-        for (uint256 i; i < args.length; i++) {
-            _setNominal(args[i]);
-        }
-    }
-
-    /// @notice Set the nominal units of a token
-    /// @param args The SetNominalArgs
-    /// @dev only rebalancer
-    function invokeSetNominal(
-        SetNominalArgs calldata args
-    ) external whenNotEmergency only(rebalancer) {
-        _setNominal(args);
-    }
-
     ///////////////////////// ISSUANCE /////////////////////////
 
     /// @notice Mint index tokens
@@ -207,7 +156,36 @@ contract Vault is Ownable2Step, IVault {
         indexToken.burn(from, amount);
     }
 
+    /// @notice Mint index tokens to fee recipient
+    /// @param amount The amount of fee to mint
+    /// @dev only issuance
+    function invokeMintFee(uint256 amount) external onlyInvokers {
+        lastKnownTimestamp = block.timestamp;
+        indexToken.mint(feeRecipient, amount);
+        emit VaultFeeMinted(feeRecipient, amount);
+    }
+
     ///////////////////////// INVOKERS /////////////////////////
+
+    /// @notice Set the nominal units of more than one token
+    /// @param args The SetNominalArgs[]
+    /// @dev only rebalancer
+    function invokeSetNominals(
+        SetNominalArgs[] calldata args
+    ) external whenNotEmergency onlyInvokers {
+        for (uint256 i; i < args.length; i++) {
+            _setNominal(args[i]);
+        }
+    }
+
+    /// @notice Set the nominal units of a token
+    /// @param args The SetNominalArgs
+    /// @dev only rebalancer
+    function invokeSetNominal(
+        SetNominalArgs calldata args
+    ) external whenNotEmergency onlyInvokers {
+        _setNominal(args);
+    }
 
     /// @notice Invoke ERC20 transfers
     /// @param args The InvokeERC20Args[]
