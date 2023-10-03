@@ -16,5 +16,5 @@ inflatedAmount = endSupply - startingSupply
 feeMultiplier = 1e18 - (timestampDiff * perSecondFeeSymbol)
 perSecondFee = sp.solve(sp.Eq(inflatedAmount, (startingSupply / feeMultiplier - startingSupply)),perSecondFeeSymbol)[0]
 print("The solution for perSecondFee is:", perSecondFee)
-print("Yearly inflation is:", inflatedAmount)
+print("Inflated amount is:", inflatedAmount)
 print("Yearly inflation is:", endSupply)
