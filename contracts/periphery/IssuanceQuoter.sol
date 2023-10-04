@@ -17,7 +17,7 @@ contract IssuanceQuoter {
     function quoteIssue(
         uint256 amount
     ) external view returns (TokenInfo[] memory) {
-        TokenInfo[] memory tokens = vault.virtualUnits();
+        TokenInfo[] memory tokens = vault.realUnits();
 
         require(tokens.length > 0, "No tokens in vault");
 
