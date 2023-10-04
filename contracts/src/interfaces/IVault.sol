@@ -6,7 +6,7 @@ import {IIndexToken} from "./IIndexToken.sol";
 interface IVault {
     error AMKTVaultOnlyInvokers();
     error AMKTVaultOnly(address who);
-    error AMKTVaultFeeTooLarge();
+    error AMKTVaultInflationRateTooLarge();
     error AMKTVaultFeeTooEarly();
     error AMKTVaultEmergency();
     error VaultInvariant();
@@ -16,7 +16,7 @@ interface IVault {
     event VaultRebalancerSet(address rebalancer);
     event VaultFeeRecipientSet(address feeRecipient);
     event VaultEmergencyResponderSet(address emergencyResponder);
-    event VaultFeeScaledSet(uint256 feeScaled);
+    event VaultInflationRateSet(uint256 inflationRate);
     event VaultEmergencySet(bool emergency);
     event VaultFeeMinted(address indexed to, uint256 amount);
 
@@ -37,7 +37,7 @@ interface IVault {
 
     function tryInflation() external;
 
-    function feeScaled() external view returns (uint256);
+    function inflationRate() external view returns (uint256);
 
     function feeRecipient() external view returns (address);
 

@@ -1,7 +1,7 @@
 pragma solidity =0.8.18;
 
 import {Script} from "forge-std/Script.sol";
-import {MULTISIG, PROXY, PROXY_ADMIN, FEE_SCALED} from "src/scripts/Config.sol";
+import {MULTISIG, PROXY, PROXY_ADMIN, INFLATION_RATE} from "src/scripts/Config.sol";
 import {ITransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import {IndexToken} from "src/IndexToken.sol";
@@ -21,7 +21,7 @@ contract MultisigStep2Script is Script {
             _newImplementation,
             abi.encodeWithSignature("initialize(address)", _vault)
         );
-        Vault(_vault).setFeeScaled(FEE_SCALED);
+        Vault(_vault).setInflationRate(INFLATION_RATE);
         Vault(_vault).setRebalancer(_timelockInvokeableBounty);
         Vault(_vault).transferOwnership(_timelockController);
         ProxyAdmin(PROXY_ADMIN).transferOwnership(_timelockController);
