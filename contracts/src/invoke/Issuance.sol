@@ -39,7 +39,7 @@ contract Issuance {
     /// @dev requires approval of underlying tokens
     /// @dev reentrancy guard in case callback in tokens
     function issue(uint256 amount) external invariantCheck ReentrancyGuard {
-        TokenInfo[] memory tokens = vault.virtualUnits();
+        TokenInfo[] memory tokens = vault.realUnits();
 
         require(tokens.length > 0, "No tokens in vault");
 
@@ -65,7 +65,7 @@ contract Issuance {
     /// @dev requies approval of index token
     /// @dev reentrancy guard in case callback in tokens
     function redeem(uint256 amount) external invariantCheck ReentrancyGuard {
-        TokenInfo[] memory tokens = vault.virtualUnits();
+        TokenInfo[] memory tokens = vault.realUnits();
 
         require(tokens.length > 0, "No tokens in vault");
 
