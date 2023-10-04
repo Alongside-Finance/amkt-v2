@@ -152,7 +152,7 @@ contract UpgradeTest is GnosisTest {
             data: abi.encodeWithSelector(
                 bytes4(
                     keccak256(
-                        "fulfillBounty(((address,uint256)[],address,uint256,bytes32),bool)"
+                        "fulfillBounty(((address,uint256)[],address,uint256,bytes32))"
                     )
                 ),
                 _bountyToSet,

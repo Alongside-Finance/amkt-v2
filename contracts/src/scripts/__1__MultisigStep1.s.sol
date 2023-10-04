@@ -27,7 +27,7 @@ contract MultisigStep1Script is Script {
         );
         ActiveBounty(_activeBounty).setHash(hashToSet);
         Vault(_vault).acceptOwnership();
-        InvokeableBounty(_invokeableBounty).fulfillBounty(_bountyToSet, false);
+        InvokeableBounty(_invokeableBounty).fulfillBounty(_bountyToSet);
         vm.stopBroadcast();
     }
 }

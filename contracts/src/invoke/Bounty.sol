@@ -7,13 +7,6 @@ import {SCALAR, fmul} from "../lib/FixedPoint.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-interface Rebalancer {
-    function rebalanceCallback(
-        TokenInfo[] calldata required,
-        TokenInfo[] calldata received
-    ) external;
-}
-
 interface IActiveBounty {
     function activeBounty() external view returns (bytes32);
 
@@ -42,7 +35,7 @@ contract InvokeableBounty {
     error BountyMustIncludeAllUnderlyings();
     error BountyInvalidFulfiller();
 
-    event BountyFulfilled(Bounty bounty, bool callback);
+    event BountyFulfilled(Bounty bounty);
 
     mapping(bytes32 => bool) public completedBounties;
 
@@ -90,10 +83,8 @@ contract InvokeableBounty {
     ///
     ///
     /// @param bounty the bounty to fulfill
-    /// @param callback whether or not to call the rebalancer callback
     function fulfillBounty(
-        Bounty memory bounty,
-        bool callback
+        Bounty memory bounty
     ) external ReentrancyGuard invariantCheck {
         bytes32 bountyHash = hashBounty(bounty);
 
@@ -122,10 +113,6 @@ contract InvokeableBounty {
         // sends all the tokens to the rebalancer first
         vault.invokeERC20s(outs);
 
-        if (callback) {
-            Rebalancer(msg.sender).rebalanceCallback(ins, intoTokenInfo(outs));
-        }
-
         if (indexToken.totalSupply() != startingSupply) {
             revert BountyAMKTSupplyChange();
         }
@@ -147,7 +134,7 @@ contract InvokeableBounty {
         vault.invokeSetNominals(nominals);
 
         completedBounties[bountyHash] = true;
-        emit BountyFulfilled(bounty, callback);
+        emit BountyFulfilled(bounty);
     }
 
     /// @notice quote a bounty, returns the ins and outs

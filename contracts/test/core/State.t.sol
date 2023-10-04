@@ -3,7 +3,7 @@ pragma solidity =0.8.18;
 import "forge-std/Test.sol";
 import {Vault} from "src/Vault.sol";
 import {Issuance} from "src/invoke/Issuance.sol";
-import {InvokeableBounty, Bounty, Rebalancer} from "src/invoke/Bounty.sol";
+import {InvokeableBounty, Bounty} from "src/invoke/Bounty.sol";
 import {ActiveBounty} from "src/invoke/ActiveBounty.sol";
 import {MockMintableToken} from "../mocks/MockMintableToken.sol";
 import {TokenInfo} from "src/Common.sol";
@@ -13,7 +13,7 @@ import {IIndexToken} from "src/interfaces/IIndexToken.sol";
 import {INFLATION_RATE} from "src/scripts/Config.sol";
 import {IssuanceQuoter} from "periphery/IssuanceQuoter.sol";
 
-contract StatefulTest is BaseTest, Rebalancer {
+contract StatefulTest is BaseTest {
     Vault vault;
     InvokeableBounty bounty;
     Issuance issuance;
@@ -71,7 +71,7 @@ contract StatefulTest is BaseTest, Rebalancer {
 
     function fulfillBounty(Bounty memory _bounty) internal {
         validateBounty(_bounty);
-        bounty.fulfillBounty(_bounty, true);
+        bounty.fulfillBounty(_bounty);
     }
 
     function validateBounty(Bounty memory _bounty) internal {
@@ -93,11 +93,6 @@ contract StatefulTest is BaseTest, Rebalancer {
         indexToken.approve(address(issuance), amount);
         issuance.redeem(amount);
     }
-
-    function rebalanceCallback(
-        TokenInfo[] calldata x,
-        TokenInfo[] calldata y
-    ) external virtual {}
 }
 
 library Mocks {

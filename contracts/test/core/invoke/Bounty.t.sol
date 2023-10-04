@@ -7,17 +7,9 @@ import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {SCALAR} from "src/lib/FixedPoint.sol";
 
-interface Rebalancer {
-    function rebalanceCallback(
-        TokenInfo[] calldata x,
-        TokenInfo[] calldata y
-    ) external;
-}
-
 contract BountyTest is StatefulTest {
     Bounty internal bountyHolder;
     bool internal reenter;
-    bool internal mintOnCallback;
 
     function testInitialBounty(uint256 quantity) public {
         TokenInfo[] memory tokens = seedInitial(quantity);
@@ -66,7 +58,7 @@ contract BountyTest is StatefulTest {
         vm.prank(authority);
         activeBounty.setHash(_hash);
         vm.warp(oneDayMark - 1);
-        bounty.fulfillBounty(_bounty, true);
+        bounty.fulfillBounty(_bounty);
     }
 
     function testRemoveToken() public {
@@ -98,30 +90,16 @@ contract BountyTest is StatefulTest {
 
         vm.warp(block.timestamp + 1001);
         vm.expectRevert();
-        bounty.fulfillBounty(_bounty, true);
+        bounty.fulfillBounty(_bounty);
         vm.warp(2 days);
 
-        bounty.fulfillBounty(_bounty, true);
+        bounty.fulfillBounty(_bounty);
 
         assertEq(vault.isUnderlying(newTokensNominals[0].token), false);
         assertEq(
             IERC20(address(tokens[0].token)).balanceOf(address(vault)) <= 1,
             true
         );
-    }
-
-    function testfulfillBountyPreventsReEntranncy() public {
-        reenter = true;
-
-        TokenInfo[] memory tokens = Mocks.ascendingTokenNominalsMock(
-            address(bounty),
-            5
-        );
-        Bounty memory _bounty = Mocks.bountyMock(tokens);
-        holdBounty(_bounty);
-        validateBounty(_bounty);
-        vm.expectRevert(InvokeableBounty.BountyReentrant.selector);
-        bounty.fulfillBounty(_bounty, true);
     }
 
     function testInvalidBountyHash() public {
@@ -134,7 +112,7 @@ contract BountyTest is StatefulTest {
         });
 
         vm.expectRevert(InvokeableBounty.BountyInvalidHash.selector);
-        bounty.fulfillBounty(invalidBounty, true);
+        bounty.fulfillBounty(invalidBounty);
     }
 
     function testBountyAlreadyCompleted() public {
@@ -149,10 +127,10 @@ contract BountyTest is StatefulTest {
         holdBounty(_bounty);
         validateBounty(_bounty);
 
-        bounty.fulfillBounty(_bounty, true);
+        bounty.fulfillBounty(_bounty);
 
         vm.expectRevert(InvokeableBounty.BountyAlreadyCompleted.selector);
-        bounty.fulfillBounty(_bounty, true);
+        bounty.fulfillBounty(_bounty);
     }
 
     function testBountyMustIncludeAllUnderlyings() public {
@@ -177,23 +155,7 @@ contract BountyTest is StatefulTest {
         vm.expectRevert(
             InvokeableBounty.BountyMustIncludeAllUnderlyings.selector
         );
-        bounty.fulfillBounty(_bounty, true);
-    }
-
-    function testFailBountyAMKTSupplyChange() public {
-        mintOnCallback = true;
-        TokenInfo[] memory tokens = seedInitial(5);
-        Bounty memory _bounty = Bounty({
-            infos: tokens,
-            fulfiller: address(0),
-            deadline: block.timestamp + 1000,
-            salt: keccak256("test")
-        });
-
-        holdBounty(_bounty);
-        validateBounty(_bounty);
-
-        bounty.fulfillBounty(_bounty, true);
+        bounty.fulfillBounty(_bounty);
     }
 
     function testQuoteBounty() public {
@@ -220,18 +182,6 @@ contract BountyTest is StatefulTest {
         for (uint256 i = 0; i < lenIns; i++) {
             assertEq(ins[i].token, tokens[lenOuts + i].token);
             assertEq(ins[i].units, tokens[lenOuts + i].units);
-        }
-    }
-
-    function rebalanceCallback(
-        TokenInfo[] calldata x,
-        TokenInfo[] calldata y
-    ) external override {
-        if (reenter) {
-            bounty.fulfillBounty(bountyHolder, true);
-        }
-        if (mintOnCallback) {
-            indexToken.mint(address(this), 1000 ether);
         }
     }
 
