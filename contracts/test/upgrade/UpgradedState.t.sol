@@ -1,7 +1,7 @@
 pragma solidity =0.8.18;
 
 import "forge-std/Test.sol";
-import {InitialBountyHelper, MULTISIG, FEE_RECEIPIENT, FEE_SCALED, PROXY, PROXY_ADMIN} from "src/scripts/Config.sol";
+import {InitialBountyHelper, MULTISIG, FEE_RECEIPIENT, INFLATION_RATE, PROXY, PROXY_ADMIN} from "src/scripts/Config.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {UpgradeTest} from "test/upgrade/helpers/Upgrade.t.sol";
@@ -16,7 +16,7 @@ contract UpgradedStateTest is UpgradeTest {
     function testConfig() public {
         assertEq(FEE_RECEIPIENT, 0xC19a5b6E0a923519603985153515222D59cb3F2e);
         assertEq(MULTISIG, 0xAeB9ef94b6542BE7112f3a295646B5AaAa9Fca13);
-        assertEq(FEE_SCALED, 304132280);
+        assertEq(INFLATION_RATE, 304132280);
         assertEq(
             address(AMKT),
             address(0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D)
@@ -161,7 +161,7 @@ contract UpgradedStateTest is UpgradeTest {
         assertEq(vault.emergencyResponder(), MULTISIG);
         assertEq(vault.emergency(), false);
         assertEq(address(vault.indexToken()), address(AMKT));
-        assertEq(vault.feeScaled(), FEE_SCALED);
+        assertEq(vault.inflationRate(), INFLATION_RATE);
         assertEq(vault.owner(), MULTISIG);
         assertEq(vault.pendingOwner(), address(timelockController));
     }

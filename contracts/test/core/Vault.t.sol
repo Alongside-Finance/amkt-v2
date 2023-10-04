@@ -4,7 +4,6 @@ import "forge-std/Test.sol";
 import {StatefulTest} from "./State.t.sol";
 import {IVault} from "src/interfaces/IVault.sol";
 import {TokenInfo} from "src/Common.sol";
-import {FEE_SCALED} from "src/scripts/Config.sol";
 
 contract VaultTest is StatefulTest {
     function testShouldAllowRebalancer() public {
@@ -68,8 +67,8 @@ contract VaultTest is StatefulTest {
 
     function testShouldNotAllowSetFeeTooLarge() public {
         vm.expectRevert();
-        vault.setFeeScaled(1e18 + 1); // SCALAR is 1e18
-        vault.setFeeScaled(1e18);
+        vault.setInflationRate(1e18 + 1); // SCALAR is 1e18
+        vault.setInflationRate(1e18);
     }
 
     function emergencyResponderFunctions(bool toFail) public {
@@ -109,7 +108,7 @@ contract VaultTest is StatefulTest {
         if (toFail) vm.expectRevert();
         vault.setFeeRecipient(address(1));
         if (toFail) vm.expectRevert();
-        vault.setFeeScaled(0);
+        vault.setInflationRate(0);
         if (toFail) vm.expectRevert();
         vault.setEmergencyResponder(address(1));
     }

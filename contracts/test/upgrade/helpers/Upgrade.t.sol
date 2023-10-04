@@ -4,7 +4,7 @@ import "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 import {GnosisTest, GnosisTransaction} from "./Gnosis.t.sol";
 import {CoreDeployScript} from "src/scripts/__0__CoreDeploy.s.sol";
-import {InitialBountyHelper, AMKT, MULTISIG, PROXY_ADMIN, PROXY, FEE_SCALED, AMKT as AMKTAddress} from "src/scripts/Config.sol";
+import {InitialBountyHelper, AMKT, MULTISIG, PROXY_ADMIN, PROXY, INFLATION_RATE, AMKT as AMKTAddress} from "src/scripts/Config.sol";
 import {TokenInfo} from "src/Common.sol";
 import {Bounty, InvokeableBounty} from "src/invoke/Bounty.sol";
 import {ActiveBounty} from "src/invoke/ActiveBounty.sol";
@@ -175,8 +175,8 @@ contract UpgradeTest is GnosisTest {
         batch[19] = GnosisTransaction({
             to: address(vault),
             data: abi.encodeWithSelector(
-                bytes4(keccak256("setFeeScaled(uint256)")),
-                FEE_SCALED
+                bytes4(keccak256("setInflationRate(uint256)")),
+                INFLATION_RATE
             )
         });
 
