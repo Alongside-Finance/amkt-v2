@@ -143,19 +143,22 @@ contract Vault is Ownable2Step, IVault {
             revert AMKTVaultFeeTooEarly();
         uint256 startingSupply = indexToken.totalSupply();
         uint256 timestampDiff = block.timestamp - lastKnownTimestamp;
-        uint256 feeMultiplier = timestampDiff * feeScaled;
-        uint256 inflation = fdiv(startingSupply, feeMultiplier) -
-            startingSupply;
+        uint256 inflation = fmul(startingSupply, timestampDiff * feeScaled);
         if (inflation == 0) revert AMKTVaultFeeTooEarly();
 
         lastKnownTimestamp = block.timestamp;
+
+        uint256 valueMultiplier = fdiv(
+            startingSupply,
+            startingSupply + inflation
+        );
 
         TokenInfo[] memory tokens = virtualUnits();
         for (uint256 i = 0; i < tokens.length; i++) {
             _setNominal(
                 SetNominalArgs({
                     token: tokens[i].token,
-                    virtualUnits: fmul(tokens[i].units, feeMultiplier)
+                    virtualUnits: fmul(tokens[i].units, valueMultiplier)
                 })
             );
         }
