@@ -16,3 +16,6 @@
 [submodule "contracts/lib/solidity-examples"]
 	path = contracts/lib/solidity-examples
 	url = https://github.com/LayerZero-Labs/solidity-examples
+[submodule "contracts/lib/halmos-cheatcodes"]
+	path = contracts/lib/halmos-cheatcodes
+	url = https://github.com/a16z/halmos-cheatcodes
