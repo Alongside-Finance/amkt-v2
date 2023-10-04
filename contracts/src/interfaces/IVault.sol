@@ -51,6 +51,8 @@ interface IVault {
 
     function invokeSetNominal(SetNominalArgs calldata args) external;
 
+    function invokeSetMultiplier(uint256 _multiplier) external;
+
     function virtualUnits(address token) external view returns (uint256);
 
     function virtualUnits() external view returns (TokenInfo[] memory);

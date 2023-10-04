@@ -82,6 +82,7 @@ contract InvokeableBounty {
         chainId = _chainId;
     }
 
+    /// @notice fulfill a bounty, were going to reset the multiplier to 1 (SCALAR) here
     /// @dev we send out the tokens first, so we need to check for weird supply stuff
     /// @dev also we dont follow CEI so we need to check for reentrancy
     /// @dev the units in the bounty are the target units, ie amount of units per 1e18 amkt
@@ -106,6 +107,8 @@ contract InvokeableBounty {
 
         if (bounty.fulfiller != address(0) && bounty.fulfiller != msg.sender)
             revert BountyInvalidFulfiller();
+
+        vault.tryInflation();
 
         uint256 startingSupply = indexToken.totalSupply();
 
@@ -145,6 +148,7 @@ contract InvokeableBounty {
         }
 
         vault.invokeSetNominals(nominals);
+        vault.invokeSetMultiplier(SCALAR);
 
         completedBounties[bountyHash] = true;
         emit BountyFulfilled(bounty, callback);
@@ -202,22 +206,22 @@ contract InvokeableBounty {
             // number of target units per 1e18 amkt
             uint256 targetUnits = input.targets[i].units;
 
-            uint256 virtualUnits = vault.virtualUnits(token);
+            uint256 realUnits = vault.realUnits(token);
 
-            if (virtualUnits > targetUnits) {
+            if (realUnits > targetUnits) {
                 outs[lenOuts] = IVault.InvokeERC20Args(
                     token,
                     msg.sender,
-                    fmul(virtualUnits - targetUnits, input.supply)
+                    fmul(realUnits - targetUnits, input.supply)
                 );
 
                 unchecked {
                     lenOuts++;
                 }
-            } else if (targetUnits > virtualUnits) {
+            } else if (targetUnits > realUnits) {
                 ins[lenIns] = TokenInfo(
                     token,
-                    fmul(targetUnits - virtualUnits, input.supply)
+                    fmul(targetUnits - realUnits, input.supply)
                 );
 
                 unchecked {

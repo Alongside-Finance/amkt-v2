@@ -9,6 +9,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
+import {console} from "forge-std/console.sol";
+
 contract Vault is Ownable2Step, IVault {
     using VerifiableAddressArray for VerifiableAddressArray.VerifiableArray;
     using SafeERC20 for IERC20;
@@ -152,10 +154,12 @@ contract Vault is Ownable2Step, IVault {
 
         (uint256 fee, uint256 newMultiplier) = multiplier();
 
-        uint256 inflation = fmul(startingSupply, finv(fee) - SCALAR);
+        uint256 inflation = fee > 0
+            ? fmul(startingSupply, finv(fee) - SCALAR)
+            : 0;
 
+        // fixed point rounds down so need to check again
         if (inflation > 0) {
-            // inflation is scaled by 1e18
             lastKnownTimestamp = block.timestamp;
             lastKnownMultiplier = newMultiplier;
 
@@ -193,6 +197,16 @@ contract Vault is Ownable2Step, IVault {
         SetNominalArgs calldata args
     ) external whenNotEmergency only(rebalancer) {
         _setNominal(args);
+    }
+
+    // @notice Set the multiplier
+    /// @param _multiplier The multiplier
+    /// @dev only rebalancer
+    /// @dev this is only used to set the multiplier to 1 after a rebalance so far
+    function invokeSetMultiplier(
+        uint256 _multiplier
+    ) external whenNotEmergency only(rebalancer) {
+        lastKnownMultiplier = _multiplier;
     }
 
     ///////////////////////// ISSUANCE /////////////////////////
@@ -369,8 +383,11 @@ contract Vault is Ownable2Step, IVault {
     ) internal view returns (uint256 accruedFee, uint256 _multiplier) {
         uint256 t = block.timestamp - _lastKnownTimestamp;
 
-        accruedFee = t * _feeScaled;
-        _multiplier = _lastKnownMulitplier * accruedFee;
+        accruedFee = SCALAR - t * _feeScaled;
+
+        _multiplier = accruedFee > 0
+            ? fmul(_lastKnownMulitplier, accruedFee)
+            : lastKnownMultiplier;
     }
 
     function _invokeERC20(address token, address to, uint256 amount) internal {
