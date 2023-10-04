@@ -30,11 +30,14 @@ perSecondInflationScaled =  derivePerSecondInflationScaled(365, 1 - 0.0095)
 inflation1000 = calculateInflationAccrued(1e18, 1000, perSecondInflationScaled)
 assert inflation1000 == 26277028992000000
 
+inflation730 = calculateInflationAccrued(1e18, 730, perSecondInflationScaled)
+assert inflation730 == 19182231164160000
+
 inflation365 = calculateInflationAccrued(1e18, 365, perSecondInflationScaled)
 assert inflation365 == 9591115582080000
 
 inflation30 = calculateInflationAccrued(1e18, 30, perSecondInflationScaled)
-assert inflation30 == 788310869760000
+assert inflation30 ==  788310869760000
 
 inflation7 = calculateInflationAccrued(1e18, 7, perSecondInflationScaled)
 assert inflation7 == 183939202944000

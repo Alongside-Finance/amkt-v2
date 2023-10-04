@@ -140,6 +140,10 @@ contract VaultTest is StatefulTest {
         inflationTestHelper(1000, 26277028992000000);
     }
 
+    function testInflation730() public {
+        inflationTestHelper(730, 19182231164160000);
+    }
+
     function testInflation365() public {
         inflationTestHelper(365, 9591115582080000);
     }
