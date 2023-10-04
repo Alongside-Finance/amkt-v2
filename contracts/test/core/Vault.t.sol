@@ -4,6 +4,7 @@ import "forge-std/Test.sol";
 import {StatefulTest} from "./State.t.sol";
 import {IVault} from "src/interfaces/IVault.sol";
 import {TokenInfo} from "src/Common.sol";
+import {fmul, fdiv} from "src/lib/FixedPoint.sol";
 
 contract VaultTest is StatefulTest {
     function testShouldAllowRebalancer() public {
@@ -167,6 +168,7 @@ contract VaultTest is StatefulTest {
         seedInitial(10);
         uint256 initialSupply = indexToken.totalSupply();
         uint256 initialFeeRecipientBalance = indexToken.balanceOf(feeReciever);
+        TokenInfo[] memory initialUnits = vault.virtualUnits();
         vm.warp(block.timestamp + 1 days * daysPassed);
         vm.prank(feeReciever);
         vault.tryInflation();
@@ -174,5 +176,16 @@ contract VaultTest is StatefulTest {
         uint256 newFeeRecipientBalance = indexToken.balanceOf(feeReciever);
         assertEq(newSupply, initialSupply + expectedInflation);
         assertEq(newFeeRecipientBalance, expectedInflation);
+        uint256 valueMultiplier = fdiv(
+            initialSupply,
+            initialSupply + expectedInflation
+        );
+        TokenInfo[] memory newUnits = vault.virtualUnits();
+        for (uint256 i = 0; i < newUnits.length; i++) {
+            assertEq(
+                newUnits[i].units,
+                fmul(initialUnits[i].units, valueMultiplier)
+            );
+        }
     }
 }

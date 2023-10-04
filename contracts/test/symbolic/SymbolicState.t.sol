@@ -1,6 +1,7 @@
 pragma solidity =0.8.18;
 
-import "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
+import {SymTest} from "halmos-cheatcodes/SymTest.sol";
 import {Vault} from "src/Vault.sol";
 import {Issuance} from "src/invoke/Issuance.sol";
 import {InvokeableBounty, Bounty, Rebalancer} from "src/invoke/Bounty.sol";
@@ -8,30 +9,32 @@ import {ActiveBounty} from "src/invoke/ActiveBounty.sol";
 import {MockMintableToken} from "../mocks/MockMintableToken.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
-import {BaseTest} from "../BaseTest.t.sol";
+import {BaseTest} from "test/BaseTest.t.sol";
 import {IIndexToken} from "src/interfaces/IIndexToken.sol";
 import {INFLATION_RATE} from "src/scripts/Config.sol";
 import {IssuanceQuoter} from "periphery/IssuanceQuoter.sol";
 
-contract StatefulTest is BaseTest, Rebalancer {
+contract SymbolicStatefulTest is SymTest, BaseTest {
     Vault vault;
     InvokeableBounty bounty;
     Issuance issuance;
     ActiveBounty activeBounty;
     IssuanceQuoter issuanceQuoter;
-
     MockMintableToken indexToken;
 
     address constant authority = address(bytes20(keccak256("authority")));
-
     address constant feeReciever = address(bytes20(keccak256("feeReciever")));
-
     address constant emergencyResponder =
         address(bytes20(keccak256("emergencyResponder")));
 
     function setUp() public {
-        indexToken = new MockMintableToken("Index", "INDEX", 18, 1e18);
-
+        indexToken = new MockMintableToken(
+            "Index",
+            "INDEX",
+            18,
+            svm.createUint256("initialSupply")
+            // 1e18
+        );
         activeBounty = new ActiveBounty(authority);
 
         vault = new Vault(
@@ -39,7 +42,8 @@ contract StatefulTest is BaseTest, Rebalancer {
             address(this),
             feeReciever,
             emergencyResponder,
-            INFLATION_RATE
+            svm.createUint256("inflationRate")
+            // INFLATION_RATE
         );
 
         issuance = new Issuance(address(vault));
@@ -64,9 +68,9 @@ contract StatefulTest is BaseTest, Rebalancer {
             return tokens;
         }
         vm.assume(quantity < 98 && quantity > 0);
-        tokens = Mocks.ascendingTokenNominalsMock(address(bounty), quantity);
+        tokens = ascendingTokenNominalsMock(address(bounty), quantity);
 
-        fulfillBounty(Mocks.bountyMock(tokens));
+        fulfillBounty(bountyMock(tokens));
     }
 
     function fulfillBounty(Bounty memory _bounty) internal {
@@ -83,10 +87,6 @@ contract StatefulTest is BaseTest, Rebalancer {
     function mint(uint256 amount) internal {
         TokenInfo[] memory tokens = issuanceQuoter.quoteIssue(amount);
         for (uint256 i = 0; i < tokens.length; i++) {
-            MockMintableToken(tokens[i].token).mint(
-                address(this),
-                tokens[i].units
-            );
             IERC20(tokens[i].token).approve(address(issuance), tokens[i].units);
         }
 
@@ -102,11 +102,7 @@ contract StatefulTest is BaseTest, Rebalancer {
         TokenInfo[] calldata x,
         TokenInfo[] calldata y
     ) external virtual {}
-}
 
-library Mocks {
-    // deploys quantity of MockMintableTokens and mints 100 tokens to the calling address, approves i * 1e18 of the i-th token to the approve address
-    // returns the tokens and their approved amounts
     function ascendingTokenNominalsMock(
         address approve,
         uint256 quantity
@@ -119,11 +115,24 @@ library Mocks {
                     string(abi.encodePacked("token", i)),
                     string(abi.encodePacked("tkn", i)),
                     uint8(i) % 18,
-                    100e18
+                    svm.createUint256(
+                        string.concat(
+                            "initialSupplyToken",
+                            string(abi.encodePacked("token", i))
+                        )
+                    )
+                    // 100e18
                 )
             );
 
-            uint256 amount = (1 + i) * 1e18;
+            uint256 amount = 1 +
+                svm.createUint256(
+                    string.concat(
+                        "initialUnits",
+                        string(abi.encodePacked("token", i))
+                    )
+                );
+            // uint256 amount = (1 + i) * 1e18;
 
             IERC20(addr).approve(address(approve), amount);
 
@@ -141,5 +150,11 @@ library Mocks {
                 salt: keccak256(abi.encode(block.timestamp)),
                 deadline: block.timestamp + 1000000000
             });
+    }
+}
+
+contract SymbolicSeedInitialTest is SymbolicStatefulTest {
+    function check_seedInitial_3() public {
+        seedInitial(3);
     }
 }

@@ -8,3 +8,4 @@ core-test/=test/core/
 mocks/=test/mocks/
 @openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
 @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+halmost-cheatcodes/=lib/halmos-cheatcodes/src

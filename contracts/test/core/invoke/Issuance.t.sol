@@ -59,6 +59,53 @@ contract IssuanceTest is StatefulTest {
         issuance.issue(5e18);
     }
 
+    function testIssuanceAndRedemptionFormula(
+        uint256 issueAmount,
+        uint256 redeemAmount
+    ) public {
+        seedInitial(10);
+        vm.assume(issueAmount < 1e35);
+        vm.assume(redeemAmount < issueAmount);
+        TokenInfo[] memory units = vault.virtualUnits();
+        uint256[] memory startingIssuanceVaultBalances = new uint256[](
+            units.length
+        );
+        for (uint256 i; i < units.length; i++) {
+            startingIssuanceVaultBalances[i] = IERC20(units[i].token).balanceOf(
+                address(vault)
+            );
+        }
+        mint(issueAmount);
+        uint256[] memory endingIssuanceVaultBalances = new uint256[](
+            units.length
+        );
+        for (uint256 i; i < units.length; i++) {
+            endingIssuanceVaultBalances[i] = IERC20(units[i].token).balanceOf(
+                address(vault)
+            );
+            assertEq(
+                endingIssuanceVaultBalances[i],
+                startingIssuanceVaultBalances[i] +
+                    fmul(units[i].units + 1, issueAmount) +
+                    1
+            );
+        }
+        burn(redeemAmount);
+        uint256[] memory endingRedemptionVaultBalances = new uint256[](
+            units.length
+        );
+        for (uint256 i; i < units.length; i++) {
+            endingRedemptionVaultBalances[i] = IERC20(units[i].token).balanceOf(
+                address(vault)
+            );
+            assertEq(
+                endingRedemptionVaultBalances[i],
+                endingIssuanceVaultBalances[i] -
+                    fmul(units[i].units, redeemAmount)
+            );
+        }
+    }
+
     function testIssuanceShouldNotBreakIntraday() public {
         uint256 amountToMint = 5e18;
         uint256 oneDayMark = block.timestamp + 1 days;
@@ -84,12 +131,12 @@ contract IssuanceTest is StatefulTest {
             );
         }
 
-        mint(5e18);
+        mint(5e18); // also mints underlying, so both balances should equal
 
         for (uint256 i; i < quoteUnits.length; i++) {
             assertEq(
                 IERC20(quoteUnits[i].token).balanceOf(address(this)),
-                startingBalances[i] - quoteUnits[i].units
+                startingBalances[i]
             );
         }
     }
