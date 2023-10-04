@@ -54,6 +54,10 @@ interface IVault {
 
     function virtualUnits() external view returns (TokenInfo[] memory);
 
+    function realUnits() external view returns (TokenInfo[] memory);
+
+    function realUnits(address token) external view returns (uint256);
+
     function invariantCheck() external view;
 
     function isUnderlying(address target) external view returns (bool);
