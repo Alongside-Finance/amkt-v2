@@ -152,7 +152,7 @@ contract Vault is Ownable2Step, IVault {
 
         (uint256 fee, uint256 newMultiplier) = multiplier();
 
-        uint256 inflation = startingSupply * (finv(fee) - SCALAR);
+        uint256 inflation = fmul(startingSupply, finv(fee) - SCALAR);
 
         if (inflation > 0) {
             // inflation is scaled by 1e18
