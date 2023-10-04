@@ -129,43 +129,46 @@ contract VaultTest is StatefulTest {
         }
     }
 
-    function testInflation() public {
-        seedInitial(10);
-
-        uint256 initialSupply = indexToken.totalSupply();
-        uint256 initialFeeRecipientBalance = indexToken.balanceOf(feeReciever);
-        vm.warp(block.timestamp + 1 days * 365);
-
-        vm.prank(feeReciever);
-        vault.tryInflation();
-
-        uint256 newSupply = indexToken.totalSupply();
-        uint256 newFeeRecipientBalance = indexToken.balanceOf(feeReciever);
-
-        // Calculate the expected inflation and fee recipient balance
-
-        // Check that the total supply has increased by the expected inflation
-        rangeCheck({
-            target: 1009591115598182735, // TODO: NEW MATH
-            actual: newSupply,
-            rangeNumerator: 1,
-            rangeDenominator: 1e10
-        });
-
-        // // Check that the fee recipient's balance has increased by the expected inflation
-
-        rangeCheck({
-            target: 9591115598182735, // TODO: NEW MATH
-            actual: newFeeRecipientBalance,
-            rangeNumerator: 1,
-            rangeDenominator: 1e7
-        });
-    }
-
     function testZeroInflation() public {
         vm.startPrank(feeReciever);
         assertEq(indexToken.totalSupply(), 1e18);
         vm.expectRevert(IVault.AMKTVaultFeeTooEarly.selector);
         vault.tryInflation();
+    }
+
+    function testInflation1000() public {
+        inflationTestHelper(1000, 26277028992000000);
+    }
+
+    function testInflation365() public {
+        inflationTestHelper(365, 9591115582080000);
+    }
+
+    function testInflation30() public {
+        inflationTestHelper(30, 788310869760000);
+    }
+
+    function testInflation7() public {
+        inflationTestHelper(7, 183939202944000);
+    }
+
+    function testInflation1() public {
+        inflationTestHelper(1, 26277028992000);
+    }
+
+    function inflationTestHelper(
+        uint256 daysPassed,
+        uint256 expectedInflation
+    ) internal {
+        seedInitial(10);
+        uint256 initialSupply = indexToken.totalSupply();
+        uint256 initialFeeRecipientBalance = indexToken.balanceOf(feeReciever);
+        vm.warp(block.timestamp + 1 days * daysPassed);
+        vm.prank(feeReciever);
+        vault.tryInflation();
+        uint256 newSupply = indexToken.totalSupply();
+        uint256 newFeeRecipientBalance = indexToken.balanceOf(feeReciever);
+        assertEq(newSupply, initialSupply + expectedInflation);
+        assertEq(newFeeRecipientBalance, expectedInflation);
     }
 }
