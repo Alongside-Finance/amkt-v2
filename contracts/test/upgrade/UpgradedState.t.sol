@@ -16,7 +16,7 @@ contract UpgradedStateTest is UpgradeTest {
     function testConfig() public {
         assertEq(FEE_RECEIPIENT, 0xC19a5b6E0a923519603985153515222D59cb3F2e);
         assertEq(MULTISIG, 0xAeB9ef94b6542BE7112f3a295646B5AaAa9Fca13);
-        assertEq(FEE_SCALED, 302679097);
+        assertEq(FEE_SCALED, 31408548959);
         assertEq(
             address(AMKT),
             address(0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D)
