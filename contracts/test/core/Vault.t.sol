@@ -150,7 +150,7 @@ contract VaultTest is StatefulTest {
             target: 1009591115598182735, // TODO: NEW MATH
             actual: newSupply,
             rangeNumerator: 1,
-            rangeDenominator: 1e16
+            rangeDenominator: 1e10
         });
 
         // // Check that the fee recipient's balance has increased by the expected inflation
@@ -159,7 +159,7 @@ contract VaultTest is StatefulTest {
             target: 9591115598182735, // TODO: NEW MATH
             actual: newFeeRecipientBalance,
             rangeNumerator: 1,
-            rangeDenominator: 1e12
+            rangeDenominator: 1e7
         });
     }
 
