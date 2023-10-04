@@ -171,6 +171,7 @@ contract Vault is Ownable2Step, IVault {
         }
 
         indexToken.mint(feeRecipient, inflation);
+        invariantCheck();
         emit VaultFeeMinted(feeRecipient, inflation);
     }
 
