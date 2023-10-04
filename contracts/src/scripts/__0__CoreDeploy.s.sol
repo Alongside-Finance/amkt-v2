@@ -74,7 +74,7 @@ contract CoreDeployScript is Script {
             _vaultOwner: MULTISIG,
             _bountySetter: MULTISIG,
             emergencyResponder: MULTISIG,
-            feeScaled: 0,
+            inflationRate: 0,
             feeRecipient: FEE_RECEIPIENT
         });
 
@@ -100,7 +100,7 @@ contract CoreDeployScript is Script {
         address _vaultOwner,
         address _bountySetter,
         address emergencyResponder,
-        uint256 feeScaled,
+        uint256 inflationRate,
         address feeRecipient
     ) internal returns (Vault, Issuance, InvokeableBounty, ActiveBounty) {
         Vault _vault = new Vault({
@@ -108,7 +108,7 @@ contract CoreDeployScript is Script {
             _owner: msg.sender,
             _feeRecipient: feeRecipient,
             _emergencyResponder: emergencyResponder,
-            _feeScaled: feeScaled
+            _inflationRate: inflationRate
         });
 
         Issuance _issuance = deployIssuance(address(_vault));
