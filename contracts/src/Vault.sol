@@ -150,10 +150,10 @@ contract Vault is Ownable2Step, IVault {
     function tryInflation() external {
         uint256 startingSupply = indexToken.totalSupply();
 
-        (uint256 fee, uint256 newMultiplier) = multiplier();
+        (uint256 decay, uint256 newMultiplier) = multiplier();
 
-        uint256 inflation = fee > 0
-            ? fmul(startingSupply, finv(fee) - SCALAR)
+        uint256 inflation = decay > 0
+            ? fmul(startingSupply, finv(decay) - SCALAR)
             : 0;
 
         // fixed point rounds down so need to check again
@@ -378,13 +378,13 @@ contract Vault is Ownable2Step, IVault {
         uint256 _lastKnownMulitplier,
         uint256 _lastKnownTimestamp,
         uint256 _feeScaled
-    ) internal view returns (uint256 accruedFee, uint256 _multiplier) {
+    ) internal view returns (uint256 decay, uint256 _multiplier) {
         uint256 t = block.timestamp - _lastKnownTimestamp;
 
-        accruedFee = SCALAR - t * _feeScaled;
+        decay = SCALAR - t * _feeScaled;
 
-        _multiplier = accruedFee > 0
-            ? fmul(_lastKnownMulitplier, accruedFee)
+        _multiplier = decay > 0
+            ? fmul(_lastKnownMulitplier, decay)
             : lastKnownMultiplier;
     }
 
