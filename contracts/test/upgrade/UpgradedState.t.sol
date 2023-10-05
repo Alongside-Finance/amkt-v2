@@ -154,7 +154,7 @@ contract UpgradedStateTest is UpgradeTest {
     }
 
     function testVaultState() public {
-        assertEq(vault.underlyingLength(), 15); // TODO: Increase to 15
+        assertEq(vault.underlyingLength(), 15);
         assertEq(vault.issuance(), address(issuance));
         assertEq(vault.rebalancer(), address(timelockInvokeableBounty));
         assertEq(vault.feeRecipient(), FEE_RECEIPIENT);
@@ -259,15 +259,6 @@ contract UpgradedStateTest is UpgradeTest {
 
     function testInitializeAssembly() public {
         address target = address(AMKT);
-        assertEq(
-            vm.load(target, bytes32(uint256(101))),
-            keccak256(bytes(AMKT.name()))
-        );
-        assertEq(vm.load(target, bytes32(uint256(102))), keccak256(bytes("2")));
-        assertEq(
-            vm.load(target, keccak256("Alongside::Token::MinterSlot")),
-            bytes32(uint256(uint160(AMKT.minter())))
-        );
         bytes32 totalSupplyCheckpointsHash = keccak256(
             abi.encodePacked(uint256(206))
         );
@@ -296,5 +287,187 @@ contract UpgradedStateTest is UpgradeTest {
                 bytes32(uint256(0))
             );
         }
+    }
+
+    // based on `forge inspect IndexToken storage`
+    // known issues:
+    // - name and symbol storage assertion fails
+    // - collision in gap
+    function testStorageLayout() public {
+        address target = address(AMKT);
+        // unstructured slot
+        assertEq(
+            vm.load(target, keccak256("Alongside::Token::MinterSlot")),
+            bytes32(uint256(uint160(AMKT.minter())))
+        );
+
+        //// SLOT 0
+        // uint8 __initialized
+        // bool _initializing
+        assertEq(vm.load(target, _b(0)), _b(1)); // TODO: understand the offset
+
+        //// SLOT 1-50
+        // uint256[50] __gap
+
+        //// SLOT 51
+        // mapping(address => uint256) _balances
+        assertEq(
+            vm.load(
+                target,
+                _derive(
+                    address(0x209ADBAad63c3008B5C2edb941B991Ef9Bb35027),
+                    uint256(51)
+                )
+            ),
+            _b(200e18)
+        );
+
+        assertEq(
+            vm.load(
+                target,
+                _derive(
+                    address(0x5c90090405d0dFfe53F385925E7F0DA064C4CA05),
+                    uint256(51)
+                )
+            ),
+            _b(100e18)
+        );
+
+        //// SLOT 52
+        // mapping(address => mapping(address => uint256)) _allowances
+        // TODO
+
+        //// SLOT 53
+        // uint256 _totalSupply
+        assertEq(vm.load(target, _b(53)), _b(AMKT.totalSupply()));
+
+        //// SLOT 54
+        // string _name
+        assertEq(vm.load(target, _b(54)), _stringToBytes32(AMKT.name()));
+
+        //// SLOT 55
+        // string _symbol
+        assertEq(vm.load(target, _b(55)), _stringToBytes32(AMKT.symbol()));
+
+        //// SLOT 56-100
+        // uint256[50] __gap
+
+        //// SLOT 101
+        // bytes32 _HASHED_NAME
+        assertEq(
+            vm.load(target, bytes32(uint256(101))),
+            keccak256(bytes(AMKT.name()))
+        );
+
+        //// SLOT 102
+        // bytes32 _HASHED_VERSION
+        assertEq(vm.load(target, bytes32(uint256(102))), keccak256(bytes("2")));
+
+        //// SLOT 103-152
+        // uint256[50] __gap
+
+        //// SLOT 153
+        // mapping(address => struct CountersUpgradeable.Counter) _nonces
+        // TODO
+
+        //// SLOT 154
+        // bytes32 _PERMIT_TYPEHASH_DEPRECATED_SLOT
+        assertEq(vm.load(target, _b(154)), _b(0));
+
+        //// SLOT 155
+        // uint256[49] __gap
+        for (uint256 i = 155; i < 204; i++) {
+            assertEq(vm.load(target, _b(i)), _b(0));
+        }
+
+        //// SLOT 204
+        // mapping(address => address) _delegates
+        // TODO: FUZZ THIS
+        assertEq(
+            vm.load(
+                target,
+                _derive(
+                    address(0x209ADBAad63c3008B5C2edb941B991Ef9Bb35027),
+                    204
+                )
+            ),
+            _b(0)
+        );
+        assertEq(
+            vm.load(
+                target,
+                _derive(
+                    address(0x5c90090405d0dFfe53F385925E7F0DA064C4CA05),
+                    204
+                )
+            ),
+            _b(0)
+        );
+
+        //// SLOT 205
+        // mapping(address => struct ERC20VotesUpgradeable.Checkpoint[]) _checkpoints
+        // TODO
+
+        //// SLOT 206
+        // struct ERC20VotesUpgradeable.Checkpoint[] _totalSupplyCheckpoints
+        bytes32 totalSupplyCheckpointsHash = keccak256(
+            abi.encodePacked(uint256(206))
+        );
+        // block.number is casted to 32 bits by SafeCastUpgradeable.toUint32
+        assertEq(
+            vm.load(target, totalSupplyCheckpointsHash),
+            (bytes32(block.number - 1)) | (bytes32(AMKT.totalSupply()) << 32)
+        );
+        // check using encodePacked too
+        assertEq(
+            vm.load(target, totalSupplyCheckpointsHash),
+            bytes32(
+                abi.encodePacked(
+                    uint224(AMKT.totalSupply()),
+                    uint32(block.number - 1)
+                )
+            )
+        );
+        // check 5 more indices to make sure they are all zero
+        for (uint256 i = 0; i < 5; i++) {
+            assertEq(
+                vm.load(
+                    target,
+                    bytes32(uint256(totalSupplyCheckpointsHash) + i + 1)
+                ),
+                bytes32(uint256(0))
+            );
+        }
+
+        //// SLOT 207 - 253
+        // uint256[47] __gap
+    }
+
+    function _b(uint256 x) internal pure returns (bytes32) {
+        return bytes32(uint256(x));
+    }
+
+    function _derive(
+        address key,
+        uint256 slot
+    ) internal pure returns (bytes32) {
+        return keccak256(abi.encode(key, slot));
+    }
+
+    function _stringToBytes32(
+        string memory source
+    ) public returns (bytes32 result) {
+        bytes memory tempEmptyStringTest = bytes(source);
+        uint256 length = tempEmptyStringTest.length;
+        assertLt(length, 32); // this fn only works for strings less than length 32
+        if (length == 0) {
+            return 0x0;
+        }
+
+        assembly {
+            result := mload(add(source, 32))
+        }
+        // Set the last byte as the length of the string * 2
+        result |= bytes32(length * 2);
     }
 }
