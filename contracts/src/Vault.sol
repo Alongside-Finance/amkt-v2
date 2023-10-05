@@ -9,8 +9,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
-import {console} from "forge-std/console.sol";
-
 contract Vault is Ownable2Step, IVault {
     using VerifiableAddressArray for VerifiableAddressArray.VerifiableArray;
     using SafeERC20 for IERC20;
