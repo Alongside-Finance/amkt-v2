@@ -311,27 +311,27 @@ contract UpgradedStateTest is UpgradeTest {
 
         //// SLOT 51
         // mapping(address => uint256) _balances
-        assertEq(
-            vm.load(
-                target,
-                _derive(
-                    address(0x209ADBAad63c3008B5C2edb941B991Ef9Bb35027),
-                    uint256(51)
-                )
-            ),
-            _b(200e18)
-        );
 
-        assertEq(
-            vm.load(
-                target,
-                _derive(
-                    address(0x5c90090405d0dFfe53F385925E7F0DA064C4CA05),
-                    uint256(51)
-                )
-            ),
-            _b(100e18)
+        address[] memory addressesToCheck = new address[](2);
+        uint256[] memory balancesToCheck = new uint256[](2);
+        addressesToCheck[0] = address(
+            0x209ADBAad63c3008B5C2edb941B991Ef9Bb35027
         );
+        balancesToCheck[0] = 200e18;
+        addressesToCheck[1] = address(
+            0x5c90090405d0dFfe53F385925E7F0DA064C4CA05
+        );
+        balancesToCheck[1] = 100e18;
+
+        // Iterate through the arrays and check the balances
+        for (uint256 i = 0; i < addressesToCheck.length; i++) {
+            address userAddress = addressesToCheck[i];
+            uint256 expectedBalance = balancesToCheck[i];
+            assertEq(
+                vm.load(target, _derive(userAddress, uint256(51))),
+                _b(expectedBalance)
+            );
+        }
 
         //// SLOT 52
         // mapping(address => mapping(address => uint256)) _allowances
@@ -413,12 +413,11 @@ contract UpgradedStateTest is UpgradeTest {
         bytes32 totalSupplyCheckpointsHash = keccak256(
             abi.encodePacked(uint256(206))
         );
-        // block.number is casted to 32 bits by SafeCastUpgradeable.toUint32
         assertEq(
             vm.load(target, totalSupplyCheckpointsHash),
             (bytes32(block.number - 1)) | (bytes32(AMKT.totalSupply()) << 32)
-        );
-        // check using encodePacked too
+        ); // block.number is casted to 32 bits by SafeCastUpgradeable.toUint32
+
         assertEq(
             vm.load(target, totalSupplyCheckpointsHash),
             bytes32(
@@ -427,8 +426,8 @@ contract UpgradedStateTest is UpgradeTest {
                     uint32(block.number - 1)
                 )
             )
-        );
-        // check 5 more indices to make sure they are all zero
+        ); // check using encodePacked too
+
         for (uint256 i = 0; i < 5; i++) {
             assertEq(
                 vm.load(
@@ -437,7 +436,7 @@ contract UpgradedStateTest is UpgradeTest {
                 ),
                 bytes32(uint256(0))
             );
-        }
+        } // check 5 more indices to make sure they are all zero
 
         //// SLOT 207 - 253
         // uint256[47] __gap
