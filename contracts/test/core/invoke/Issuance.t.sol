@@ -149,7 +149,7 @@ contract IssuanceTest is StatefulTest {
         // Mint some tokens first
         mint(5e18);
 
-        TokenInfo[] memory units = issuanceQuoter.quoteIssue(5e18);
+        TokenInfo[] memory units = issuanceQuoter.quoteIssue(2e18);
         uint256[] memory startingBalances = new uint256[](units.length);
         for (uint256 i; i < units.length; i++) {
             startingBalances[i] = IERC20(units[i].token).balanceOf(
@@ -163,7 +163,7 @@ contract IssuanceTest is StatefulTest {
         for (uint256 i; i < units.length; i++) {
             requireCloseX17(
                 IERC20(units[i].token).balanceOf(address(this)),
-                startingBalances[i] + (units[i].units * 2e18) / SCALAR
+                startingBalances[i] + units[i].units
             );
         }
     }

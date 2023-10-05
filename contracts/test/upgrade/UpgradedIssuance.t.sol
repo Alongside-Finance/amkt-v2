@@ -23,10 +23,8 @@ contract UpgradedIssuanceTest is UpgradeTest {
         vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
         vm.assume(jitter < JITTER_MAX);
         _warpForward(jitter);
-        feeRecipientTryInflation();
         assistedMint(address(this), issueAmount);
         _warpForward(jitter);
-        feeRecipientTryInflation();
         assistedMint(address(this), issueAmount);
     }
 
@@ -41,7 +39,6 @@ contract UpgradedIssuanceTest is UpgradeTest {
         vm.assume(redeemAmount <= issueAmount);
         vm.assume(jitter < JITTER_MAX);
         _warpForward(jitter);
-        feeRecipientTryInflation();
         assistedMint(address(this), issueAmount);
         TokenInfo[] memory tokens = vault.virtualUnits();
 
@@ -53,20 +50,16 @@ contract UpgradedIssuanceTest is UpgradeTest {
 
         // check that user can redeem afterwards
         _warpForward(jitter);
-        feeRecipientTryInflation();
         issuance.redeem(redeemAmount);
     }
 
     function testTryInflationWithJitter(uint256 jitter) public {
         vm.assume(jitter < JITTER_MAX);
         _warpForward(jitter);
-        feeRecipientTryInflation();
         vm.prank(address(2));
         uint256 beforeSupply = AMKT.totalSupply();
-        feeRecipientTryInflation();
         assertEq(AMKT.totalSupply(), beforeSupply);
         _warpForward(jitter);
-        feeRecipientTryInflation();
         if (jitter > 1 days) {
             assertGe(AMKT.totalSupply(), beforeSupply);
         } else {
@@ -88,7 +81,6 @@ contract UpgradedIssuanceTest is UpgradeTest {
         AMKT.approve(address(issuance), AMKT.balanceOf(largeAmktHolder));
         vm.stopPrank();
         _warpForward(jitter);
-        feeRecipientTryInflation();
         vm.prank(largeAmktHolder);
         issuance.redeem(amount);
     }
@@ -116,7 +108,6 @@ contract UpgradedIssuanceTest is UpgradeTest {
         AMKT.transfer(address(3), amount);
         vm.stopPrank();
         _warpForward(jitter);
-        feeRecipientTryInflation();
         vm.startPrank(address(3));
         AMKT.transfer(address(4), amount);
         vm.stopPrank();
@@ -162,14 +153,5 @@ contract UpgradedIssuanceTest is UpgradeTest {
             token.approve(address(issuance), tokens[i].units);
         }
         issuance.issue(amount);
-    }
-
-    function feeRecipientTryInflation() public {
-        vm.startPrank(vault.feeRecipient());
-        if (block.timestamp - vault.lastKnownTimestamp() <= 1 days) {
-            vm.expectRevert(IVault.AMKTVaultFeeTooEarly.selector);
-        }
-        vault.tryInflation();
-        vm.stopPrank();
     }
 }

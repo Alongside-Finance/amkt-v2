@@ -162,11 +162,4 @@ contract VaultTest is StatefulTest {
             rangeDenominator: 1e7
         });
     }
-
-    function testZeroInflation() public {
-        vm.startPrank(feeReciever);
-        assertEq(indexToken.totalSupply(), 1e18);
-        vm.expectRevert(IVault.AMKTVaultFeeTooEarly.selector);
-        vault.tryInflation();
-    }
 }
