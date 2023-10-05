@@ -57,7 +57,7 @@ contract Vault is Ownable2Step, IVault {
     /// @param _indexToken The index token address
     /// @param _owner The owner of the vault
     /// @param _feeRecipient The recipient of the fee
-    /// @param _feeScaled The *daily* fee scaled by 1e18
+    /// @param _feeScaled The fee per second scaled by 1e18, ie 95 bps = (95/10000 * 1e18) / (365 * 86400)
     constructor(
         IIndexToken _indexToken,
         address _owner,
