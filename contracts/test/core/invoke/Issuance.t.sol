@@ -64,6 +64,8 @@ contract IssuanceTest is StatefulTest {
         uint256 redeemAmount
     ) public {
         seedInitial(10);
+        issueAmount = bound(issueAmount, 0, 1e35);
+        redeemAmount = bound(redeemAmount, 0, issueAmount);
         vm.assume(issueAmount < 1e35);
         vm.assume(redeemAmount < issueAmount);
         TokenInfo[] memory units = vault.virtualUnits();

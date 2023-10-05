@@ -60,6 +60,7 @@ contract StatefulTest is BaseTest, Rebalancer {
     function seedInitial(
         uint256 quantity
     ) internal returns (TokenInfo[] memory tokens) {
+        quantity = bound(quantity, 0, 99);
         if (quantity == 0) {
             return tokens;
         }

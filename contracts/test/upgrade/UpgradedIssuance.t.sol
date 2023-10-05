@@ -15,11 +15,60 @@ contract UpgradedIssuanceTest is UpgradeTest {
         address(0x804B68f60765F4559b7096B158C912eD33aa0c26);
     address oldMinter = address(0x0D44F856E1a7c70E35c54261c3f07DbFBDCA4857);
 
+    function testIssuanceFormula(
+        uint256 issueAmount,
+        uint256 redeemAmount
+    ) public {
+        issueAmount = bound(issueAmount, 0, 10_000_000e18);
+        redeemAmount = bound(redeemAmount, 0, issueAmount);
+        vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
+        vm.assume(redeemAmount < issueAmount);
+        TokenInfo[] memory units = vault.virtualUnits();
+        uint256[] memory startingIssuanceVaultBalances = new uint256[](
+            units.length
+        );
+        for (uint256 i; i < units.length; i++) {
+            startingIssuanceVaultBalances[i] = IERC20(units[i].token).balanceOf(
+                address(vault)
+            );
+        }
+        assistedMint(address(this), issueAmount);
+        uint256[] memory endingIssuanceVaultBalances = new uint256[](
+            units.length
+        );
+        for (uint256 i; i < units.length; i++) {
+            endingIssuanceVaultBalances[i] = IERC20(units[i].token).balanceOf(
+                address(vault)
+            );
+            assertEq(
+                endingIssuanceVaultBalances[i],
+                startingIssuanceVaultBalances[i] +
+                    fmul(units[i].units + 1, issueAmount) +
+                    1
+            );
+        }
+        issuance.redeem(redeemAmount);
+        uint256[] memory endingRedemptionVaultBalances = new uint256[](
+            units.length
+        );
+        for (uint256 i; i < units.length; i++) {
+            endingRedemptionVaultBalances[i] = IERC20(units[i].token).balanceOf(
+                address(vault)
+            );
+            assertEq(
+                endingRedemptionVaultBalances[i],
+                endingIssuanceVaultBalances[i] -
+                    fmul(units[i].units, redeemAmount)
+            );
+        }
+    }
+
     function testIssuanceWithJitter(
         uint256 issueAmount,
         uint256 jitter
     ) public {
         issueAmount = bound(issueAmount, 0, 10_000_000e18);
+        jitter = bound(jitter, 0, JITTER_MAX);
         vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
         vm.assume(jitter < JITTER_MAX);
         _warpForward(jitter);
@@ -37,6 +86,7 @@ contract UpgradedIssuanceTest is UpgradeTest {
     ) public {
         issueAmount = bound(issueAmount, 0, 10_000_000e18);
         redeemAmount = bound(redeemAmount, 0, issueAmount);
+        jitter = bound(jitter, 0, JITTER_MAX);
         vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
         vm.assume(redeemAmount <= issueAmount);
         vm.assume(jitter < JITTER_MAX);
@@ -58,6 +108,7 @@ contract UpgradedIssuanceTest is UpgradeTest {
     }
 
     function testTryInflationWithJitter(uint256 jitter) public {
+        jitter = bound(jitter, 0, JITTER_MAX);
         vm.assume(jitter < JITTER_MAX);
         _warpForward(jitter);
         feeRecipientTryInflation();
@@ -78,6 +129,8 @@ contract UpgradedIssuanceTest is UpgradeTest {
         uint256 amount,
         uint256 jitter
     ) public {
+        amount = bound(amount, 0, AMKT.balanceOf(largeAmktHolder));
+        jitter = bound(jitter, 0, JITTER_MAX);
         vm.assume(jitter < JITTER_MAX);
         vm.assume(amount <= AMKT.balanceOf(largeAmktHolder));
         vm.prank(vault.feeRecipient());
@@ -110,6 +163,8 @@ contract UpgradedIssuanceTest is UpgradeTest {
         uint256 amount,
         uint256 jitter
     ) public {
+        amount = bound(amount, 0, AMKT.balanceOf(largeAmktHolder));
+        jitter = bound(jitter, 0, JITTER_MAX);
         vm.assume(jitter < JITTER_MAX);
         vm.assume(amount <= AMKT.balanceOf(largeAmktHolder));
         vm.startPrank(largeAmktHolder);
@@ -135,6 +190,8 @@ contract UpgradedIssuanceTest is UpgradeTest {
     }
 
     function testIssuance(uint256 issueAmount, uint256 redeemAmount) public {
+        issueAmount = bound(issueAmount, 0, 10_000_000e18);
+        redeemAmount = bound(redeemAmount, 0, issueAmount);
         vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
         vm.assume(redeemAmount <= issueAmount);
         assistedMint(address(this), issueAmount);
