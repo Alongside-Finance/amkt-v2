@@ -10,6 +10,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 contract Issuance {
     error IssuanceReentrant();
+    error IssuanceNoTokens();
 
     using VerifiableAddressArray for VerifiableAddressArray.VerifiableArray;
     using SafeERC20 for IERC20;
@@ -41,7 +42,7 @@ contract Issuance {
     function issue(uint256 amount) external invariantCheck ReentrancyGuard {
         TokenInfo[] memory tokens = vault.virtualUnits();
 
-        require(tokens.length > 0, "No tokens in vault");
+        if (tokens.length == 0) revert IssuanceNoTokens();
 
         for (uint256 i; i < tokens.length; ) {
             uint256 underlyingAmount = fmul(tokens[i].units + 1, amount) + 1;
@@ -67,7 +68,7 @@ contract Issuance {
     function redeem(uint256 amount) external invariantCheck ReentrancyGuard {
         TokenInfo[] memory tokens = vault.virtualUnits();
 
-        require(tokens.length > 0, "No tokens in vault");
+        if (tokens.length == 0) revert IssuanceNoTokens();
 
         IVault.InvokeERC20Args[] memory args = new IVault.InvokeERC20Args[](
             tokens.length
