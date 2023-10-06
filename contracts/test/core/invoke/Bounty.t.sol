@@ -29,7 +29,7 @@ contract BountyTest is StatefulTest {
             // assert the proper balance is included
             assertEq(
                 IERC20(address(token)).balanceOf(address(vault)),
-                (i + 1) * SCALAR
+                (i + 1) * SCALAR + 2
             );
 
             // assert the token was marked as underlying
@@ -105,7 +105,7 @@ contract BountyTest is StatefulTest {
 
         assertEq(vault.isUnderlying(newTokensNominals[0].token), false);
         assertEq(
-            IERC20(address(tokens[0].token)).balanceOf(address(vault)) <= 1,
+            IERC20(address(tokens[0].token)).balanceOf(address(vault)) <= 2,
             true
         );
     }

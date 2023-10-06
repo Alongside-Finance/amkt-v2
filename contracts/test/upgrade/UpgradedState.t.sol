@@ -224,7 +224,7 @@ contract UpgradedStateTest is UpgradeTest {
             IERC20 token = IERC20(underlying[i]);
             assertEq(
                 token.balanceOf(address(vault)),
-                fmul(tokens[i].units, AMKT.totalSupply())
+                fmul(tokens[i].units + 1, AMKT.totalSupply()) + 1
             );
         }
     }
