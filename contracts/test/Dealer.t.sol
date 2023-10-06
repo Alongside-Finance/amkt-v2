@@ -5,41 +5,42 @@ import "forge-std/Test.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {console} from "forge-std/console.sol";
 
+interface LDO {
+    function controller() external view returns (address);
+
+    function generateTokens(
+        address _owner,
+        uint _amount
+    ) external returns (bool);
+}
+
 contract Dealer is Test {
-    address[2][] private nonNormalAssetsAndWhales = [
-        [
-            address(0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32),
-            address(0x820fb25352BB0c5E03E07AFc1d86252fFD2F0A18)
-        ]
+    address[1] private nonNormalAssets = [
+        address(0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32) // LDO
     ];
 
     function dealToken(address token, address to, uint256 amount) external {
-        (bool isNormalAsset, address whale) = _isNormalAsset(token);
+        bool isNormalAsset = _isNormalAsset(token);
         if (isNormalAsset) {
             deal(token, to, amount);
         } else {
-            _dealNonNormalAsset(token, to, amount, whale);
+            // only LDO is non normal atm
+            _dealLDO(token, to, amount);
         }
     }
 
-    function _isNormalAsset(
-        address token
-    ) private view returns (bool, address) {
-        for (uint256 i = 0; i < nonNormalAssetsAndWhales.length; i++) {
-            if (nonNormalAssetsAndWhales[i][0] == token) {
-                return (false, nonNormalAssetsAndWhales[i][1]);
+    function _isNormalAsset(address token) private view returns (bool) {
+        for (uint256 i = 0; i < nonNormalAssets.length; i++) {
+            if (nonNormalAssets[i] == token) {
+                return false;
             }
         }
-        return (true, address(0));
+        return true;
     }
 
-    function _dealNonNormalAsset(
-        address token,
-        address to,
-        uint256 amount,
-        address whale
-    ) private {
-        vm.prank(whale);
-        IERC20(token).transfer(to, amount);
+    function _dealLDO(address token, address to, uint256 amount) private {
+        LDO ldo = LDO(token);
+        vm.prank(ldo.controller());
+        ldo.generateTokens(to, amount);
     }
 }

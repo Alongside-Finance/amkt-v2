@@ -50,3 +50,4 @@ inflation1 = calculateInflationAccrued(1e18, 1, perSecondInflationScaled)
 assert inflation1 == 26277028992000
 assert inflation1 == inflation7 / 7 * 1
 
+print("All tests passed!")

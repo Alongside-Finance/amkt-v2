@@ -15,7 +15,7 @@ contract UpgradedIssuanceTest is UpgradeTest {
         address(0x804B68f60765F4559b7096B158C912eD33aa0c26);
     address oldMinter = address(0x0D44F856E1a7c70E35c54261c3f07DbFBDCA4857);
 
-    function testIssuanceFormula(
+    function testIssuanceInvariant(
         uint256 issueAmount,
         uint256 redeemAmount
     ) public {
@@ -36,6 +36,8 @@ contract UpgradedIssuanceTest is UpgradeTest {
         uint256[] memory endingIssuanceVaultBalances = new uint256[](
             units.length
         );
+
+        // ISSUANCE INVARIANT:
         for (uint256 i; i < units.length; i++) {
             endingIssuanceVaultBalances[i] = IERC20(units[i].token).balanceOf(
                 address(vault)
@@ -51,6 +53,8 @@ contract UpgradedIssuanceTest is UpgradeTest {
         uint256[] memory endingRedemptionVaultBalances = new uint256[](
             units.length
         );
+
+        // REDEMPTION INVARIANT:
         for (uint256 i; i < units.length; i++) {
             endingRedemptionVaultBalances[i] = IERC20(units[i].token).balanceOf(
                 address(vault)
