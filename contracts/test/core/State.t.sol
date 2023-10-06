@@ -126,7 +126,7 @@ library Mocks {
 
             uint256 amount = (1 + i) * 1e18;
 
-            IERC20(addr).approve(address(approve), amount);
+            IERC20(addr).approve(address(approve), amount + 2); // add 2 to account for fulfillBounty rounding
 
             tokens[i] = TokenInfo({token: addr, units: amount});
         }

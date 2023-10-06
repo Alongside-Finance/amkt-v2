@@ -85,7 +85,7 @@ contract UpgradeTest is GnosisTest {
             dealer.dealToken(
                 tokens[i].token,
                 MULTISIG,
-                fmul(tokens[i].units, AMKT.totalSupply())
+                fmul(tokens[i].units + 1, AMKT.totalSupply()) + 1
             );
         }
     }
@@ -97,7 +97,7 @@ contract UpgradeTest is GnosisTest {
             IERC20 token = IERC20(tokens[i].token);
             assertEq(
                 token.balanceOf(MULTISIG),
-                fmul(tokens[i].units, AMKT.totalSupply())
+                fmul(tokens[i].units + 1, AMKT.totalSupply()) + 1
             );
         }
     }

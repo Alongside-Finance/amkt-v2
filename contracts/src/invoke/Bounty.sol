@@ -217,7 +217,7 @@ contract InvokeableBounty {
             } else if (targetUnits > virtualUnits) {
                 ins[lenIns] = TokenInfo(
                     token,
-                    fmul(targetUnits - virtualUnits, input.supply)
+                    fmul(targetUnits - virtualUnits + 1, input.supply) + 1
                 );
 
                 unchecked {
