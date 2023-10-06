@@ -135,6 +135,52 @@ contract UpgradedGovernanceTest is UpgradeTest {
         vm.stopPrank();
     }
 
+    function testTimelockSelfAdministration() public {
+        bytes32[] memory roles = new bytes32[](4);
+        roles[0] = timelockController.TIMELOCK_ADMIN_ROLE();
+        roles[1] = timelockController.PROPOSER_ROLE();
+        roles[2] = timelockController.EXECUTOR_ROLE();
+        roles[3] = timelockController.CANCELLER_ROLE();
+
+        vm.startPrank(MULTISIG);
+        for (uint256 i = 0; i < roles.length; i++) {
+            timelockController.schedule(
+                address(vault),
+                0,
+                abi.encodeWithSignature(
+                    "grantRole(bytes32,address)",
+                    roles[i],
+                    address(2)
+                ),
+                0,
+                keccak256("hash"),
+                timelockController.getMinDelay()
+            );
+        }
+        vm.stopPrank();
+    }
+
+    /// forge-config: default.fuzz.runs = 10
+    function testOnlyProposeCanProposeTimelock(address stranger) public {
+        vm.assume(
+            stranger != address(DEFAULT_TEST_CONTRACT) &&
+                stranger != MULTISIG &&
+                stranger != address(governor)
+        );
+        uint256 delay = timelockController.getMinDelay();
+        vm.startPrank(stranger);
+        vm.expectRevert();
+        timelockController.schedule(
+            address(vault),
+            0,
+            abi.encodeWithSignature("acceptOwnership()"),
+            0,
+            keccak256("hash"),
+            delay
+        );
+        vm.stopPrank();
+    }
+
     function testMultisigTimelockProposal() public {
         vm.startPrank(MULTISIG);
         timelockController.schedule(
@@ -151,6 +197,13 @@ contract UpgradedGovernanceTest is UpgradeTest {
     function makeProposalPass(Proposal memory proposal) public {
         vm.startPrank(largeAmktHolder);
         AMKT.delegate(largeAmktHolder);
+        vm.expectRevert(); // too early
+        governor.propose(
+            proposal.targets,
+            proposal.values,
+            proposal.calldatas,
+            proposal.description
+        );
         _warpForward(1 * AVG_BLOCK_TIME);
         uint256 proposalId = governor.propose(
             proposal.targets,
@@ -158,10 +211,26 @@ contract UpgradedGovernanceTest is UpgradeTest {
             proposal.calldatas,
             proposal.description
         );
+        vm.expectRevert(); // too early
+        governor.castVote(proposalId, 1);
         _warpForward((VOTE_DELAY + 1) * AVG_BLOCK_TIME);
         governor.castVote(proposalId, 1);
+        vm.expectRevert(); // too early
+        governor.queue(
+            proposal.targets,
+            proposal.values,
+            proposal.calldatas,
+            proposal.descriptionHash
+        );
         _warpForward((VOTE_PERIOD + 1) * AVG_BLOCK_TIME);
         governor.queue(
+            proposal.targets,
+            proposal.values,
+            proposal.calldatas,
+            proposal.descriptionHash
+        );
+        vm.expectRevert();
+        governor.execute(
             proposal.targets,
             proposal.values,
             proposal.calldatas,
