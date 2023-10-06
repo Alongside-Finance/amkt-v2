@@ -14,14 +14,47 @@ contract UpgradedBountyTest is UpgradeTest {
     function testBountyInvariant(uint256 numTokensToAdd, uint256 rand) public {
         numTokensToAdd = bound(numTokensToAdd, 0, 25);
         TokenInfo[] memory oldUnits = vault.virtualUnits();
+
+        // generate a valid bounty
         Bounty memory bounty = generateValidBounty(numTokensToAdd, rand);
         TokenInfo[] memory proposedUnits = bounty.infos;
         bytes32 _hash = timelockInvokeableBounty.hashBounty(bounty);
+
+        // set bounty
         vm.prank(address(timelockController));
         timelockActiveBounty.setHash(_hash);
         satisfyFulfillerBalances(address(this), bounty);
+
+        // store balances for old and new tokens for vault and fulfiller (this contract) before fulfilling
+        uint256[] memory oldUnitsVaultBalances = new uint256[](oldUnits.length);
+        uint256[] memory oldUnitsFulfillerBalances = new uint256[](
+            oldUnits.length
+        );
+        for (uint256 i = 0; i < oldUnits.length; i++) {
+            oldUnitsVaultBalances[i] = IERC20(oldUnits[i].token).balanceOf(
+                address(vault)
+            );
+            oldUnitsFulfillerBalances[i] = IERC20(oldUnits[i].token).balanceOf(
+                address(this)
+            );
+        }
+        uint256[] memory proposedUnitsVaultBalances = new uint256[](
+            proposedUnits.length
+        );
+        uint256[] memory proposedUnitsFulfillerBalances = new uint256[](
+            proposedUnits.length
+        );
+        for (uint256 i = 0; i < proposedUnits.length; i++) {
+            proposedUnitsVaultBalances[i] = IERC20(proposedUnits[i].token)
+                .balanceOf(address(vault));
+            proposedUnitsFulfillerBalances[i] = IERC20(proposedUnits[i].token)
+                .balanceOf(address(this));
+        }
+
+        // fulfill bounty
         timelockInvokeableBounty.fulfillBounty(bounty, false);
-        // INVARIANT 1: proposed units are the same as fulfilled units
+
+        // INVARIANT 1: proposed units are the same as fulfilled units, minus tokens to be removed
         TokenInfo[] memory fulfilledUnits = vault.virtualUnits();
         uint256 skipCounter = 0;
         for (uint256 i = 0; i < proposedUnits.length; i++) {
@@ -32,6 +65,81 @@ contract UpgradedBountyTest is UpgradeTest {
                 assertEq(
                     fulfilledUnits[i - skipCounter].units,
                     proposedUnits[i].units
+                );
+            }
+        }
+        // INVARIANT 2a: vault balance increases by fmul(targetUnits - virtualUnits + 1, totalSupply) + 1, fulfiller balance decreases by the same amount
+        // INVARIANT 2b: fulfiller balance increases by fmul(virtualUnits - targetUnits, totalSupply), vault balance decreases by the same amount
+        uint256 totalSupply = AMKT.totalSupply();
+        // for all old units, check if proposed units was greater than old units. if so, check that vault balance increased by the correct amount
+        for (uint256 i = 0; i < oldUnits.length; i++) {
+            if (oldUnits[i].units > proposedUnits[i].units) {
+                // fulfiller gains, vault loses
+                assertEq(
+                    IERC20(oldUnits[i].token).balanceOf(address(vault)),
+                    oldUnitsVaultBalances[i] -
+                        fmul(
+                            oldUnits[i].units - proposedUnits[i].units,
+                            totalSupply
+                        )
+                );
+                assertEq(
+                    IERC20(oldUnits[i].token).balanceOf(address(this)),
+                    oldUnitsFulfillerBalances[i] +
+                        fmul(
+                            oldUnits[i].units - proposedUnits[i].units,
+                            totalSupply
+                        )
+                );
+            } else if (oldUnits[i].units < proposedUnits[i].units) {
+                // vault gains, fulfiller loses
+                assertEq(
+                    IERC20(oldUnits[i].token).balanceOf(address(vault)),
+                    oldUnitsVaultBalances[i] +
+                        (fmul(
+                            proposedUnits[i].units - oldUnits[i].units + 1,
+                            totalSupply
+                        ) + 1)
+                );
+                assertEq(
+                    IERC20(oldUnits[i].token).balanceOf(address(this)),
+                    oldUnitsFulfillerBalances[i] -
+                        (fmul(
+                            proposedUnits[i].units - oldUnits[i].units + 1,
+                            totalSupply
+                        ) + 1)
+                );
+            } else {
+                assertEq(
+                    IERC20(oldUnits[i].token).balanceOf(address(vault)),
+                    oldUnitsVaultBalances[i]
+                );
+                assertEq(
+                    IERC20(oldUnits[i].token).balanceOf(address(this)),
+                    oldUnitsFulfillerBalances[i]
+                );
+            }
+        }
+        // for all new units, check that vault balance increased by the correct amount
+        for (uint256 i = oldUnits.length; i < proposedUnits.length; i++) {
+            if (proposedUnits[i].units == 0) {
+                // if for some reason added proposed units was empty
+                // check that vault balance is 0
+                assertEq(
+                    IERC20(proposedUnits[i].token).balanceOf(address(vault)),
+                    0,
+                    "9"
+                );
+            } else {
+                assertEq(
+                    IERC20(proposedUnits[i].token).balanceOf(address(vault)),
+                    proposedUnitsVaultBalances[i] +
+                        (fmul(proposedUnits[i].units + 1, totalSupply) + 1)
+                );
+                assertEq(
+                    IERC20(proposedUnits[i].token).balanceOf(address(this)),
+                    proposedUnitsFulfillerBalances[i] -
+                        (fmul(proposedUnits[i].units + 1, totalSupply) + 1)
                 );
             }
         }
@@ -89,8 +197,9 @@ contract UpgradedBountyTest is UpgradeTest {
         for (uint256 i = currentUnits.length; i < newUnits.length; i++) {
             newUnits[i] = TokenInfo({
                 token: address(new MockMintableToken("test", "test", 18, 0)),
-                units: rand % 1e18
+                units: (rand % 1e18)
             });
+            console.log("adding: %s", newUnits[i].token);
         }
 
         Bounty memory bounty = Bounty({
@@ -99,16 +208,6 @@ contract UpgradedBountyTest is UpgradeTest {
             salt: keccak256("test"),
             deadline: block.timestamp + 1000
         });
-
-        // loop through infos and log them all
-        for (uint256 i = 0; i < bounty.infos.length; i++) {
-            console.log(
-                "token: %s, units: %s",
-                bounty.infos[i].token,
-                bounty.infos[i].units
-            );
-        }
-
         return bounty;
     }
 }
