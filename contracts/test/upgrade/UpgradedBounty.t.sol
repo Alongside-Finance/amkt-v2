@@ -163,16 +163,17 @@ contract UpgradedBountyTest is UpgradeTest {
         Bounty memory bounty
     ) internal {
         Dealer dealer = new Dealer();
-        TokenInfo[] memory units = bounty.infos;
-        for (uint256 i = 0; i < units.length; i++) {
-            if (units[i].units == 0) {
+        (TokenInfo[] memory outs, TokenInfo[] memory ins) = quoter
+            .quoteFulfillBounty(bounty, AMKT.totalSupply());
+        for (uint256 i = 0; i < ins.length; i++) {
+            if (ins[i].units == 0) {
                 continue;
             }
-            IERC20(units[i].token).approve(
+            IERC20(ins[i].token).approve(
                 address(timelockInvokeableBounty),
                 type(uint256).max
             );
-            dealer.dealToken(units[i].token, fulfiller, type(uint256).max / 10); // a very large number, but wouldn't overflow with existing supply
+            dealer.dealToken(ins[i].token, fulfiller, ins[i].units); // only deal exactly the units needed
         }
     }
 
