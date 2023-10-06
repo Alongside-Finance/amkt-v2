@@ -17,6 +17,7 @@ import {AlongsideGovernor} from "src/Governor.sol";
 import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
 import {Issuance} from "src/invoke/Issuance.sol";
 import {fmul} from "src/lib/FixedPoint.sol";
+import {Quoter} from "periphery/Quoter.sol";
 
 contract UpgradeTest is GnosisTest {
     IndexToken AMKT;
@@ -30,6 +31,7 @@ contract UpgradeTest is GnosisTest {
     InvokeableBounty timelockInvokeableBounty;
     ActiveBounty timelockActiveBounty;
     address amktAddress;
+    Quoter quoter;
 
     function setUp() public {
         vm.createSelectFork(vm.envString("MAINNET_RPC"), 18229914);
@@ -67,6 +69,7 @@ contract UpgradeTest is GnosisTest {
         // timelockInvokeableBounty = InvokeableBounty(
         //     0x703814F9172D6E6EF10F89fCAdE3ff480d812a45
         // );
+        /// quoter // TODO
         CoreDeployScript script = new CoreDeployScript(); // TODO: Remove when ready. Due before external review.
         CoreDeployScript.DeployedContracts memory deployed = script.run(); // TODO: Remove when ready. Due vefore external review.
         vault = deployed.vault;
@@ -78,6 +81,7 @@ contract UpgradeTest is GnosisTest {
         newTokenImplementation = deployed.newTokenImplementation;
         timelockInvokeableBounty = deployed.timelockInvokeableBounty;
         timelockActiveBounty = deployed.timelockActiveBounty;
+        quoter = deployed.quoter;
         _warpForward(3 days + 2 hours);
     }
 

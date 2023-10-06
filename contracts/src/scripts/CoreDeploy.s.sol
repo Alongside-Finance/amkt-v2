@@ -8,6 +8,7 @@ import {Issuance} from "src/invoke/Issuance.sol";
 import {InvokeableBounty} from "src/invoke/Bounty.sol";
 import {ActiveBounty} from "src/invoke/ActiveBounty.sol";
 import {AlongsideGovernor} from "src/Governor.sol";
+import {Quoter} from "periphery/Quoter.sol";
 import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
 import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 import {AMKT, MULTISIG, FEE_RECEIPIENT, PROXY, PROXY_ADMIN, VERSION, NAME, SYMBOL, CANCELLATION_PERIOD} from "./Config.sol";
@@ -24,6 +25,7 @@ contract CoreDeployScript is Script {
         address newTokenImplementation;
         InvokeableBounty timelockInvokeableBounty;
         ActiveBounty timelockActiveBounty;
+        Quoter quoter;
     }
 
     function run() public virtual returns (DeployedContracts memory) {
@@ -77,6 +79,9 @@ contract CoreDeployScript is Script {
             inflationRate: 0,
             feeRecipient: FEE_RECEIPIENT
         });
+
+        Quoter quoter = new Quoter(address(deployed.vault));
+        deployed.quoter = quoter;
 
         IndexToken newTokenImplementation = new IndexToken();
         newTokenImplementation.initialize(address(1));
