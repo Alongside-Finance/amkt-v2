@@ -189,7 +189,7 @@ contract InvokeableBounty {
 
         nominals = new IVault.SetNominalArgs[](input.targets.length);
 
-        // store the lengths because we dont actually know the size off the bat
+        // store the lengths because we don't actually know the size off the bat
         uint256 lenOuts;
         uint256 lenIns;
         uint256 lenNominals;
@@ -224,7 +224,7 @@ contract InvokeableBounty {
                     lenIns++;
                 }
             } else {
-                // theyre equal so we dont need to do anything
+                // they're equal, so we don't need to do anything
                 continue;
             }
 

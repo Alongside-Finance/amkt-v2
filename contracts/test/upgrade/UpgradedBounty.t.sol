@@ -20,7 +20,13 @@ contract UpgradedBountyTest is UpgradeTest {
         TokenInfo[] memory proposedUnits = bounty.infos;
         bytes32 _hash = timelockInvokeableBounty.hashBounty(bounty);
 
-        // set bounty
+        // set bounty by anyone except timelock should fail
+        vm.startPrank(address(3));
+        vm.expectRevert();
+        timelockActiveBounty.setHash(_hash);
+        vm.stopPrank();
+
+        // set bounty by timelock should succeed
         vm.prank(address(timelockController));
         timelockActiveBounty.setHash(_hash);
         satisfyFulfillerBalances(address(this), bounty);
@@ -51,7 +57,13 @@ contract UpgradedBountyTest is UpgradeTest {
                 .balanceOf(address(this));
         }
 
-        // fulfill bounty
+        // fulfill bounty by anyone except fulfiller should fail
+        vm.startPrank(address(4));
+        vm.expectRevert();
+        timelockInvokeableBounty.fulfillBounty(bounty, false);
+        vm.stopPrank();
+
+        // fulfill bounty by fulfiller should succeed
         timelockInvokeableBounty.fulfillBounty(bounty, false);
 
         // INVARIANT 1: proposed units are the same as fulfilled units, minus tokens to be removed
