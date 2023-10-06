@@ -29,6 +29,7 @@ contract UpgradeTest is GnosisTest {
     address newTokenImplementation;
     InvokeableBounty timelockInvokeableBounty;
     ActiveBounty timelockActiveBounty;
+    address amktAddress;
 
     function setUp() public {
         vm.createSelectFork(vm.envString("MAINNET_RPC"), 18229914);
@@ -39,6 +40,7 @@ contract UpgradeTest is GnosisTest {
         GnosisTransaction[] memory batch = createUpgradeBatch();
         _warpForward(1 hours); // there will be some time after we craft the batch, and we execute it
         bytes memory dataExecuted = executeBatch(batch);
+        amktAddress = address(AMKT);
     }
 
     function setDeployedContracts() internal {

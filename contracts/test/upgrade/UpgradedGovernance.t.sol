@@ -106,7 +106,7 @@ contract UpgradedGovernanceTest is UpgradeTest {
         assertEq(AMKT.getVotes(address(2)), 1e18);
     }
 
-    /// forge-config: default.fuzz.runs = 10
+    /// forge-config: default.fuzz.runs = 20
     function testDelegateVoting(address user) public {
         vm.assume(user != address(0));
         vm.prank(largeAmktHolder);
@@ -160,7 +160,7 @@ contract UpgradedGovernanceTest is UpgradeTest {
         vm.stopPrank();
     }
 
-    /// forge-config: default.fuzz.runs = 10
+    /// forge-config: default.fuzz.runs = 20
     function testOnlyProposeCanProposeTimelock(address stranger) public {
         vm.assume(
             stranger != address(DEFAULT_TEST_CONTRACT) &&
