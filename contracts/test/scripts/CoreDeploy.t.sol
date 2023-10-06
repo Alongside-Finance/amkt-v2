@@ -4,7 +4,7 @@ import "forge-std/Test.sol";
 import {AMKT as AMKTAddress} from "src/scripts/Config.sol";
 import {IndexToken} from "src/IndexToken.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
-import {CoreDeployScript} from "src/scripts/__0__CoreDeploy.s.sol";
+import {CoreDeployScript} from "src/scripts/CoreDeploy.s.sol";
 import {IndexToken} from "src/IndexToken.sol";
 import {Vault} from "src/Vault.sol";
 import {InvokeableBounty} from "src/invoke/Bounty.sol";
@@ -14,7 +14,7 @@ import {AlongsideGovernor} from "src/Governor.sol";
 import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
 import {Issuance} from "src/invoke/Issuance.sol";
 
-contract __0__CoreDeployTest is Test {
+contract CoreDeployTest is Test {
     IndexToken AMKT;
     Vault vault;
     Issuance issuance;
