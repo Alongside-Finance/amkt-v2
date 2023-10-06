@@ -205,9 +205,8 @@ contract BountyTest is StatefulTest {
             salt: keccak256("test")
         });
 
-        (TokenInfo[] memory outs, TokenInfo[] memory ins) = bounty.quoteBounty(
-            _bounty
-        );
+        (TokenInfo[] memory outs, TokenInfo[] memory ins) = quoter
+            .quoteFulfillBounty(_bounty, indexToken.totalSupply());
 
         uint256 lenOuts = outs.length;
         uint256 lenIns = ins.length;

@@ -112,7 +112,7 @@ contract IssuanceTest is StatefulTest {
         uint256 amountToMint = 5e18;
         uint256 oneDayMark = block.timestamp + 1 days;
         seedInitial(10);
-        TokenInfo[] memory tokens = issuanceQuoter.quoteIssue(amountToMint);
+        TokenInfo[] memory tokens = quoter.quoteIssue(amountToMint);
         for (uint256 i = 0; i < tokens.length; i++) {
             IERC20(tokens[i].token).approve(address(issuance), tokens[i].units);
         }
@@ -125,7 +125,7 @@ contract IssuanceTest is StatefulTest {
 
         vm.warp(block.timestamp + 1 days - 1);
 
-        TokenInfo[] memory quoteUnits = issuanceQuoter.quoteIssue(5e18);
+        TokenInfo[] memory quoteUnits = quoter.quoteIssue(5e18);
         uint256[] memory startingBalances = new uint256[](quoteUnits.length);
         for (uint256 i; i < quoteUnits.length; i++) {
             startingBalances[i] = IERC20(quoteUnits[i].token).balanceOf(
@@ -219,13 +219,22 @@ contract IssuanceTest is StatefulTest {
     function testQuote() public {
         seedInitial(10);
 
-        TokenInfo[] memory tokens = issuanceQuoter.quoteIssue(5e18);
+        TokenInfo[] memory issuanceQuote = quoter.quoteIssue(5e18);
+        TokenInfo[] memory redemptionQuote = quoter.quoteRedeem(5e18);
+
         TokenInfo[] memory virtualUnits = vault.virtualUnits();
 
-        for (uint256 i; i < tokens.length; i++) {
+        for (uint256 i; i < issuanceQuote.length; i++) {
             assertEq(
-                tokens[i].units,
+                issuanceQuote[i].units,
                 fmul(virtualUnits[i].units + 1, 5e18) + 1
+            );
+        }
+
+        for (uint256 i; i < redemptionQuote.length; i++) {
+            assertEq(
+                redemptionQuote[i].units,
+                fmul(virtualUnits[i].units, 5e18)
             );
         }
     }

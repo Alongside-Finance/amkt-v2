@@ -12,14 +12,14 @@ import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {BaseTest} from "test/BaseTest.t.sol";
 import {IIndexToken} from "src/interfaces/IIndexToken.sol";
 import {INFLATION_RATE} from "src/scripts/Config.sol";
-import {IssuanceQuoter} from "periphery/IssuanceQuoter.sol";
+import {Quoter} from "periphery/Quoter.sol";
 
 contract SymbolicStatefulTest is SymTest, BaseTest {
     Vault vault;
     InvokeableBounty bounty;
     Issuance issuance;
     ActiveBounty activeBounty;
-    IssuanceQuoter issuanceQuoter;
+    Quoter quoter;
     MockMintableToken indexToken;
 
     address constant authority = address(bytes20(keccak256("authority")));
@@ -48,7 +48,7 @@ contract SymbolicStatefulTest is SymTest, BaseTest {
 
         issuance = new Issuance(address(vault));
 
-        issuanceQuoter = new IssuanceQuoter(address(vault));
+        quoter = new Quoter(address(vault));
 
         bounty = new InvokeableBounty(
             address(vault),
@@ -85,7 +85,7 @@ contract SymbolicStatefulTest is SymTest, BaseTest {
     }
 
     function mint(uint256 amount) internal {
-        TokenInfo[] memory tokens = issuanceQuoter.quoteIssue(amount);
+        TokenInfo[] memory tokens = quoter.quoteIssue(amount);
         for (uint256 i = 0; i < tokens.length; i++) {
             IERC20(tokens[i].token).approve(address(issuance), tokens[i].units);
         }

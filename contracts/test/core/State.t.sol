@@ -11,14 +11,14 @@ import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {BaseTest} from "../BaseTest.t.sol";
 import {IIndexToken} from "src/interfaces/IIndexToken.sol";
 import {INFLATION_RATE} from "src/scripts/Config.sol";
-import {IssuanceQuoter} from "periphery/IssuanceQuoter.sol";
+import {Quoter} from "periphery/Quoter.sol";
 
 contract StatefulTest is BaseTest, Rebalancer {
     Vault vault;
     InvokeableBounty bounty;
     Issuance issuance;
     ActiveBounty activeBounty;
-    IssuanceQuoter issuanceQuoter;
+    Quoter quoter;
 
     MockMintableToken indexToken;
 
@@ -44,7 +44,7 @@ contract StatefulTest is BaseTest, Rebalancer {
 
         issuance = new Issuance(address(vault));
 
-        issuanceQuoter = new IssuanceQuoter(address(vault));
+        quoter = new Quoter(address(vault));
 
         bounty = new InvokeableBounty(
             address(vault),
@@ -82,7 +82,7 @@ contract StatefulTest is BaseTest, Rebalancer {
     }
 
     function mint(uint256 amount) internal {
-        TokenInfo[] memory tokens = issuanceQuoter.quoteIssue(amount);
+        TokenInfo[] memory tokens = quoter.quoteIssue(amount);
         for (uint256 i = 0; i < tokens.length; i++) {
             MockMintableToken(tokens[i].token).mint(
                 address(this),

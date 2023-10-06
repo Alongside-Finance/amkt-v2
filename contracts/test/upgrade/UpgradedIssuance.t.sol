@@ -7,7 +7,7 @@ import {InitialBountyHelper} from "src/scripts/Config.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {fmul} from "src/lib/FixedPoint.sol";
 import {console} from "forge-std/console.sol";
-import {IssuanceQuoter} from "periphery/IssuanceQuoter.sol";
+import {Quoter} from "periphery/Quoter.sol";
 import {IVault} from "src/interfaces/IVault.sol";
 
 contract UpgradedIssuanceTest is UpgradeTest {
@@ -214,9 +214,9 @@ contract UpgradedIssuanceTest is UpgradeTest {
     // Helpers
 
     function assistedMint(address to, uint256 amount) internal {
-        IssuanceQuoter issuanceQuoter = new IssuanceQuoter(address(vault));
+        Quoter quoter = new Quoter(address(vault));
         Dealer dealer = new Dealer();
-        TokenInfo[] memory tokens = issuanceQuoter.quoteIssue(amount);
+        TokenInfo[] memory tokens = quoter.quoteIssue(amount);
         for (uint256 i = 0; i < tokens.length; i++) {
             IERC20 token = IERC20(tokens[i].token);
             dealer.dealToken(address(token), to, tokens[i].units);
