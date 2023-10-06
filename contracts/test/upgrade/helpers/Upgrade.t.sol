@@ -3,7 +3,7 @@ pragma solidity =0.8.18;
 import "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 import {GnosisTest, GnosisTransaction} from "./Gnosis.t.sol";
-import {CoreDeployScript} from "src/scripts/__0__CoreDeploy.s.sol";
+import {CoreDeployScript} from "src/scripts/CoreDeploy.s.sol";
 import {InitialBountyHelper, AMKT, MULTISIG, PROXY_ADMIN, PROXY, INFLATION_RATE, AMKT as AMKTAddress} from "src/scripts/Config.sol";
 import {TokenInfo} from "src/Common.sol";
 import {InvokeableBounty} from "src/invoke/Bounty.sol";
