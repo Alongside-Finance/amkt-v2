@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.18;
 
-import {IIndexToken} from "./interfaces/IIndexToken.sol";
+import {IIndexToken} from "src/interfaces/IIndexToken.sol";
 import {ERC20VotesUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol";
 
 /// @title AMKT Token

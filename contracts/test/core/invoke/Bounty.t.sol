@@ -1,7 +1,8 @@
 pragma solidity =0.8.18;
 
 import {StatefulTest, Mocks} from "core-test/State.t.sol";
-import {InvokeableBounty, Bounty} from "invoke-modules/Bounty.sol";
+import {InvokeableBounty} from "src/invoke/Bounty.sol";
+import {IInvokeableBounty, Bounty} from "src/interfaces/IInvokeableBounty.sol";
 import {MockMintableToken} from "mocks/MockMintableToken.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
@@ -120,7 +121,7 @@ contract BountyTest is StatefulTest {
         Bounty memory _bounty = Mocks.bountyMock(tokens);
         holdBounty(_bounty);
         validateBounty(_bounty);
-        vm.expectRevert(InvokeableBounty.BountyReentrant.selector);
+        vm.expectRevert(IInvokeableBounty.BountyReentrant.selector);
         bounty.fulfillBounty(_bounty, true);
     }
 
@@ -133,7 +134,7 @@ contract BountyTest is StatefulTest {
             salt: keccak256("invalid")
         });
 
-        vm.expectRevert(InvokeableBounty.BountyInvalidHash.selector);
+        vm.expectRevert(IInvokeableBounty.BountyInvalidHash.selector);
         bounty.fulfillBounty(invalidBounty, true);
     }
 
@@ -151,7 +152,7 @@ contract BountyTest is StatefulTest {
 
         bounty.fulfillBounty(_bounty, true);
 
-        vm.expectRevert(InvokeableBounty.BountyAlreadyCompleted.selector);
+        vm.expectRevert(IInvokeableBounty.BountyAlreadyCompleted.selector);
         bounty.fulfillBounty(_bounty, true);
     }
 
@@ -175,7 +176,7 @@ contract BountyTest is StatefulTest {
         validateBounty(_bounty);
 
         vm.expectRevert(
-            InvokeableBounty.BountyMustIncludeAllUnderlyings.selector
+            IInvokeableBounty.BountyMustIncludeAllUnderlyings.selector
         );
         bounty.fulfillBounty(_bounty, true);
     }

@@ -1,7 +1,7 @@
 pragma solidity =0.8.18;
 
-import {TokenInfo} from "../Common.sol";
-import {IIndexToken} from "./IIndexToken.sol";
+import {TokenInfo} from "src/Common.sol";
+import {IIndexToken} from "src/interfaces/IIndexToken.sol";
 
 interface IVault {
     error AMKTVaultOnlyInvokers();

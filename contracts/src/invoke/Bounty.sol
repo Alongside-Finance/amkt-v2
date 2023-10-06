@@ -1,48 +1,17 @@
 pragma solidity =0.8.18;
 
-import {IIndexToken} from "../interfaces/IIndexToken.sol";
-import {IVault} from "../interfaces/IVault.sol";
-import {TokenInfo} from "../Common.sol";
-import {SCALAR, fmul} from "../lib/FixedPoint.sol";
+import {IIndexToken} from "src/interfaces/IIndexToken.sol";
+import {IVault} from "src/interfaces/IVault.sol";
+import {IInvokeableBounty, Bounty, QuoteInput} from "src/interfaces/IInvokeableBounty.sol";
+import {IActiveBounty} from "src/interfaces/IActiveBounty.sol";
+import {IRebalancer} from "src/interfaces/IRebalancer.sol";
+import {TokenInfo} from "src/Common.sol";
+import {SCALAR, fmul} from "src/lib/FixedPoint.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-interface Rebalancer {
-    function rebalanceCallback(
-        TokenInfo[] calldata required,
-        TokenInfo[] calldata received
-    ) external;
-}
-
-interface IActiveBounty {
-    function activeBounty() external view returns (bytes32);
-
-    function authority() external view returns (address);
-}
-
-struct Bounty {
-    TokenInfo[] infos;
-    address fulfiller;
-    uint256 deadline;
-    bytes32 salt;
-}
-
-struct QuoteInput {
-    TokenInfo[] targets;
-    uint256 supply;
-}
-
-contract InvokeableBounty {
+contract InvokeableBounty is IInvokeableBounty {
     using SafeERC20 for IERC20;
-    error BountyInvalidHash();
-    error BountyAlreadyCompleted();
-    error BountyPastDeadline();
-    error BountyAMKTSupplyChange();
-    error BountyReentrant();
-    error BountyMustIncludeAllUnderlyings();
-    error BountyInvalidFulfiller();
-
-    event BountyFulfilled(Bounty bounty, bool callback);
 
     mapping(bytes32 => bool) public completedBounties;
 
@@ -123,7 +92,7 @@ contract InvokeableBounty {
         vault.invokeERC20s(outs);
 
         if (callback) {
-            Rebalancer(msg.sender).rebalanceCallback(ins, intoTokenInfo(outs));
+            IRebalancer(msg.sender).rebalanceCallback(ins, intoTokenInfo(outs));
         }
 
         if (indexToken.totalSupply() != startingSupply) {

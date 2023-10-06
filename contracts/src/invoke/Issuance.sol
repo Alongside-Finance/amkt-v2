@@ -1,10 +1,10 @@
 pragma solidity =0.8.18;
 
-import {VerifiableAddressArray} from "../lib/VArray.sol";
-import {IIndexToken} from "../interfaces/IIndexToken.sol";
-import {TokenInfo} from "../Common.sol";
-import {IVault} from "../interfaces/IVault.sol";
-import {SCALAR, fmul, fdiv} from "../lib/FixedPoint.sol";
+import {VerifiableAddressArray} from "src/lib/VArray.sol";
+import {IIndexToken} from "src/interfaces/IIndexToken.sol";
+import {TokenInfo} from "src/Common.sol";
+import {IVault} from "src/interfaces/IVault.sol";
+import {SCALAR, fmul, fdiv} from "src/lib/FixedPoint.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 

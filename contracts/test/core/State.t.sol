@@ -3,7 +3,9 @@ pragma solidity =0.8.18;
 import "forge-std/Test.sol";
 import {Vault} from "src/Vault.sol";
 import {Issuance} from "src/invoke/Issuance.sol";
-import {InvokeableBounty, Bounty, Rebalancer} from "src/invoke/Bounty.sol";
+import {InvokeableBounty} from "src/invoke/Bounty.sol";
+import {Bounty} from "src/interfaces/IInvokeableBounty.sol";
+import {IRebalancer} from "src/interfaces/IRebalancer.sol";
 import {ActiveBounty} from "src/invoke/ActiveBounty.sol";
 import {MockMintableToken} from "../mocks/MockMintableToken.sol";
 import {TokenInfo} from "src/Common.sol";
@@ -13,7 +15,7 @@ import {IIndexToken} from "src/interfaces/IIndexToken.sol";
 import {INFLATION_RATE} from "src/scripts/Config.sol";
 import {Quoter} from "periphery/Quoter.sol";
 
-contract StatefulTest is BaseTest, Rebalancer {
+contract StatefulTest is BaseTest, IRebalancer {
     Vault vault;
     InvokeableBounty bounty;
     Issuance issuance;

@@ -1,11 +1,8 @@
 pragma solidity =0.8.18;
 
-contract ActiveBounty {
-    error ActiveBountyAuth();
-    error ActiveBountyZeroCheck();
+import {IActiveBounty} from "src/interfaces/IActiveBounty.sol";
 
-    event ActiveBountyHashSet(bytes32 bountyHash);
-
+contract ActiveBounty is IActiveBounty {
     address public immutable authority;
 
     bytes32 public activeBounty;

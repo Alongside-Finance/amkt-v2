@@ -2,7 +2,7 @@ pragma solidity =0.8.18;
 import {IVault} from "src/interfaces/IVault.sol";
 import {fmul} from "src/lib/FixedPoint.sol";
 import {TokenInfo} from "src/Common.sol";
-import {Bounty} from "src/invoke/Bounty.sol";
+import {IInvokeableBounty, Bounty} from "src/interfaces/IInvokeableBounty.sol";
 
 contract Quoter {
     IVault immutable vault;
