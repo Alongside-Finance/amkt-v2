@@ -150,27 +150,6 @@ contract InvokeableBounty {
         emit BountyFulfilled(bounty, callback);
     }
 
-    /// @notice quote a bounty, returns the ins and outs
-    /// @dev the units in the bounty are the target units, ie amount of units per 1e18 amkt
-    /// @param bounty the bounty to quote
-    function quoteBounty(
-        Bounty calldata bounty
-    ) external view returns (TokenInfo[] memory outs, TokenInfo[] memory) {
-        uint256 startingSupply = indexToken.totalSupply();
-
-        TokenInfo[] memory targets = bounty.infos;
-
-        (
-            IVault.InvokeERC20Args[] memory _outs,
-            TokenInfo[] memory ins,
-            ,
-
-        ) = _quote(QuoteInput(targets, startingSupply));
-
-        outs = intoTokenInfo(_outs);
-        return (outs, ins);
-    }
-
     function _quote(
         QuoteInput memory input
     )
