@@ -16,7 +16,7 @@ interface IVault {
     event VaultRebalancerSet(address rebalancer);
     event VaultFeeRecipientSet(address feeRecipient);
     event VaultEmergencyResponderSet(address emergencyResponder);
-    event VaultInflationRateSet(uint256 inflationRate);
+    event VaultFeeSet(uint256 inflationRate);
     event VaultEmergencySet(bool emergency);
     event VaultFeeMinted(address indexed to, uint256 amount);
 
@@ -37,7 +37,7 @@ interface IVault {
 
     function tryInflation() external;
 
-    function inflationRate() external view returns (uint256);
+    function feeScaled() external view returns (uint256);
 
     function feeRecipient() external view returns (address);
 

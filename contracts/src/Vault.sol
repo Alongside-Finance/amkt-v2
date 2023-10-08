@@ -22,7 +22,7 @@ contract Vault is Ownable2Step, IVault {
     address public feeRecipient;
     address public emergencyResponder;
 
-    uint256 public inflationRate;
+    uint256 public feeScaled;
 
     uint256 public lastKnownTimestamp;
 
@@ -56,18 +56,18 @@ contract Vault is Ownable2Step, IVault {
     /// @param _indexToken The index token address
     /// @param _owner The owner of the vault
     /// @param _feeRecipient The recipient of the fee
-    /// @param _inflationRate The per second inflation rate
+    /// @param _feeScaled The per second fee rate scaled
     constructor(
         IIndexToken _indexToken,
         address _owner,
         address _feeRecipient,
         address _emergencyResponder,
-        uint256 _inflationRate
+        uint256 _feeScaled
     ) {
         if (_owner == address(0)) revert VaultZeroCheck();
         if (_feeRecipient == address(0)) revert VaultZeroCheck();
         if (_emergencyResponder == address(0)) revert VaultZeroCheck();
-        if (_inflationRate > SCALAR) {
+        if (_feeScaled > SCALAR) {
             revert AMKTVaultInflationRateTooLarge();
         }
 
@@ -78,7 +78,7 @@ contract Vault is Ownable2Step, IVault {
         emergencyResponder = _emergencyResponder;
 
         feeRecipient = _feeRecipient;
-        inflationRate = _inflationRate;
+        feeScaled = _feeScaled;
 
         lastKnownTimestamp = block.timestamp;
     }
@@ -124,14 +124,14 @@ contract Vault is Ownable2Step, IVault {
     }
 
     /// @notice Set the inflation rate
-    /// @param _inflationRate The per second inflation rate
+    /// @param _feeScaled The per second inflation rate
     /// @dev only owner & accrues inflation
-    function setInflationRate(uint256 _inflationRate) external only(owner()) {
-        if (_inflationRate > SCALAR) {
+    function setFee(uint256 _feeScaled) external only(owner()) {
+        if (_feeScaled > SCALAR) {
             revert AMKTVaultInflationRateTooLarge();
         }
-        inflationRate = _inflationRate;
-        emit VaultInflationRateSet(_inflationRate);
+        feeScaled = _feeScaled;
+        emit VaultFeeSet(_feeScaled);
     }
 
     /// @notice Set the emergency flag
@@ -148,30 +148,32 @@ contract Vault is Ownable2Step, IVault {
     function tryInflation() external only(feeRecipient) {
         if (block.timestamp < lastKnownTimestamp + 1 days)
             revert AMKTVaultFeeTooEarly();
-        uint256 startingSupply = indexToken.totalSupply();
-        uint256 timestampDiff = block.timestamp - lastKnownTimestamp;
-        uint256 inflation = fmul(startingSupply, timestampDiff * inflationRate);
-        if (inflation == 0) revert AMKTVaultFeeTooEarly();
 
-        lastKnownTimestamp = block.timestamp;
+        uint256 timeElapsed = block.timestamp - lastKnownTimestamp;
+        uint256 accruedFee = timeElapsed * feeScaled;
+        uint256 decay = SCALAR - accruedFee;
 
-        uint256 valueMultiplier = fdiv(
-            startingSupply,
-            startingSupply + inflation
+        uint256 inflation = fmul(
+            indexToken.totalSupply(),
+            finv(decay) - SCALAR
         );
+
+        if (inflation == 0) revert AMKTVaultFeeTooEarly();
 
         TokenInfo[] memory tokens = virtualUnits();
         for (uint256 i = 0; i < tokens.length; i++) {
             _setNominal(
                 SetNominalArgs({
                     token: tokens[i].token,
-                    virtualUnits: fmul(tokens[i].units, valueMultiplier)
+                    virtualUnits: fmul(tokens[i].units, decay)
                 })
             );
         }
 
         indexToken.mint(feeRecipient, inflation);
+
         invariantCheck();
+
         emit VaultFeeMinted(feeRecipient, inflation);
     }
 

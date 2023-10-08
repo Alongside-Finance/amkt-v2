@@ -68,8 +68,8 @@ contract VaultTest is StatefulTest {
 
     function testShouldNotAllowSetFeeTooLarge() public {
         vm.expectRevert();
-        vault.setInflationRate(1e18 + 1); // SCALAR is 1e18
-        vault.setInflationRate(1e18);
+        vault.setFee(1e18 + 1); // SCALAR is 1e18
+        vault.setFee(1e18);
     }
 
     function emergencyResponderFunctions(bool toFail) public {
@@ -109,7 +109,7 @@ contract VaultTest is StatefulTest {
         if (toFail) vm.expectRevert();
         vault.setFeeRecipient(address(1));
         if (toFail) vm.expectRevert();
-        vault.setInflationRate(0);
+        vault.setFee(0);
         if (toFail) vm.expectRevert();
         vault.setEmergencyResponder(address(1));
     }

@@ -4,7 +4,7 @@ import {StatefulTest} from "test/core/State.t.sol";
 import {SymTest} from "halmos-cheatcodes/SymTest.sol";
 import {fmul, fdiv} from "src/lib/FixedPoint.sol";
 import {SymbolicStatefulTest} from "./SymbolicState.t.sol";
-import {INFLATION_RATE} from "src/scripts/Config.sol";
+import {FEE_SCALED} from "src/scripts/Config.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 

@@ -12,7 +12,7 @@ import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {BaseTest} from "../BaseTest.t.sol";
 import {IIndexToken} from "src/interfaces/IIndexToken.sol";
-import {INFLATION_RATE} from "src/scripts/Config.sol";
+import {FEE_SCALED} from "src/scripts/Config.sol";
 import {Quoter} from "periphery/Quoter.sol";
 
 contract StatefulTest is BaseTest, IRebalancer {
@@ -41,7 +41,7 @@ contract StatefulTest is BaseTest, IRebalancer {
             address(this),
             feeReciever,
             emergencyResponder,
-            INFLATION_RATE
+            FEE_SCALED
         );
 
         issuance = new Issuance(address(vault));

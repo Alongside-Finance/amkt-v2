@@ -23,7 +23,8 @@ address constant FEE_RECEIPIENT = address(
     0xC19a5b6E0a923519603985153515222D59cb3F2e
 );
 
-uint256 constant INFLATION_RATE = 304132280;
+// (.0095 / (365 * 86400)) * 1e18
+uint256 constant FEE_SCALED = 301243023;
 
 address constant PROXY = address(0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D);
 address constant PROXY_ADMIN = address(
