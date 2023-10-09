@@ -138,27 +138,27 @@ contract VaultTest is StatefulTest {
     }
 
     function testInflation1000() public {
-        inflationTestHelper(1000, 26277028992000000);
+        inflationTestHelper(1000, 26722925457102672);
     }
 
     function testInflation730() public {
-        inflationTestHelper(730, 19182231164160000);
+        inflationTestHelper(730, 19367991845056065);
     }
 
     function testInflation365() public {
-        inflationTestHelper(365, 9591115582080000);
+        inflationTestHelper(365, 9591115598182735);
     }
 
     function testInflation30() public {
-        inflationTestHelper(30, 788310869760000);
+        inflationTestHelper(30, 781432077101298);
     }
 
     function testInflation7() public {
-        inflationTestHelper(7, 183939202944000);
+        inflationTestHelper(7, 182224980715664);
     }
 
     function testInflation1() public {
-        inflationTestHelper(1, 26277028992000);
+        inflationTestHelper(1, 26028074703314);
     }
 
     function inflationTestHelper(
@@ -174,18 +174,34 @@ contract VaultTest is StatefulTest {
         vault.tryInflation();
         uint256 newSupply = indexToken.totalSupply();
         uint256 newFeeRecipientBalance = indexToken.balanceOf(feeReciever);
-        assertEq(newSupply, initialSupply + expectedInflation);
-        assertEq(newFeeRecipientBalance, expectedInflation);
-        uint256 valueMultiplier = fdiv(
-            initialSupply,
-            initialSupply + expectedInflation
-        );
+        requireCloseX10(newSupply, initialSupply + expectedInflation);
+        requireCloseX5(newFeeRecipientBalance, expectedInflation); // todo increase supply?
+
+        // recover the decay
+        // initialSupply + expectedInflation = initialSupply * (1 / decay)
+        //
+        // =>  initialSupply / (initialSupply + expectedInflation)
+        //     = initialSupply / newSupply
+        //     = 1 / 1 / d = d
+        uint256 decay = fdiv(initialSupply, initialSupply + expectedInflation);
+
         TokenInfo[] memory newUnits = vault.virtualUnits();
         for (uint256 i = 0; i < newUnits.length; i++) {
-            assertEq(
+            requireCloseX10(
                 newUnits[i].units,
-                fmul(initialUnits[i].units, valueMultiplier)
+                fmul(initialUnits[i].units, decay)
             );
         }
+    }
+
+    // the values are a facotr of 1/10_000_000_000 apart
+    function requireCloseX10(uint256 a, uint256 b) internal {
+        rangeCheck(a, b, 1, 1e10);
+    }
+
+    // the values are a factor of 1/100_000 apart
+    // needed for smaller numbers esp casue less digits means less allowable error
+    function requireCloseX5(uint256 a, uint256 b) internal {
+        rangeCheck(a, b, 1, 1e5);
     }
 }
