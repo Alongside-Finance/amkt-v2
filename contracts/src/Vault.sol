@@ -56,7 +56,7 @@ contract Vault is Ownable2Step, IVault {
     /// @param _indexToken The index token address
     /// @param _owner The owner of the vault
     /// @param _feeRecipient The recipient of the fee
-    /// @param _feeScaled The per second fee rate scaled
+    /// @param _feeScaled The per second fee rate scaled, ie 95 bps = (95 / 10000) / (365 * 86400) * SCALAR
     constructor(
         IIndexToken _indexToken,
         address _owner,
@@ -124,7 +124,7 @@ contract Vault is Ownable2Step, IVault {
     }
 
     /// @notice Set the inflation rate
-    /// @param _feeScaled The per second inflation rate
+    /// @param _feeScaled The per second fee rate
     /// @dev only owner & accrues inflation
     function setFee(uint256 _feeScaled) external only(owner()) {
         if (_feeScaled > SCALAR) {
