@@ -54,7 +54,7 @@ contract UpgradedStateTest is UpgradeTest {
         assertEq(
             timelockController.hasRole(
                 timelockController.EXECUTOR_ROLE(),
-                address(0)
+                MULTISIG
             ),
             true
         );

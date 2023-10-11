@@ -229,18 +229,23 @@ contract UpgradedGovernanceTest is UpgradeTest {
             proposal.calldatas,
             proposal.descriptionHash
         );
+        vm.stopPrank();
+
+        vm.startPrank(MULTISIG);
         vm.expectRevert();
-        governor.execute(
+        timelockController.executeBatch(
             proposal.targets,
             proposal.values,
             proposal.calldatas,
+            0,
             proposal.descriptionHash
         );
         _warpForward(CANCELLATION_PERIOD);
-        governor.execute(
+        timelockController.executeBatch(
             proposal.targets,
             proposal.values,
             proposal.calldatas,
+            0,
             proposal.descriptionHash
         );
 

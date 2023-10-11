@@ -47,7 +47,7 @@ contract CoreDeployScript is Script {
 
         deployed.timelockController.grantRole(
             deployed.timelockController.EXECUTOR_ROLE(),
-            address(0)
+            MULTISIG
         );
         deployed.timelockController.grantRole(
             deployed.timelockController.PROPOSER_ROLE(),
