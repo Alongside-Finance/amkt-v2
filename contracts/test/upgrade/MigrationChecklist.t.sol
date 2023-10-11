@@ -61,28 +61,28 @@ contract MigrationChecklistTest is UpgradedTest {
     // Expected date of finalization is October 30, 2023
 
     function test_MIGRATION_WARNING_navIsCloseEnough() public {
-        TokenInfo[] memory tokens = new TokenInfo[](15);
-        tokens[0] = TokenInfo(BTC, 1e22);
-        tokens[1] = TokenInfo(ETH, 1e21);
-        tokens[2] = TokenInfo(BNB, 1e20);
-        tokens[3] = TokenInfo(SOL, 1e19);
-        tokens[4] = TokenInfo(MATIC, 1e18);
-        tokens[5] = TokenInfo(SHIB, 1e17);
-        tokens[6] = TokenInfo(AVAX, 1e16);
-        tokens[7] = TokenInfo(LINK, 1e15);
-        tokens[8] = TokenInfo(UNI, 1e14);
-        tokens[9] = TokenInfo(LDO, 1e13);
-        tokens[10] = TokenInfo(MNT, 1e12);
-        tokens[11] = TokenInfo(CRO, 1e11);
-        tokens[12] = TokenInfo(QNT, 1e10);
-        tokens[13] = TokenInfo(ARB, 1e9);
-        tokens[14] = TokenInfo(MKR, 1e8);
+        TokenInfo[] memory prices = new TokenInfo[](15);
+        prices[0] = TokenInfo(BTC, 1e22);
+        prices[1] = TokenInfo(ETH, 1e21);
+        prices[2] = TokenInfo(BNB, 1e20);
+        prices[3] = TokenInfo(SOL, 1e19);
+        prices[4] = TokenInfo(MATIC, 1e18);
+        prices[5] = TokenInfo(SHIB, 1e17);
+        prices[6] = TokenInfo(AVAX, 1e16);
+        prices[7] = TokenInfo(LINK, 1e15);
+        prices[8] = TokenInfo(UNI, 1e14);
+        prices[9] = TokenInfo(LDO, 1e13);
+        prices[10] = TokenInfo(MNT, 1e12);
+        prices[11] = TokenInfo(CRO, 1e11);
+        prices[12] = TokenInfo(QNT, 1e10);
+        prices[13] = TokenInfo(ARB, 1e9);
+        prices[14] = TokenInfo(MKR, 1e8);
         TokenInfo[] memory units = vault.virtualUnits();
         uint256 nav;
         for (uint256 i = 0; i < units.length; i++) {
-            assertEq(units[i].token, tokens[i].token);
+            assertEq(units[i].token, prices[i].token);
             nav += fdiv(
-                fmul(tokens[i].units, units[i].units),
+                fmul(prices[i].units, units[i].units),
                 10 ** (IERC20(units[i].token).decimals())
             );
         }
