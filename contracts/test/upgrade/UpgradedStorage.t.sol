@@ -4,7 +4,7 @@ import "forge-std/Test.sol";
 import {InitialBountyHelper, MULTISIG, FEE_RECEIPIENT, INFLATION_RATE, PROXY, PROXY_ADMIN} from "src/scripts/Config.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
-import {UpgradeTest} from "test/upgrade/helpers/Upgrade.t.sol";
+import {UpgradedTest} from "test/upgrade/helpers/Upgraded.t.sol";
 import {ITransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import {fmul} from "src/lib/FixedPoint.sol";
@@ -61,10 +61,10 @@ import {fmul} from "src/lib/FixedPoint.sol";
 // | _totalSupplyCheckpoints          | struct ERC20VotesUpgradeable.Checkpoint[]                     | 206  | 0      | 32    |
 // | __gap                            | uint256[47]                                                   | 207  | 0      | 1504  |                                                                        |
 
-contract UpgradedStorageTest is UpgradeTest {
+contract UpgradedStorageTest is UpgradedTest {
     function testStorageSlotUnstructured() public {
         assertEq(
-            vm.load(amktAddress, keccak256("Alongside::Token::MinterSlot")),
+            vm.load(address(AMKT), keccak256("Alongside::Token::MinterSlot")),
             bytes32(uint256(uint160(AMKT.minter())))
         );
     }
@@ -83,7 +83,7 @@ contract UpgradedStorageTest is UpgradeTest {
         ) | ((initializing ? bytes32(uint256(1)) : bytes32(uint256(0))) << 8));
 
         // Check the storage slot 0
-        assertEq(vm.load(amktAddress, _bytes(0)), expectedValue);
+        assertEq(vm.load(address(AMKT), _bytes(0)), expectedValue);
     }
 
     //// SLOT 1-50
@@ -108,7 +108,7 @@ contract UpgradedStorageTest is UpgradeTest {
             address userAddress = addressesToCheck[i];
             uint256 expectedBalance = balancesToCheck[i];
             assertEq(
-                vm.load(amktAddress, _derive(userAddress, uint256(51))),
+                vm.load(address(AMKT), _derive(userAddress, uint256(51))),
                 _bytes(expectedBalance)
             );
         }
@@ -136,7 +136,9 @@ contract UpgradedStorageTest is UpgradeTest {
             );
 
             // Check the allowance value
-            uint256 allowance = uint256(vm.load(amktAddress, innerMappingSlot));
+            uint256 allowance = uint256(
+                vm.load(address(AMKT), innerMappingSlot)
+            );
             assertEq(allowance, allowances[i]);
         }
     }
@@ -144,14 +146,17 @@ contract UpgradedStorageTest is UpgradeTest {
     //// SLOT 53
     // uint256 _totalSupply
     function testStorageSlot53() public {
-        assertEq(vm.load(amktAddress, _bytes(53)), _bytes(AMKT.totalSupply()));
+        assertEq(
+            vm.load(address(AMKT), _bytes(53)),
+            _bytes(AMKT.totalSupply())
+        );
     }
 
     //// SLOT 54
     // string _name
     function testStorageSlot54() public {
         assertEq(
-            vm.load(amktAddress, _bytes(54)),
+            vm.load(address(AMKT), _bytes(54)),
             _stringToBytes32(AMKT.name())
         );
     }
@@ -160,7 +165,7 @@ contract UpgradedStorageTest is UpgradeTest {
     // string _symbol
     function testStorageSlot55() public {
         assertEq(
-            vm.load(amktAddress, _bytes(55)),
+            vm.load(address(AMKT), _bytes(55)),
             _stringToBytes32(AMKT.symbol())
         );
     }
@@ -172,7 +177,7 @@ contract UpgradedStorageTest is UpgradeTest {
     // bytes32 _HASHED_NAME
     function testStorageSlot101() public {
         assertEq(
-            vm.load(amktAddress, bytes32(uint256(101))),
+            vm.load(address(AMKT), bytes32(uint256(101))),
             keccak256(bytes(AMKT.name()))
         );
     }
@@ -182,7 +187,7 @@ contract UpgradedStorageTest is UpgradeTest {
     // bytes32 _HASHED_NAME
     function testStorageSlot102() public {
         assertEq(
-            vm.load(amktAddress, bytes32(uint256(102))),
+            vm.load(address(AMKT), bytes32(uint256(102))),
             keccak256(bytes("2"))
         );
     }
@@ -203,14 +208,14 @@ contract UpgradedStorageTest is UpgradeTest {
         bytes32 counterSlot = keccak256(abi.encodePacked(mappingSlot));
 
         // Check the value of the Counter struct
-        uint256 nonce = uint256(vm.load(amktAddress, counterSlot));
+        uint256 nonce = uint256(vm.load(address(AMKT), counterSlot));
         assertEq(nonce, expectedNonce);
     }
 
     //// SLOT 154
     // bytes32 _PERMIT_TYPEHASH_DEPRECATED_SLOT
     function testStorageSlot154() public {
-        assertEq(vm.load(amktAddress, _bytes(154)), _bytes(0));
+        assertEq(vm.load(address(AMKT), _bytes(154)), _bytes(0));
     }
 
     //// SLOT 155-203
@@ -220,7 +225,7 @@ contract UpgradedStorageTest is UpgradeTest {
     // mapping(address => address) _delegates
     /// forge-config: default.fuzz.runs = 20
     function testStorageSlot204(address user) public {
-        assertEq(vm.load(amktAddress, _derive(user, 204)), _bytes(0));
+        assertEq(vm.load(address(AMKT), _derive(user, 204)), _bytes(0));
     }
 
     //// SLOT 205
@@ -243,9 +248,11 @@ contract UpgradedStorageTest is UpgradeTest {
         // Iterate through the array of Checkpoint structs and check their values
         for (uint256 i = 0; i < expectedFromBlocks.length; i++) {
             bytes32 checkpointSlot = bytes32(uint256(arraySlot) + i);
-            uint256 fromBlock = uint256(vm.load(amktAddress, checkpointSlot)) &
-                0xFFFFFFFF;
-            uint256 votes = uint256(vm.load(amktAddress, checkpointSlot)) >> 32;
+            uint256 fromBlock = uint256(
+                vm.load(address(AMKT), checkpointSlot)
+            ) & 0xFFFFFFFF;
+            uint256 votes = uint256(vm.load(address(AMKT), checkpointSlot)) >>
+                32;
             assertEq(fromBlock, expectedFromBlocks[i]);
             assertEq(votes, expectedVotes[i]);
         }
@@ -258,12 +265,12 @@ contract UpgradedStorageTest is UpgradeTest {
             abi.encodePacked(uint256(206))
         );
         assertEq(
-            vm.load(amktAddress, totalSupplyCheckpointsHash),
+            vm.load(address(AMKT), totalSupplyCheckpointsHash),
             (bytes32(block.number - 1)) | (bytes32(AMKT.totalSupply()) << 32)
         ); // block.number is casted to 32 bits by SafeCastUpgradeable.toUint32
 
         assertEq(
-            vm.load(amktAddress, totalSupplyCheckpointsHash),
+            vm.load(address(AMKT), totalSupplyCheckpointsHash),
             bytes32(
                 abi.encodePacked(
                     uint224(AMKT.totalSupply()),
@@ -275,7 +282,7 @@ contract UpgradedStorageTest is UpgradeTest {
         for (uint256 i = 0; i < 5; i++) {
             assertEq(
                 vm.load(
-                    amktAddress,
+                    address(AMKT),
                     bytes32(uint256(totalSupplyCheckpointsHash) + i + 1)
                 ),
                 bytes32(uint256(0))

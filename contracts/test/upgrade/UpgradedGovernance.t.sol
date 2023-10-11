@@ -1,6 +1,6 @@
 pragma solidity =0.8.18;
 
-import {UpgradeTest} from "./helpers/Upgrade.t.sol";
+import {UpgradedTest} from "test/upgrade/helpers/Upgraded.t.sol";
 import {Dealer} from "test/Dealer.t.sol";
 import {TokenInfo} from "src/Common.sol";
 import {InitialBountyHelper, VOTE_DELAY, VOTE_PERIOD, CANCELLATION_PERIOD, MULTISIG} from "src/scripts/Config.sol";
@@ -10,7 +10,7 @@ import {console} from "forge-std/console.sol";
 import {IGovernor} from "@openzeppelin/contracts/governance/IGovernor.sol";
 import {InvokeableBounty, IActiveBounty} from "src/invoke/Bounty.sol";
 
-contract UpgradedGovernanceTest is UpgradeTest {
+contract UpgradedGovernanceTest is UpgradedTest {
     address largeAmktHolder =
         address(0x804B68f60765F4559b7096B158C912eD33aa0c26);
 

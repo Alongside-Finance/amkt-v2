@@ -1,6 +1,6 @@
 pragma solidity =0.8.18;
 
-import {UpgradeTest} from "./helpers/Upgrade.t.sol";
+import {UpgradedTest} from "test/upgrade/helpers/Upgraded.t.sol";
 import {Dealer} from "test/Dealer.t.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
@@ -11,7 +11,7 @@ import {MULTISIG} from "src/scripts/Config.sol";
 import {fmul} from "src/lib/FixedPoint.sol";
 import {console} from "forge-std/console.sol";
 
-contract UpgradedBountyTest is UpgradeTest {
+contract UpgradedBountyTest is UpgradedTest {
     function testBountyInvariant(uint256 numTokensToAdd, uint256 rand) public {
         numTokensToAdd = bound(numTokensToAdd, 0, 25);
         TokenInfo[] memory oldUnits = vault.virtualUnits();

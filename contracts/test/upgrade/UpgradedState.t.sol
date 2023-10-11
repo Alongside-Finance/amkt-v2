@@ -4,14 +4,30 @@ import "forge-std/Test.sol";
 import {InitialBountyHelper, MULTISIG, FEE_RECEIPIENT, INFLATION_RATE, PROXY, PROXY_ADMIN} from "src/scripts/Config.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
-import {UpgradeTest} from "test/upgrade/helpers/Upgrade.t.sol";
+import {UpgradedTest} from "test/upgrade/helpers/Upgraded.t.sol";
 import {ITransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import {fmul} from "src/lib/FixedPoint.sol";
 
-contract UpgradedStateTest is UpgradeTest {
+contract UpgradedStateTest is UpgradedTest {
     address largeAmktHolder =
         address(0x804B68f60765F4559b7096B158C912eD33aa0c26);
+
+    // WARNING:
+    // This test should fail until new contracts are deployed and addresses are updated.
+    // Expected date of finalization is October 30, 2023
+    function test_WARNING_DeployedContracts() public {
+        assertEq(true, false);
+        assertEq(address(vault), address(1));
+        assertEq(address(issuance), address(1));
+        assertEq(address(invokeableBounty), address(1));
+        assertEq(address(activeBounty), address(1));
+        assertEq(address(governor), address(payable(address(1))));
+        assertEq(address(timelockController), address(payable(address(1))));
+        assertEq(newTokenImplementation, address(1));
+        assertEq(address(timelockActiveBounty), address(1));
+        assertEq(address(timelockInvokeableBounty), address(1));
+    }
 
     function testConfig() public {
         assertEq(FEE_RECEIPIENT, 0xC19a5b6E0a923519603985153515222D59cb3F2e);
@@ -80,46 +96,6 @@ contract UpgradedStateTest is UpgradeTest {
             true
         );
     }
-
-    // function testDeployedContracts() public {
-    //     assertEq(
-    //         address(vault),
-    //         address(0xD62A80368AdF5919f70193D15dCbD5C77EAf55ac)
-    //     );
-    //     assertEq(
-    //         address(issuance),
-    //         address(0x58AD9D36AfAc51206672f855Bf7e76037c5F5198)
-    //     );
-    //     assertEq(
-    //         address(invokeableBounty),
-    //         address(0x366A647DE921608bee3987025D23f12263da6884)
-    //     );
-    //     assertEq(
-    //         address(activeBounty),
-    //         address(0x12bc3CCaA2E213e9D50faB9752A9daFac01b962F)
-    //     );
-    //     assertEq(
-    //         address(governor),
-    //         address(payable(0x774045B30e6fC5DfE73bF386E8845CA1472fb45e))
-    //     );
-    //     assertEq(
-    //         address(timelockController),
-    //         address(payable(0xB3970Ae79fD2cD8f1060cF6BAeae27b8E2c05437))
-    //     );
-    //     assertEq(
-    //         newTokenImplementation,
-    //         address(0x775715D96cD3B3586728B7420A13Ec74f5dc9e8f)
-    //     );
-
-    //     assertEq(
-    //         address(timelockActiveBounty),
-    //         address(0x8D2A6bcB5713d4b57f2FffB119B7B6D0143e25ed)
-    //     );
-    //     assertEq(
-    //         address(timelockInvokeableBounty),
-    //         address(0x703814F9172D6E6EF10F89fCAdE3ff480d812a45)
-    //     );
-    // }
 
     function testProxyState() public {
         ITransparentUpgradeableProxy proxy = ITransparentUpgradeableProxy(
@@ -190,7 +166,8 @@ contract UpgradedStateTest is UpgradeTest {
 
     function testTokens() public {
         // for all tokens in vault, it should match tokens in bounty helper
-        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
+        TokenInfo[] memory tokens = (new InitialBountyHelper())
+            .MIGRATION_WARNING_tokens();
         address[] memory underlying = vault.underlying();
         for (uint256 i = 0; i < tokens.length; i++) {
             assertEq(underlying[i], tokens[i].token);
@@ -198,7 +175,8 @@ contract UpgradedStateTest is UpgradeTest {
     }
 
     function testVirtualUnitsMatchInitialBounty() public {
-        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
+        TokenInfo[] memory tokens = (new InitialBountyHelper())
+            .MIGRATION_WARNING_tokens();
         TokenInfo[] memory virtualUnits = vault.virtualUnits();
         for (uint256 i = 0; i < tokens.length; i++) {
             assertEq(virtualUnits[i].units, tokens[i].units);
@@ -217,7 +195,8 @@ contract UpgradedStateTest is UpgradeTest {
 
     function testExpectedVaultBalances() public {
         // for all tokens in vault, vault balance should match NAV
-        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
+        TokenInfo[] memory tokens = (new InitialBountyHelper())
+            .MIGRATION_WARNING_tokens();
         address[] memory underlying = vault.underlying();
 
         for (uint256 i = 0; i < vault.underlyingLength(); i++) {

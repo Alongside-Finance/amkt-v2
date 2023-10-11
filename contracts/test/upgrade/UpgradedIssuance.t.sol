@@ -1,6 +1,6 @@
 pragma solidity =0.8.18;
 
-import {UpgradeTest} from "./helpers/Upgrade.t.sol";
+import {UpgradedTest} from "test/upgrade/helpers/Upgraded.t.sol";
 import {Dealer} from "test/Dealer.t.sol";
 import {TokenInfo} from "src/Common.sol";
 import {InitialBountyHelper} from "src/scripts/Config.sol";
@@ -10,7 +10,7 @@ import {console} from "forge-std/console.sol";
 import {Quoter} from "periphery/Quoter.sol";
 import {IVault} from "src/interfaces/IVault.sol";
 
-contract UpgradedIssuanceTest is UpgradeTest {
+contract UpgradedIssuanceTest is UpgradedTest {
     address largeAmktHolder =
         address(0x804B68f60765F4559b7096B158C912eD33aa0c26);
     address oldMinter = address(0x0D44F856E1a7c70E35c54261c3f07DbFBDCA4857);

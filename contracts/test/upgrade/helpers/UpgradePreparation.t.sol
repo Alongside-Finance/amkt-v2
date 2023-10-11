@@ -19,7 +19,7 @@ import {Issuance} from "src/invoke/Issuance.sol";
 import {fmul} from "src/lib/FixedPoint.sol";
 import {Quoter} from "periphery/Quoter.sol";
 
-contract UpgradeTest is GnosisTest {
+contract UpgradePreparationTest is GnosisTest {
     IndexToken AMKT;
     Vault vault;
     Issuance issuance;
@@ -30,76 +30,42 @@ contract UpgradeTest is GnosisTest {
     address newTokenImplementation;
     InvokeableBounty timelockInvokeableBounty;
     ActiveBounty timelockActiveBounty;
-    address amktAddress;
     Quoter quoter;
+    bytes batchExecutionData;
 
-    function setUp() public {
+    function setUp() public virtual {
         vm.createSelectFork(vm.envString("MAINNET_RPC"), 18229914);
         enableSimulation();
-        setDeployedContracts();
-        mockSafeBalances(); // TODO: Remove when ready. Due before bundle submission.
+        MIGRATION_WARNING_setDeployedContracts();
+        MIGRATION_WARNING_mockSetDeployedContracts();
+        MIGRATION_WARNING_warpForward(1 days + 2 hours); // there will be some time after we deploy the contracts, and it may be long.
+        MIGRATION_WARNING_mockSafeBalances();
         checkSafeBalances();
         GnosisTransaction[] memory batch = createUpgradeBatch();
-        _warpForward(1 hours); // there will be some time after we craft the batch, and we execute it
-        bytes memory dataExecuted = executeBatch(batch);
-        amktAddress = address(AMKT);
+        batchExecutionData = getBatchExecutionData(batch);
     }
 
-    function setDeployedContracts() internal {
+    // WARNING: addresses must be updated before submission.
+    // Expected date of finalization is October 30, 2023
+    function MIGRATION_WARNING_setDeployedContracts() internal {
         AMKT = IndexToken(AMKTAddress);
-        // vault = Vault(0xD62A80368AdF5919f70193D15dCbD5C77EAf55ac);
-        // issuance = Issuance(0x58AD9D36AfAc51206672f855Bf7e76037c5F5198);
-        // invokeableBounty = InvokeableBounty(
-        //     0x366A647DE921608bee3987025D23f12263da6884
-        // );
-        // activeBounty = ActiveBounty(0x12bc3CCaA2E213e9D50faB9752A9daFac01b962F);
-        // governor = AlongsideGovernor(
-        //     payable(0x774045B30e6fC5DfE73bF386E8845CA1472fb45e)
-        // );
-        // timelockController = TimelockController(
-        //     payable(0xB3970Ae79fD2cD8f1060cF6BAeae27b8E2c05437)
-        // );
-        // newTokenImplementation = address(
-        //     0x775715D96cD3B3586728B7420A13Ec74f5dc9e8f
-        // );
+        vault = Vault(address(0));
+        issuance = Issuance(address(0));
+        invokeableBounty = InvokeableBounty(address(0));
+        activeBounty = ActiveBounty(address(0));
+        governor = AlongsideGovernor(payable(address(0)));
+        timelockController = TimelockController(payable(address(0)));
+        newTokenImplementation = address(0);
 
-        // timelockActiveBounty = ActiveBounty(
-        //     0x8D2A6bcB5713d4b57f2FffB119B7B6D0143e25ed
-        // );
-        // timelockInvokeableBounty = InvokeableBounty(
-        //     0x703814F9172D6E6EF10F89fCAdE3ff480d812a45
-        // );
-        /// quoter // TODO
-        CoreDeployScript script = new CoreDeployScript(); // TODO: Remove when ready. Due before external review.
-        CoreDeployScript.DeployedContracts memory deployed = script.run(); // TODO: Remove when ready. Due vefore external review.
-        vault = deployed.vault;
-        issuance = deployed.issuance;
-        invokeableBounty = deployed.invokeableBounty;
-        activeBounty = deployed.activeBounty;
-        governor = deployed.governor;
-        timelockController = deployed.timelockController;
-        newTokenImplementation = deployed.newTokenImplementation;
-        timelockInvokeableBounty = deployed.timelockInvokeableBounty;
-        timelockActiveBounty = deployed.timelockActiveBounty;
-        quoter = deployed.quoter;
-        _warpForward(3 days + 2 hours);
-    }
-
-    function mockSafeBalances() internal {
-        Dealer dealer = new Dealer();
-        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
-        for (uint256 i = 0; i < tokens.length; i++) {
-            dealer.dealToken(
-                tokens[i].token,
-                MULTISIG,
-                fmul(tokens[i].units + 1, AMKT.totalSupply()) + 1
-            );
-        }
+        timelockActiveBounty = ActiveBounty(address(0));
+        timelockInvokeableBounty = InvokeableBounty(address(0));
+        quoter = Quoter(address(0));
     }
 
     function checkSafeBalances() internal {
         // check that the safe balance matches exactly what the initial bounty helper expects
-        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
+        TokenInfo[] memory tokens = (new InitialBountyHelper())
+            .MIGRATION_WARNING_tokens();
         for (uint256 i = 0; i < tokens.length; i++) {
             IERC20 token = IERC20(tokens[i].token);
             assertEq(
@@ -111,7 +77,8 @@ contract UpgradeTest is GnosisTest {
 
     function createUpgradeBatch() public returns (GnosisTransaction[] memory) {
         // Initialize batch with known size
-        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens(); // TODO: Replace token units with real values. Due before submission.
+        TokenInfo[] memory tokens = (new InitialBountyHelper())
+            .MIGRATION_WARNING_tokens();
         uint256 batchLength = tokens.length + 8;
         GnosisTransaction[] memory batch = new GnosisTransaction[](batchLength);
 
@@ -214,5 +181,46 @@ contract UpgradeTest is GnosisTest {
             )
         });
         return batch;
+    }
+
+    // Mock helpers
+
+    // WARNING: must be removed before submission.
+    // Expected date of finalization is October 30, 2023
+    function MIGRATION_WARNING_warpForward(uint256 sec) internal {
+        _warpForward(sec);
+    }
+
+    // WARNING: must be removed before submission.
+    // Expected date of finalization is October 30, 2023
+    function MIGRATION_WARNING_mockSetDeployedContracts() internal {
+        AMKT = IndexToken(AMKTAddress);
+        CoreDeployScript script = new CoreDeployScript();
+        CoreDeployScript.DeployedContracts memory deployed = script.run();
+        vault = deployed.vault;
+        issuance = deployed.issuance;
+        invokeableBounty = deployed.invokeableBounty;
+        activeBounty = deployed.activeBounty;
+        governor = deployed.governor;
+        timelockController = deployed.timelockController;
+        newTokenImplementation = deployed.newTokenImplementation;
+        timelockInvokeableBounty = deployed.timelockInvokeableBounty;
+        timelockActiveBounty = deployed.timelockActiveBounty;
+        quoter = deployed.quoter;
+    }
+
+    // WARNING: must be removed before submission.
+    // Expected date of finalization is October 30, 2023
+    function MIGRATION_WARNING_mockSafeBalances() internal {
+        Dealer dealer = new Dealer();
+        TokenInfo[] memory tokens = (new InitialBountyHelper())
+            .MIGRATION_WARNING_tokens();
+        for (uint256 i = 0; i < tokens.length; i++) {
+            dealer.dealToken(
+                tokens[i].token,
+                MULTISIG,
+                fmul(tokens[i].units + 1, AMKT.totalSupply()) + 1
+            );
+        }
     }
 }
