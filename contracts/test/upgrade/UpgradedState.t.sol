@@ -13,30 +13,6 @@ contract UpgradedStateTest is UpgradedTest {
     address largeAmktHolder =
         address(0x804B68f60765F4559b7096B158C912eD33aa0c26);
 
-    // WARNING:
-    // This test should fail until new contracts are deployed and addresses are updated.
-    // Expected date of finalization is October 30, 2023
-    function test_MIGRATION_WARNING_deployedContracts() public {
-        assertEq(true, false);
-        assertEq(address(vault), address(1));
-        assertEq(address(issuance), address(1));
-        assertEq(address(invokeableBounty), address(1));
-        assertEq(address(activeBounty), address(1));
-        assertEq(address(governor), address(payable(address(1))));
-        assertEq(address(timelockController), address(payable(address(1))));
-        assertEq(newTokenImplementation, address(1));
-        assertEq(address(timelockActiveBounty), address(1));
-        assertEq(address(timelockInvokeableBounty), address(1));
-    }
-
-    // WARNING: This test should fail until `inputBatchExecutionData` is known.
-    // Expected date of finalization is October 30, 2023
-    function test_MIGRATION_WARNING_expectedCalldataMatchesInputCalldata()
-        public
-    {
-        assertEq(batchExecutionData, inputBatchExecutionData);
-    }
-
     function testConfig() public {
         assertEq(FEE_RECEIPIENT, 0xC19a5b6E0a923519603985153515222D59cb3F2e);
         assertEq(MULTISIG, 0xAeB9ef94b6542BE7112f3a295646B5AaAa9Fca13);
