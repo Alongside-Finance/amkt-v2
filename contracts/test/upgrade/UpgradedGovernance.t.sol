@@ -145,7 +145,7 @@ contract UpgradedGovernanceTest is UpgradeTest {
         vm.startPrank(MULTISIG);
         for (uint256 i = 0; i < roles.length; i++) {
             timelockController.schedule(
-                address(vault),
+                address(timelockController),
                 0,
                 abi.encodeWithSignature(
                     "grantRole(bytes32,address)",
@@ -161,7 +161,7 @@ contract UpgradedGovernanceTest is UpgradeTest {
     }
 
     /// forge-config: default.fuzz.runs = 20
-    function testOnlyProposeCanProposeTimelock(address stranger) public {
+    function testOnlyProposerCanProposeTimelock(address stranger) public {
         vm.assume(
             stranger != address(DEFAULT_TEST_CONTRACT) &&
                 stranger != MULTISIG &&
@@ -406,6 +406,35 @@ contract UpgradedGovernanceTest is UpgradeTest {
             setVoteDelayProposal.calldatas,
             setVoteDelayProposal.descriptionHash
         );
+        vm.stopPrank();
+
+        vm.startPrank(MULTISIG);
+        // sandwich the execution of the proposal between granting and revoking the executor role to the governor.
+        // this is the only way governor can call `execute` on itself.
+        timelockController.schedule(
+            address(timelockController),
+            0,
+            abi.encodeWithSignature(
+                "grantRole(bytes32,address)",
+                timelockController.EXECUTOR_ROLE(),
+                address(governor)
+            ),
+            0,
+            keccak256("hash"),
+            timelockController.getMinDelay()
+        );
+        timelockController.schedule(
+            address(timelockController),
+            0,
+            abi.encodeWithSignature(
+                "revokeRole(bytes32,address)",
+                timelockController.EXECUTOR_ROLE(),
+                address(governor)
+            ),
+            0,
+            keccak256("hash"),
+            timelockController.getMinDelay()
+        );
 
         // EXECUTE AFTER 1 DAY + 4 DAYS + 4 DAYS
         bytes32 operationId = timelockController.hashOperationBatch(
@@ -419,12 +448,35 @@ contract UpgradedGovernanceTest is UpgradeTest {
         assertGe(block.timestamp, timelockController.getTimestamp(operationId));
         assertEq(timelockController.isOperation(operationId), true);
         assertEq(timelockController.isOperationReady(operationId), true);
+        // TODO: Execute all in batch
+        timelockController.execute(
+            address(timelockController),
+            0,
+            abi.encodeWithSignature(
+                "grantRole(bytes32,address)",
+                timelockController.EXECUTOR_ROLE(),
+                address(governor)
+            ),
+            0,
+            keccak256("hash")
+        );
         timelockController.executeBatch(
             executeSetVoteDelayProposal.targets,
             executeSetVoteDelayProposal.values,
             executeSetVoteDelayProposal.calldatas,
             0,
             executeSetVoteDelayProposal.descriptionHash
+        );
+        timelockController.execute(
+            address(timelockController),
+            0,
+            abi.encodeWithSignature(
+                "revokeRole(bytes32,address)",
+                timelockController.EXECUTOR_ROLE(),
+                address(governor)
+            ),
+            0,
+            keccak256("hash")
         );
         assertEq(governor.votingDelay(), delay);
 
