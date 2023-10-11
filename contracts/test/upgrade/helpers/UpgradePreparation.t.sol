@@ -43,6 +43,10 @@ contract UpgradePreparationTest is GnosisTest {
         checkSafeBalances();
         GnosisTransaction[] memory batch = createUpgradeBatch();
         batchExecutionData = getBatchExecutionData(batch);
+        bool shouldPrintExecutionData = false;
+        if (shouldPrintExecutionData) {
+            console.logBytes(batchExecutionData);
+        }
     }
 
     // WARNING: addresses must be updated before submission.
@@ -98,8 +102,8 @@ contract UpgradePreparationTest is GnosisTest {
         Bounty memory _bountyToSet = Bounty({
             infos: tokens,
             fulfiller: MULTISIG,
-            salt: keccak256(abi.encode(block.timestamp)),
-            deadline: block.timestamp + 1 days
+            salt: keccak256(abi.encode("AMKT v2 initial bounty")),
+            deadline: 1699315200 // November 7, 2023 0:0:0 GMT
         });
 
         bytes32 hashToSet = InvokeableBounty(invokeableBounty).hashBounty(

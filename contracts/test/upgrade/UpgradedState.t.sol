@@ -16,7 +16,7 @@ contract UpgradedStateTest is UpgradedTest {
     // WARNING:
     // This test should fail until new contracts are deployed and addresses are updated.
     // Expected date of finalization is October 30, 2023
-    function test_WARNING_DeployedContracts() public {
+    function test_MIGRATION_WARNING_deployedContracts() public {
         assertEq(true, false);
         assertEq(address(vault), address(1));
         assertEq(address(issuance), address(1));
@@ -27,6 +27,14 @@ contract UpgradedStateTest is UpgradedTest {
         assertEq(newTokenImplementation, address(1));
         assertEq(address(timelockActiveBounty), address(1));
         assertEq(address(timelockInvokeableBounty), address(1));
+    }
+
+    // WARNING: This test should fail until `inputBatchExecutionData` is known.
+    // Expected date of finalization is October 30, 2023
+    function test_MIGRATION_WARNING_expectedCalldataMatchesInputCalldata()
+        public
+    {
+        assertEq(batchExecutionData, inputBatchExecutionData);
     }
 
     function testConfig() public {
