@@ -67,22 +67,21 @@ contract InitialBountyHelper {
     // Expected date of finalization is October 30, 2023
     function MIGRATION_WARNING_tokens() public returns (TokenInfo[] memory) {
         TokenInfo[] memory tokens = new TokenInfo[](15);
-
-        tokens[0] = TokenInfo(BTC, 1e22);
-        tokens[1] = TokenInfo(ETH, 1e21);
-        tokens[2] = TokenInfo(BNB, 1e20);
-        tokens[3] = TokenInfo(SOL, 1e19);
-        tokens[4] = TokenInfo(MATIC, 1e18);
-        tokens[5] = TokenInfo(SHIB, 1e17);
-        tokens[6] = TokenInfo(AVAX, 1e16);
-        tokens[7] = TokenInfo(LINK, 1e15);
-        tokens[8] = TokenInfo(UNI, 1e14);
-        tokens[9] = TokenInfo(LDO, 1e13);
-        tokens[10] = TokenInfo(MNT, 1e12);
-        tokens[11] = TokenInfo(CRO, 1e11);
-        tokens[12] = TokenInfo(QNT, 1e10);
-        tokens[13] = TokenInfo(ARB, 1e9);
-        tokens[14] = TokenInfo(MKR, 1e8);
+        tokens[0] = TokenInfo(BTC, 214000);
+        tokens[1] = TokenInfo(ETH, 13247609203137000);
+        tokens[2] = TokenInfo(BNB, 16948415447489000);
+        tokens[3] = TokenInfo(SOL, 45793000);
+        tokens[4] = TokenInfo(MATIC, 1024515857143020000);
+        tokens[5] = TokenInfo(LINK, 61345559996701000);
+        tokens[6] = TokenInfo(SHIB, 64925596531841000000000);
+        tokens[7] = TokenInfo(AVAX, 39069959245135000);
+        tokens[8] = TokenInfo(UNI, 63620590868597000);
+        tokens[9] = TokenInfo(MKR, 107701044471000);
+        tokens[10] = TokenInfo(LDO, 98078322467883000);
+        tokens[11] = TokenInfo(CRO, 278310000);
+        tokens[12] = TokenInfo(MNT, 342021551889928000);
+        tokens[13] = TokenInfo(OP, 96994465621464000);
+        tokens[14] = TokenInfo(QNT, 1329997149324000);
         return tokens;
     }
 }

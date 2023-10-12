@@ -32,9 +32,13 @@ contract UpgradePreparationTest is GnosisTest {
     ActiveBounty timelockActiveBounty;
     Quoter quoter;
     bytes batchExecutionData;
+    uint256 MIGRAITON_WARNING_fork_block = 18229914; // WARNING: must be updated before submission.
 
     function setUp() public virtual {
-        vm.createSelectFork(vm.envString("MAINNET_RPC"), 18229914);
+        vm.createSelectFork(
+            vm.envString("MAINNET_RPC"),
+            MIGRAITON_WARNING_fork_block
+        );
         enableSimulation();
         MIGRATION_WARNING_setDeployedContracts();
         MIGRATION_WARNING_mockSetDeployedContracts();
