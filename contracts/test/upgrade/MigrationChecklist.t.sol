@@ -75,7 +75,10 @@ contract MigrationChecklistTest is UpgradedTest {
                 (10 ** (18 - IERC20(tokens[i].token).decimals()));
             uint256 value = fmul(
                 totalSupply,
-                fmul(getCurrentPrice(tokens[i].token), normalizedUnits)
+                fmul(
+                    MIGRATION_WARNING_getCurrentPrice(tokens[i].token),
+                    normalizedUnits
+                )
             );
             uint256 humanReadableValue = value / (10 ** 18);
             console.log("value: %s", humanReadableValue);
