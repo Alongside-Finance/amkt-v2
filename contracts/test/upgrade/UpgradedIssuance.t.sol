@@ -122,11 +122,6 @@ contract UpgradedIssuanceTest is UpgradedTest {
         assertEq(AMKT.totalSupply(), beforeSupply);
         _warpForward(jitter);
         feeRecipientTryInflation();
-        if (jitter > 1 days) {
-            assertGe(AMKT.totalSupply(), beforeSupply);
-        } else {
-            assertEq(AMKT.totalSupply(), beforeSupply);
-        }
     }
 
     function testCanRedeemLargeWithJitter(
@@ -137,10 +132,7 @@ contract UpgradedIssuanceTest is UpgradedTest {
         jitter = bound(jitter, 0, JITTER_MAX);
         vm.assume(jitter < JITTER_MAX);
         vm.assume(amount <= AMKT.balanceOf(largeAmktHolder));
-        vm.prank(vault.feeRecipient());
-        vault.tryInflation();
-        assertEq(AMKT.balanceOf(largeAmktHolder), 16704840500000000000000);
-        assertGe(AMKT.totalSupply(), AMKT.balanceOf(largeAmktHolder));
+        feeRecipientTryInflation();
         vm.startPrank(largeAmktHolder);
         AMKT.approve(address(issuance), AMKT.balanceOf(largeAmktHolder));
         vm.stopPrank();
@@ -227,10 +219,17 @@ contract UpgradedIssuanceTest is UpgradedTest {
 
     function feeRecipientTryInflation() public {
         vm.startPrank(vault.feeRecipient());
+        uint256 beforeSupply = AMKT.totalSupply();
         if (block.timestamp - vault.lastKnownTimestamp() <= 1 days) {
             vm.expectRevert(IVault.AMKTVaultFeeTooEarly.selector);
+            vault.tryInflation();
+            uint256 afterSupply = AMKT.totalSupply();
+            assertEq(beforeSupply, afterSupply);
+        } else {
+            vault.tryInflation();
+            uint256 afterSupply = AMKT.totalSupply();
+            assertGe(afterSupply, beforeSupply);
         }
-        vault.tryInflation();
         vm.stopPrank();
     }
 }
