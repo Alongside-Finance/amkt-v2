@@ -10,15 +10,22 @@ import {SCALAR} from "src/lib/FixedPoint.sol";
 
 interface Rebalancer {
     function rebalanceCallback(
-        TokenInfo[] calldata x,
-        TokenInfo[] calldata y
+        TokenInfo[] calldata ins,
+        TokenInfo[] calldata outs
     ) external;
 }
 
 contract BountyTest is StatefulTest {
+    struct FlashSwap {
+        address tokenIn;
+        address tokenOut;
+        uint256 amountIn;
+        uint256 amountOut;
+    }
     Bounty internal bountyHolder;
     bool internal reenter;
     bool internal mintOnCallback;
+    FlashSwap internal flashSwapHolder;
 
     function testInitialBounty(uint256 quantity) public {
         TokenInfo[] memory tokens = seedInitial(quantity);
@@ -36,6 +43,58 @@ contract BountyTest is StatefulTest {
             // assert the token was marked as underlying
             assertEq(vault.isUnderlying(token), true);
         }
+    }
+
+    function testReconstitution() public {
+        MockMintableToken mockToken = new MockMintableToken(
+            "Mock",
+            "MOCK",
+            18,
+            0
+        );
+
+        TokenInfo[] memory tokens = seedInitial(15);
+        TokenInfo[] memory newTokens = new TokenInfo[](tokens.length + 1);
+        for (uint i = 0; i < tokens.length; i++) {
+            newTokens[i] = tokens[i];
+        }
+        newTokens[tokens.length].token = address(mockToken);
+        newTokens[tokens.length].units = tokens[0].units;
+        newTokens[0].units = 0;
+
+        for (uint256 i = 0; i < newTokens.length; i++) {
+            IERC20(address(newTokens[i].token)).approve(
+                address(bounty),
+                type(uint256).max
+            );
+        }
+
+        Bounty memory _bounty = Bounty({
+            infos: newTokens,
+            fulfiller: address(0),
+            salt: keccak256("test"),
+            deadline: block.timestamp + 2 days
+        });
+
+        (TokenInfo[] memory outs, TokenInfo[] memory ins) = quoter
+            .quoteFulfillBounty(_bounty, indexToken.totalSupply());
+
+        FlashSwap memory _flashSwap = FlashSwap({
+            tokenIn: newTokens[tokens.length].token,
+            tokenOut: newTokens[0].token,
+            amountIn: ins[0].units,
+            amountOut: outs[0].units
+        });
+
+        bytes32 _hash = bounty.hashBounty(_bounty);
+
+        vm.prank(authority);
+        activeBounty.setHash(_hash);
+        vm.expectRevert(); // should fail due to lack of balance
+        bounty.fulfillBounty(_bounty, true);
+
+        holdFlashSwap(_flashSwap);
+        bounty.fulfillBounty(_bounty, true);
     }
 
     function testRebalance() public {
@@ -224,8 +283,8 @@ contract BountyTest is StatefulTest {
     }
 
     function rebalanceCallback(
-        TokenInfo[] calldata x,
-        TokenInfo[] calldata y
+        TokenInfo[] calldata ins,
+        TokenInfo[] calldata outs
     ) external override {
         if (reenter) {
             bounty.fulfillBounty(bountyHolder, true);
@@ -233,6 +292,24 @@ contract BountyTest is StatefulTest {
         if (mintOnCallback) {
             indexToken.mint(address(this), 1000 ether);
         }
+        if (flashSwapHolder.amountIn > 0) {
+            swapTokens(
+                flashSwapHolder.tokenIn,
+                flashSwapHolder.tokenOut,
+                flashSwapHolder.amountIn,
+                flashSwapHolder.amountOut
+            );
+        }
+    }
+
+    function swapTokens(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 amountOut
+    ) internal {
+        MockMintableToken(tokenOut).transfer(address(1), amountOut); // burn tokenIn
+        MockMintableToken(tokenIn).mint(address(this), amountIn); // mint tokenIn
     }
 
     function holdBounty(Bounty memory _bounty) internal {
@@ -241,5 +318,12 @@ contract BountyTest is StatefulTest {
         for (uint256 i = 0; i < _bounty.infos.length; i++) {
             bountyHolder.infos.push(_bounty.infos[i]);
         }
+    }
+
+    function holdFlashSwap(FlashSwap memory _flashSwap) internal {
+        flashSwapHolder.amountIn = _flashSwap.amountIn;
+        flashSwapHolder.amountOut = _flashSwap.amountOut;
+        flashSwapHolder.tokenIn = _flashSwap.tokenIn;
+        flashSwapHolder.tokenOut = _flashSwap.tokenOut;
     }
 }
