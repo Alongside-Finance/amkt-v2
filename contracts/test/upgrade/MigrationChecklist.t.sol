@@ -12,6 +12,10 @@ interface IOracle {
     function decimals() external returns (uint256);
 }
 
+// NOTE TO DEVELOPERS:
+// This checklist test is used to ensure safety of the migration process.
+// If any one of these tests fail, it means that it is not safe to execute the upgrade bundle.
+// These tests should guide the migration process, step by step, to ensure that the upgrade bundle is safe to execute.
 contract MigrationChecklistTest is UpgradedTest {
     // Native
     address constant BTC = address(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599);
