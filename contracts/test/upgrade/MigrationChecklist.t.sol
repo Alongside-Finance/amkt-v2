@@ -4,6 +4,7 @@ import {fmul, fdiv} from "src/lib/FixedPoint.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {console} from "forge-std/console.sol";
+import {InitialBountyHelper} from "src/scripts/Config.sol";
 
 interface IOracle {
     function latestAnswer() external returns (uint256);
@@ -39,11 +40,40 @@ contract MigrationChecklistTest is UpgradedTest {
     // Rainbow Bridge
     address constant NEAR = address(0x85F17Cf997934a597031b2E18a9aB6ebD4B9f6a4);
 
+    bool triggerMigrationWarning_getCurrentPrice;
+
+    function test_printBatchExecutionData() public {
+        bool shouldPrintExecutionData = false;
+        if (shouldPrintExecutionData) {
+            console.logBytes(batchExecutionData);
+        }
+    }
+
+    // WARNING: This test should fail until warping is no longer used in test preparation.
+    // Expected date of finalization is October 30, 2023
+    function test_MIGRATION_WARNING_warpForward() public {
+        assertFalse(triggerMigrationWarning_warpForward);
+    }
+
+    // WARNING: This test should fail until safe balances are no longer mocked
+    // Expected date of finalization is October 30, 2023
+    function test_MIGRATION_WARNING_safeBalances() public {
+        assertFalse(triggerMigrationWarning_safeBalances);
+    }
+
+    // WARNING: This test should fail until latest prices are known for migration
+    // Expected date of finalization is October 30, 2023
+
+    function test_MIGRATION_WARNING_getCurrentPrice() public {
+        MIGRATION_WARNING_getCurrentPrice(address(0));
+        assertFalse(triggerMigrationWarning_getCurrentPrice);
+    }
+
     // WARNING:
     // This test should fail until new contracts are deployed and addresses are updated.
     // Expected date of finalization is October 30, 2023
     function test_MIGRATION_WARNING_deployedContracts() public {
-        assertEq(true, false);
+        assertFalse(triggerMigrationWarning_setDeployedContracts);
         assertEq(address(vault), address(1));
         assertEq(address(issuance), address(1));
         assertEq(address(invokeableBounty), address(1));
@@ -53,6 +83,20 @@ contract MigrationChecklistTest is UpgradedTest {
         assertEq(newTokenImplementation, address(1));
         assertEq(address(timelockActiveBounty), address(1));
         assertEq(address(timelockInvokeableBounty), address(1));
+    }
+
+    // WARNING: This test should fail until `tokens` in InitialBountyHelper is finalized.
+    // Expected date of finalization is October 30, 2023
+    function test_MIGRATION_WARNING_finalizedTokens() public {
+        assertFalse(
+            (new InitialBountyHelper()).triggerMigrationWarning_finalTokens()
+        );
+    }
+
+    // WARNING: This test should fail until `inputBatchExecutionData` is used.
+    // Expected date of finalization is October 30, 2023
+    function test_MIGRATION_WARNING_executeUpgradeBundle() public {
+        assertFalse(triggerMigrationWarning_executeUpgradeBundle);
     }
 
     // WARNING: This test should fail until `inputBatchExecutionData` is known.
@@ -94,6 +138,7 @@ contract MigrationChecklistTest is UpgradedTest {
     function MIGRATION_WARNING_getCurrentPrice(
         address token
     ) internal returns (uint256) {
+        triggerMigrationWarning_getCurrentPrice = true; // Flip when manual prices are finalized
         address[] memory oracles = new address[](15);
         uint256[] memory manualPrices = new uint256[](15); // for tokens that don't have a chainlink oracle, use prices manually
         oracles[0] = address(0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c); // BTC

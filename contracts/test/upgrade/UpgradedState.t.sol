@@ -150,8 +150,7 @@ contract UpgradedStateTest is UpgradedTest {
 
     function testTokens() public {
         // for all tokens in vault, it should match tokens in bounty helper
-        TokenInfo[] memory tokens = (new InitialBountyHelper())
-            .MIGRATION_WARNING_tokens();
+        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
         address[] memory underlying = vault.underlying();
         for (uint256 i = 0; i < tokens.length; i++) {
             assertEq(underlying[i], tokens[i].token);
@@ -159,8 +158,7 @@ contract UpgradedStateTest is UpgradedTest {
     }
 
     function testVirtualUnitsMatchInitialBounty() public {
-        TokenInfo[] memory tokens = (new InitialBountyHelper())
-            .MIGRATION_WARNING_tokens();
+        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
         TokenInfo[] memory virtualUnits = vault.virtualUnits();
         for (uint256 i = 0; i < tokens.length; i++) {
             assertEq(virtualUnits[i].units, tokens[i].units);
@@ -179,8 +177,7 @@ contract UpgradedStateTest is UpgradedTest {
 
     function testExpectedVaultBalances() public {
         // for all tokens in vault, vault balance should match NAV
-        TokenInfo[] memory tokens = (new InitialBountyHelper())
-            .MIGRATION_WARNING_tokens();
+        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
         address[] memory underlying = vault.underlying();
 
         for (uint256 i = 0; i < vault.underlyingLength(); i++) {

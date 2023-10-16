@@ -34,46 +34,58 @@ contract UpgradePreparationTest is GnosisTest {
     bytes batchExecutionData;
     uint256 MIGRAITON_WARNING_fork_block = 18229914; // WARNING: must be updated before submission.
 
+    bool triggerMigrationWarning_setDeployedContracts;
+    bool triggerMigrationWarning_warpForward;
+    bool triggerMigrationWarning_safeBalances;
+
     function setUp() public virtual {
         vm.createSelectFork(
             vm.envString("MAINNET_RPC"),
             MIGRAITON_WARNING_fork_block
         );
         enableSimulation();
-        MIGRATION_WARNING_setDeployedContracts();
-        MIGRATION_WARNING_mockSetDeployedContracts();
-        MIGRATION_WARNING_warpForward(1 days + 2 hours); // there will be some time after we deploy the contracts, and it may be long.
-        MIGRATION_WARNING_mockSafeBalances();
+        setDeployedContracts();
+        warpForward(1 days + 2 hours); // there will be some time after we deploy the contracts, and it may be long.
+        mockSafeBalances();
         checkSafeBalances();
         GnosisTransaction[] memory batch = createUpgradeBatch();
         batchExecutionData = getBatchExecutionData(batch);
-        bool shouldPrintExecutionData = false;
-        if (shouldPrintExecutionData) {
-            console.logBytes(batchExecutionData);
-        }
     }
 
     // WARNING: addresses must be updated before submission.
     // Expected date of finalization is October 30, 2023
-    function MIGRATION_WARNING_setDeployedContracts() internal {
-        AMKT = IndexToken(AMKTAddress);
-        vault = Vault(address(0));
-        issuance = Issuance(address(0));
-        invokeableBounty = InvokeableBounty(address(0));
-        activeBounty = ActiveBounty(address(0));
-        governor = AlongsideGovernor(payable(address(0)));
-        timelockController = TimelockController(payable(address(0)));
-        newTokenImplementation = address(0);
+    function setDeployedContracts() internal {
+        triggerMigrationWarning_setDeployedContracts = true; // Flip when addresses are updated
 
-        timelockActiveBounty = ActiveBounty(address(0));
-        timelockInvokeableBounty = InvokeableBounty(address(0));
-        quoter = Quoter(address(0));
+        AMKT = IndexToken(AMKTAddress);
+        CoreDeployScript script = new CoreDeployScript();
+        CoreDeployScript.DeployedContracts memory deployed = script.run();
+        vault = deployed.vault;
+        issuance = deployed.issuance;
+        invokeableBounty = deployed.invokeableBounty;
+        activeBounty = deployed.activeBounty;
+        governor = deployed.governor;
+        timelockController = deployed.timelockController;
+        newTokenImplementation = deployed.newTokenImplementation;
+        timelockInvokeableBounty = deployed.timelockInvokeableBounty;
+        timelockActiveBounty = deployed.timelockActiveBounty;
+        quoter = deployed.quoter;
+        // The below template can be used when the addresses are known.
+        // vault = Vault(address(0));
+        // issuance = Issuance(address(0));
+        // invokeableBounty = InvokeableBounty(address(0));
+        // activeBounty = ActiveBounty(address(0));
+        // governor = AlongsideGovernor(payable(address(0)));
+        // timelockController = TimelockController(payable(address(0)));
+        // newTokenImplementation = address(0);
+        // timelockActiveBounty = ActiveBounty(address(0));
+        // timelockInvokeableBounty = InvokeableBounty(address(0));
+        // quoter = Quoter(address(0));
     }
 
     function checkSafeBalances() internal {
         // check that the safe balance matches exactly what the initial bounty helper expects
-        TokenInfo[] memory tokens = (new InitialBountyHelper())
-            .MIGRATION_WARNING_tokens();
+        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
         for (uint256 i = 0; i < tokens.length; i++) {
             IERC20 token = IERC20(tokens[i].token);
             assertEq(
@@ -85,8 +97,7 @@ contract UpgradePreparationTest is GnosisTest {
 
     function createUpgradeBatch() public returns (GnosisTransaction[] memory) {
         // Initialize batch with known size
-        TokenInfo[] memory tokens = (new InitialBountyHelper())
-            .MIGRATION_WARNING_tokens();
+        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
         uint256 batchLength = tokens.length + 8;
         GnosisTransaction[] memory batch = new GnosisTransaction[](batchLength);
 
@@ -195,34 +206,17 @@ contract UpgradePreparationTest is GnosisTest {
 
     // WARNING: must be removed before submission.
     // Expected date of finalization is October 30, 2023
-    function MIGRATION_WARNING_warpForward(uint256 sec) internal {
+    function warpForward(uint256 sec) internal {
+        triggerMigrationWarning_warpForward = true;
         _warpForward(sec);
     }
 
     // WARNING: must be removed before submission.
     // Expected date of finalization is October 30, 2023
-    function MIGRATION_WARNING_mockSetDeployedContracts() internal {
-        AMKT = IndexToken(AMKTAddress);
-        CoreDeployScript script = new CoreDeployScript();
-        CoreDeployScript.DeployedContracts memory deployed = script.run();
-        vault = deployed.vault;
-        issuance = deployed.issuance;
-        invokeableBounty = deployed.invokeableBounty;
-        activeBounty = deployed.activeBounty;
-        governor = deployed.governor;
-        timelockController = deployed.timelockController;
-        newTokenImplementation = deployed.newTokenImplementation;
-        timelockInvokeableBounty = deployed.timelockInvokeableBounty;
-        timelockActiveBounty = deployed.timelockActiveBounty;
-        quoter = deployed.quoter;
-    }
-
-    // WARNING: must be removed before submission.
-    // Expected date of finalization is October 30, 2023
-    function MIGRATION_WARNING_mockSafeBalances() internal {
+    function mockSafeBalances() internal {
+        triggerMigrationWarning_safeBalances = true;
         Dealer dealer = new Dealer();
-        TokenInfo[] memory tokens = (new InitialBountyHelper())
-            .MIGRATION_WARNING_tokens();
+        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
         for (uint256 i = 0; i < tokens.length; i++) {
             dealer.dealToken(
                 tokens[i].token,

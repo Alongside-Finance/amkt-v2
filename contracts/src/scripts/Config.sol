@@ -60,12 +60,7 @@ contract InitialBountyHelper {
     // Rainbow Bridge
     address constant NEAR = address(0x85F17Cf997934a597031b2E18a9aB6ebD4B9f6a4);
 
-    // WARNING:
-    // The amounts will be determined shortly before the bounty is proposed.
-    // The goal is to have the bounty be equivalent the net asset value of AMKT at the time of proposal.
-    // 15 assets to be included in the index
-    // Expected date of finalization is October 30, 2023
-    function MIGRATION_WARNING_tokens() public returns (TokenInfo[] memory) {
+    function tokens() public returns (TokenInfo[] memory) {
         TokenInfo[] memory tokens = new TokenInfo[](15);
         tokens[0] = TokenInfo(BTC, 214000);
         tokens[1] = TokenInfo(ETH, 13247609203137000);
@@ -84,4 +79,12 @@ contract InitialBountyHelper {
         tokens[14] = TokenInfo(QNT, 1329997149324000);
         return tokens;
     }
+
+    // WARNING:
+    // The amounts will be determined shortly before the bounty is proposed.
+    // The goal is to have the bounty be equivalent the net asset value of AMKT at the time of proposal.
+    // 15 assets to be included in the index
+    // Once tokens and their amounts are finalized, switch this to true
+    // Expected date of finalization is October 30, 2023
+    bool public constant triggerMigrationWarning_finalTokens = true; // Flip when tokens are finalized
 }
