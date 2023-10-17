@@ -1,7 +1,7 @@
 pragma solidity =0.8.18;
 
 import {UpgradedTest} from "test/upgrade/helpers/Upgraded.t.sol";
-import {Dealer} from "test/Dealer.t.sol";
+import {Dealer} from "test/utils/Dealer.t.sol";
 import {TokenInfo} from "src/Common.sol";
 import {InitialBountyHelper, VOTE_DELAY, VOTE_PERIOD, CANCELLATION_PERIOD, MULTISIG} from "src/scripts/Config.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";

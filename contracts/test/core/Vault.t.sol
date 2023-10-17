@@ -6,7 +6,6 @@ import {IVault} from "src/interfaces/IVault.sol";
 import {TokenInfo} from "src/Common.sol";
 import {fmul, fdiv} from "src/lib/FixedPoint.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
-import {MockMintableToken} from "test/mocks/MockMintableToken.sol";
 
 contract VaultTest is StatefulTest {
     function testZeroChecks() public {

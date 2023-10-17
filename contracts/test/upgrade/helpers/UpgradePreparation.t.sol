@@ -9,7 +9,7 @@ import {TokenInfo} from "src/Common.sol";
 import {InvokeableBounty} from "src/invoke/Bounty.sol";
 import {Bounty} from "src/interfaces/IInvokeableBounty.sol";
 import {ActiveBounty} from "src/invoke/ActiveBounty.sol";
-import {Dealer} from "test/Dealer.t.sol";
+import {Dealer} from "test/utils/Dealer.t.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {IndexToken} from "src/IndexToken.sol";
 import {Vault} from "src/Vault.sol";

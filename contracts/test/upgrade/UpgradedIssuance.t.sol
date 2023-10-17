@@ -1,7 +1,7 @@
 pragma solidity =0.8.18;
 
 import {UpgradedTest} from "test/upgrade/helpers/Upgraded.t.sol";
-import {Dealer} from "test/Dealer.t.sol";
+import {Dealer} from "test/utils/Dealer.t.sol";
 import {TokenInfo} from "src/Common.sol";
 import {InitialBountyHelper} from "src/scripts/Config.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
@@ -16,7 +16,7 @@ contract UpgradedIssuanceTest is UpgradedTest {
     address oldMinter = address(0x0D44F856E1a7c70E35c54261c3f07DbFBDCA4857);
     uint256 MAX_ISSUE_AMOUNT = type(uint96).max - 1;
 
-    function testIssuanceInvariant(
+    function testIssuanceInvariantFuzz(
         uint256 issueAmount,
         uint256 redeemAmount
     ) public {

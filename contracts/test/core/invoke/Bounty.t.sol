@@ -3,7 +3,7 @@ pragma solidity =0.8.18;
 import {StatefulTest, Mocks} from "core-test/State.t.sol";
 import {InvokeableBounty} from "src/invoke/Bounty.sol";
 import {IInvokeableBounty, Bounty} from "src/interfaces/IInvokeableBounty.sol";
-import {MockMintableToken} from "mocks/MockMintableToken.sol";
+import {MockMintableToken} from "test/utils/MockMintableToken.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {SCALAR} from "src/lib/FixedPoint.sol";

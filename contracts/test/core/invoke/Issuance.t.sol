@@ -6,10 +6,10 @@ import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {SCALAR, fmul} from "src/lib/FixedPoint.sol";
 import {IVault} from "src/interfaces/IVault.sol";
 import {IIssuance} from "src/interfaces/IIssuance.sol";
-import {MockMintableToken} from "test/mocks/MockMintableToken.sol";
+import {MockMintableToken} from "test/utils/MockMintableToken.sol";
 
 contract IssuanceTest is StatefulTest {
-    function testIssuanceInvariantCheck() public {
+    function testIssuanceVaultInvariantCheck() public {
         seedInitial(10);
         vault.setIssuance(address(this));
         TokenInfo[] memory virtualUnits = vault.virtualUnits();

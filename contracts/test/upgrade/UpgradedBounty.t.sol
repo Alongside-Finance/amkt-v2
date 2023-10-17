@@ -1,19 +1,19 @@
 pragma solidity =0.8.18;
 
 import {UpgradedTest} from "test/upgrade/helpers/Upgraded.t.sol";
-import {Dealer} from "test/Dealer.t.sol";
+import {Dealer} from "test/utils/Dealer.t.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {InvokeableBounty} from "src/invoke/Bounty.sol";
 import {Bounty, IInvokeableBounty} from "src/interfaces/IInvokeableBounty.sol";
-import {MockMintableToken} from "mocks/MockMintableToken.sol";
+import {MockMintableToken} from "test/utils/MockMintableToken.sol";
 import {MULTISIG} from "src/scripts/Config.sol";
 import {fmul} from "src/lib/FixedPoint.sol";
 import {console} from "forge-std/console.sol";
 import {IActiveBounty} from "src/interfaces/IActiveBounty.sol";
 
 contract UpgradedBountyTest is UpgradedTest {
-    function _setUpTestBountyInvariant(
+    function _setUpTestBountyInvariantFuzz(
         uint256 numTokensToAdd,
         uint256 rand
     )
@@ -90,7 +90,10 @@ contract UpgradedBountyTest is UpgradedTest {
         );
     }
 
-    function testBountyInvariants(uint256 numTokensToAdd, uint256 rand) public {
+    function testBountyInvariantsFuzz(
+        uint256 numTokensToAdd,
+        uint256 rand
+    ) public {
         (
             TokenInfo[] memory oldUnits,
             TokenInfo[] memory proposedUnits,
@@ -98,7 +101,7 @@ contract UpgradedBountyTest is UpgradedTest {
             uint256[] memory oldUnitsFulfillerBalances,
             uint256[] memory proposedUnitsVaultBalances,
             uint256[] memory proposedUnitsFulfillerBalances
-        ) = _setUpTestBountyInvariant(numTokensToAdd, rand);
+        ) = _setUpTestBountyInvariantFuzz(numTokensToAdd, rand);
         // INVARIANT 1: proposed units are the same as fulfilled units, minus tokens to be removed
         TokenInfo[] memory fulfilledUnits = vault.virtualUnits();
         uint256 skipCounter = 0;
