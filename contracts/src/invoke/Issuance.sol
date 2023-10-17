@@ -7,11 +7,9 @@ import {IVault} from "src/interfaces/IVault.sol";
 import {SCALAR, fmul, fdiv} from "src/lib/FixedPoint.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IIssuance} from "src/interfaces/IIssuance.sol";
 
-contract Issuance {
-    error IssuanceReentrant();
-    error IssuanceNoTokens();
-
+contract Issuance is IIssuance {
     using VerifiableAddressArray for VerifiableAddressArray.VerifiableArray;
     using SafeERC20 for IERC20;
 
