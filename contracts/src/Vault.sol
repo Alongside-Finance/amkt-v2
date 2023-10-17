@@ -27,7 +27,7 @@ contract Vault is Ownable2Step, IVault {
     uint256 public lastKnownTimestamp;
 
     VerifiableAddressArray.VerifiableArray internal _underlying;
-    mapping(address => uint256) internal nominals;
+    mapping(address => uint256) internal _nominals;
 
     ///////////////////////// MODIFIERS / CONSTRUCTOR /////////////////////////
 
@@ -255,7 +255,7 @@ contract Vault is Ownable2Step, IVault {
     /// @param token address
     /// @return uint256
     function virtualUnits(address token) public view returns (uint256) {
-        return nominals[token];
+        return _nominals[token];
     }
 
     /// @notice Returns the virtual units of all tokens
@@ -268,7 +268,7 @@ contract Vault is Ownable2Step, IVault {
 
         for (uint256 i; i < len; i++) {
             address token = stor[i];
-            info[i] = TokenInfo({token: token, units: nominals[token]});
+            info[i] = TokenInfo({token: token, units: _nominals[token]});
         }
 
         return info;
@@ -315,7 +315,7 @@ contract Vault is Ownable2Step, IVault {
         uint256 _virtualUnits = args.virtualUnits;
 
         if (_virtualUnits == 0) {
-            delete nominals[token];
+            delete _nominals[token];
             _underlying.remove(token);
             return;
         }
@@ -324,7 +324,7 @@ contract Vault is Ownable2Step, IVault {
             _underlying.add(token);
         }
 
-        nominals[token] = _virtualUnits;
+        _nominals[token] = _virtualUnits;
     }
 
     function _invokeERC20(address token, address to, uint256 amount) internal {

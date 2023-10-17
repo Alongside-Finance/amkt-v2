@@ -92,7 +92,10 @@ contract InvokeableBounty is IInvokeableBounty {
         vault.invokeERC20s(outs);
 
         if (callback) {
-            IRebalancer(msg.sender).rebalanceCallback(ins, intoTokenInfo(outs));
+            IRebalancer(msg.sender).rebalanceCallback(
+                ins,
+                _intoTokenInfo(outs)
+            );
         }
 
         if (indexToken.totalSupply() != startingSupply) {
@@ -118,6 +121,24 @@ contract InvokeableBounty is IInvokeableBounty {
         completedBounties[bountyHash] = true;
         emit BountyFulfilled(bounty, callback);
     }
+
+    /// @notice hash a bounty
+    /// @param bounty, the bounty to hash
+    function hashBounty(
+        Bounty memory bounty
+    ) public view returns (bytes32 hash) {
+        return
+            keccak256(
+                abi.encode(
+                    "alongside::invoker::bounty",
+                    abi.encode(version),
+                    abi.encode(chainId),
+                    keccak256(abi.encode(bounty))
+                )
+            );
+    }
+
+    ///////////////////////// INTERNAL /////////////////////////
 
     function _quote(
         QuoteInput memory input
@@ -145,7 +166,7 @@ contract InvokeableBounty is IInvokeableBounty {
         for (uint256 i; i < input.targets.length; i++) {
             address token = input.targets[i].token;
 
-            if (vault.isUnderlying(token)) underlyingTally++;
+            if (vault.isUnderlying(token)) underlyingTally++; // Note that this does not check for duplicates.
 
             // number of target units per 1e18 amkt
             uint256 targetUnits = input.targets[i].units;
@@ -194,23 +215,7 @@ contract InvokeableBounty is IInvokeableBounty {
         return (outs, ins, nominals, underlyingTally);
     }
 
-    /// @notice hash a bounty
-    /// @param bounty, the bounty to hash
-    function hashBounty(
-        Bounty memory bounty
-    ) public view returns (bytes32 hash) {
-        return
-            keccak256(
-                abi.encode(
-                    "alongside::invoker::bounty",
-                    abi.encode(version),
-                    abi.encode(chainId),
-                    keccak256(abi.encode(bounty))
-                )
-            );
-    }
-
-    function intoTokenInfo(
+    function _intoTokenInfo(
         IVault.InvokeERC20Args[] memory args
     ) internal pure returns (TokenInfo[] memory infos) {
         infos = new TokenInfo[](args.length);
