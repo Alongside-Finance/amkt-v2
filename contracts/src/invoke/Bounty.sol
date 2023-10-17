@@ -166,7 +166,7 @@ contract InvokeableBounty is IInvokeableBounty {
         for (uint256 i; i < input.targets.length; i++) {
             address token = input.targets[i].token;
 
-            if (vault.isUnderlying(token)) underlyingTally++; // Note that this does not check for duplicates.
+            if (vault.isUnderlying(token)) underlyingTally++;
 
             // number of target units per 1e18 amkt
             uint256 targetUnits = input.targets[i].units;
