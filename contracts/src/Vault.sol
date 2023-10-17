@@ -151,7 +151,7 @@ contract Vault is Ownable2Step, IVault {
         uint256 startingSupply = indexToken.totalSupply();
         uint256 timestampDiff = block.timestamp - lastKnownTimestamp;
         uint256 inflation = fmul(startingSupply, timestampDiff * inflationRate);
-        if (inflation == 0) revert AMKTVaultFeeTooEarly();
+        if (inflation == 0) revert AMKTVaultFeeTooSmall();
 
         lastKnownTimestamp = block.timestamp;
 

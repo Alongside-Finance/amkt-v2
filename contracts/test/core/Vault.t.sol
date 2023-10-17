@@ -5,8 +5,34 @@ import {StatefulTest} from "./State.t.sol";
 import {IVault} from "src/interfaces/IVault.sol";
 import {TokenInfo} from "src/Common.sol";
 import {fmul, fdiv} from "src/lib/FixedPoint.sol";
+import {IERC20} from "forge-std/interfaces/IERC20.sol";
+import {MockMintableToken} from "test/mocks/MockMintableToken.sol";
 
 contract VaultTest is StatefulTest {
+    function testZeroChecks() public {
+        vm.expectRevert(IVault.VaultZeroCheck.selector);
+        vault.setIssuance(address(0));
+
+        vm.expectRevert(IVault.VaultZeroCheck.selector);
+        vault.setRebalancer(address(0));
+
+        vm.expectRevert(IVault.VaultZeroCheck.selector);
+        vault.setFeeRecipient(address(0));
+
+        vm.expectRevert(IVault.VaultZeroCheck.selector);
+        vault.setEmergencyResponder(address(0));
+    }
+
+    function testVaultFeeTooSmall() public {
+        seedInitial(10);
+        vault.setInflationRate(0);
+        _warpForward(2 days);
+        vm.startPrank(feeReciever);
+        vm.expectRevert(IVault.AMKTVaultFeeTooSmall.selector);
+        vault.tryInflation();
+        vm.stopPrank();
+    }
+
     function testShouldAllowRebalancer() public {
         seedInitial(10);
         vm.startPrank(address(bounty));

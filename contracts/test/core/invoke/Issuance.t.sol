@@ -5,8 +5,51 @@ import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {SCALAR, fmul} from "src/lib/FixedPoint.sol";
 import {IVault} from "src/interfaces/IVault.sol";
+import {IIssuance} from "src/interfaces/IIssuance.sol";
+import {MockMintableToken} from "test/mocks/MockMintableToken.sol";
 
 contract IssuanceTest is StatefulTest {
+    function testIssuanceInvariantCheck() public {
+        seedInitial(10);
+        vault.setIssuance(address(this));
+        TokenInfo[] memory virtualUnits = vault.virtualUnits();
+        uint256 requiredBalance = fmul(
+            virtualUnits[0].units,
+            indexToken.totalSupply()
+        );
+        uint256 currentBalance = IERC20(virtualUnits[0].token).balanceOf(
+            address(vault)
+        );
+        uint256 amountToRemove = currentBalance - requiredBalance + 3; // 3 is added because 2 is added via issue
+        vault.invokeERC20(
+            IVault.InvokeERC20Args(
+                virtualUnits[0].token,
+                address(1),
+                amountToRemove
+            )
+        );
+        vault.setIssuance(address(issuance));
+
+        uint256 amount = 1e18;
+        TokenInfo[] memory tokens = quoter.quoteIssue(amount);
+        for (uint256 i = 0; i < tokens.length; i++) {
+            MockMintableToken(tokens[i].token).mint(
+                address(this),
+                tokens[i].units
+            );
+            IERC20(tokens[i].token).approve(address(issuance), tokens[i].units);
+        }
+        vm.expectRevert(IVault.VaultInvariant.selector);
+        issuance.issue(amount);
+    }
+
+    function testNoTokens() public {
+        vm.expectRevert(IIssuance.IssuanceNoTokens.selector);
+        issuance.issue(1);
+        vm.expectRevert(IIssuance.IssuanceNoTokens.selector);
+        issuance.redeem(1);
+    }
+
     function testGoToZero() public {
         seedInitial(10);
         mint(5e18);

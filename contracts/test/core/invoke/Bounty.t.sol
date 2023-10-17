@@ -230,8 +230,7 @@ contract BountyTest is StatefulTest {
         bounty.fulfillBounty(_bounty, true);
     }
 
-    function testFailBountyAMKTSupplyChange() public {
-        mintOnCallback = true;
+    function testRevertBountyAMKTSupplyChange() public {
         TokenInfo[] memory tokens = seedInitial(5);
         Bounty memory _bounty = Bounty({
             infos: tokens,
@@ -242,7 +241,8 @@ contract BountyTest is StatefulTest {
 
         holdBounty(_bounty);
         validateBounty(_bounty);
-
+        mintOnCallback = true;
+        vm.expectRevert(IInvokeableBounty.BountyAMKTSupplyChange.selector);
         bounty.fulfillBounty(_bounty, true);
     }
 

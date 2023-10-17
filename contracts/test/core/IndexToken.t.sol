@@ -8,19 +8,21 @@ contract IndexTokenTest is Test {
 
     function setUp() public {
         indexToken = new IndexToken();
-        indexToken.initialize(address(this));
     }
 
     function testInitialMinter() public {
+        indexToken.initialize(address(this));
         assertEq(indexToken.minter(), address(this));
     }
 
     function testInitializeAgainRevert() public {
+        indexToken.initialize(address(this));
         vm.expectRevert("IndexToken: already initialized");
         indexToken.initialize(address(1));
     }
 
     function testMint() public {
+        indexToken.initialize(address(this));
         uint256 initialSupply = indexToken.totalSupply();
         uint256 mintAmount = 1000 ether;
         indexToken.mint(address(this), mintAmount);
@@ -32,6 +34,7 @@ contract IndexTokenTest is Test {
     }
 
     function testMintNotByMinterRevert(address randomAddress) public {
+        indexToken.initialize(address(this));
         vm.assume(
             randomAddress != indexToken.minter() &&
                 randomAddress != address(DEFAULT_TEST_CONTRACT)
@@ -41,6 +44,7 @@ contract IndexTokenTest is Test {
     }
 
     function testBurn() public {
+        indexToken.initialize(address(this));
         indexToken.mint(address(this), 1000 ether);
         uint256 initialSupply = indexToken.totalSupply();
         uint256 burnAmount = 500 ether;
@@ -53,6 +57,7 @@ contract IndexTokenTest is Test {
     }
 
     function testTransfer() public {
+        indexToken.initialize(address(this));
         address recipient = address(1);
         uint256 transferAmount = 100 ether;
         indexToken.mint(address(this), transferAmount);
@@ -65,6 +70,7 @@ contract IndexTokenTest is Test {
     }
 
     function testTransferFrom() public {
+        indexToken.initialize(address(this));
         address sender = address(this);
         address recipient = address(2);
         uint256 transferAmount = 200 ether;

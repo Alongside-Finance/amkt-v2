@@ -8,6 +8,7 @@ interface IVault {
     error AMKTVaultOnly(address who);
     error AMKTVaultInflationRateTooLarge();
     error AMKTVaultFeeTooEarly();
+    error AMKTVaultFeeTooSmall();
     error AMKTVaultEmergency();
     error VaultInvariant();
     error VaultZeroCheck();
