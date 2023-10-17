@@ -14,14 +14,15 @@ contract UpgradedIssuanceTest is UpgradedTest {
     address largeAmktHolder =
         address(0x804B68f60765F4559b7096B158C912eD33aa0c26);
     address oldMinter = address(0x0D44F856E1a7c70E35c54261c3f07DbFBDCA4857);
+    uint256 MAX_ISSUE_AMOUNT = type(uint96).max - 1;
 
     function testIssuanceInvariant(
         uint256 issueAmount,
         uint256 redeemAmount
     ) public {
-        issueAmount = bound(issueAmount, 0, 10_000_000e18);
+        issueAmount = bound(issueAmount, 0, MAX_ISSUE_AMOUNT);
         redeemAmount = bound(redeemAmount, 0, issueAmount);
-        vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
+        vm.assume(issueAmount < MAX_ISSUE_AMOUNT);
         vm.assume(redeemAmount < issueAmount);
         TokenInfo[] memory units = vault.virtualUnits();
         uint256[] memory startingIssuanceVaultBalances = new uint256[](
@@ -71,10 +72,10 @@ contract UpgradedIssuanceTest is UpgradedTest {
         uint256 issueAmount,
         uint256 jitter
     ) public {
-        issueAmount = bound(issueAmount, 0, 10_000_000e18);
-        jitter = bound(jitter, 0, JITTER_MAX);
-        vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
-        vm.assume(jitter < JITTER_MAX);
+        issueAmount = bound(issueAmount, 0, MAX_ISSUE_AMOUNT);
+        jitter = bound(jitter, 0, MAX_JITTER);
+        vm.assume(issueAmount < MAX_ISSUE_AMOUNT);
+        vm.assume(jitter < MAX_JITTER);
         _warpForward(jitter);
         feeRecipientTryInflation();
         assistedMint(address(this), issueAmount);
@@ -88,12 +89,12 @@ contract UpgradedIssuanceTest is UpgradedTest {
         uint256 redeemAmount,
         uint256 jitter
     ) public {
-        issueAmount = bound(issueAmount, 0, 10_000_000e18);
+        issueAmount = bound(issueAmount, 0, MAX_ISSUE_AMOUNT);
         redeemAmount = bound(redeemAmount, 0, issueAmount);
-        jitter = bound(jitter, 0, JITTER_MAX);
-        vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
+        jitter = bound(jitter, 0, MAX_JITTER);
+        vm.assume(issueAmount < MAX_ISSUE_AMOUNT);
         vm.assume(redeemAmount <= issueAmount);
-        vm.assume(jitter < JITTER_MAX);
+        vm.assume(jitter < MAX_JITTER);
         _warpForward(jitter);
         feeRecipientTryInflation();
         assistedMint(address(this), issueAmount);
@@ -112,8 +113,8 @@ contract UpgradedIssuanceTest is UpgradedTest {
     }
 
     function testTryInflationWithJitter(uint256 jitter) public {
-        jitter = bound(jitter, 0, JITTER_MAX);
-        vm.assume(jitter < JITTER_MAX);
+        jitter = bound(jitter, 0, MAX_JITTER);
+        vm.assume(jitter < MAX_JITTER);
         _warpForward(jitter);
         feeRecipientTryInflation();
         vm.prank(address(2));
@@ -129,8 +130,8 @@ contract UpgradedIssuanceTest is UpgradedTest {
         uint256 jitter
     ) public {
         amount = bound(amount, 0, AMKT.balanceOf(largeAmktHolder));
-        jitter = bound(jitter, 0, JITTER_MAX);
-        vm.assume(jitter < JITTER_MAX);
+        jitter = bound(jitter, 0, MAX_JITTER);
+        vm.assume(jitter < MAX_JITTER);
         vm.assume(amount <= AMKT.balanceOf(largeAmktHolder));
         feeRecipientTryInflation();
         vm.startPrank(largeAmktHolder);
@@ -160,8 +161,8 @@ contract UpgradedIssuanceTest is UpgradedTest {
         uint256 jitter
     ) public {
         amount = bound(amount, 0, AMKT.balanceOf(largeAmktHolder));
-        jitter = bound(jitter, 0, JITTER_MAX);
-        vm.assume(jitter < JITTER_MAX);
+        jitter = bound(jitter, 0, MAX_JITTER);
+        vm.assume(jitter < MAX_JITTER);
         vm.assume(amount <= AMKT.balanceOf(largeAmktHolder));
         vm.startPrank(largeAmktHolder);
         AMKT.transfer(address(3), amount);
@@ -186,9 +187,9 @@ contract UpgradedIssuanceTest is UpgradedTest {
     }
 
     function testIssuance(uint256 issueAmount, uint256 redeemAmount) public {
-        issueAmount = bound(issueAmount, 0, 10_000_000e18);
+        issueAmount = bound(issueAmount, 0, MAX_ISSUE_AMOUNT);
         redeemAmount = bound(redeemAmount, 0, issueAmount);
-        vm.assume(issueAmount < 10_000_000e18); // we are bound by LDO whale supply
+        vm.assume(issueAmount < MAX_ISSUE_AMOUNT);
         vm.assume(redeemAmount <= issueAmount);
         assistedMint(address(this), issueAmount);
         TokenInfo[] memory tokens = vault.virtualUnits();

@@ -26,6 +26,7 @@ def calculateInflationAccrued(initialSupply, days, perSecondInflationScaled):
     return inflationAccrued
 
 perSecondInflationScaled =  derivePerSecondInflationScaled(365, 1 - 0.0095)
+assert perSecondInflationScaled == 304132280
 
 inflation1000 = calculateInflationAccrued(1e18, 1000, perSecondInflationScaled)
 assert inflation1000 == 26277028992000000

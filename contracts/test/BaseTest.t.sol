@@ -2,7 +2,7 @@ import {Test} from "forge-std/Test.sol";
 
 contract BaseTest is Test {
     uint256 AVG_BLOCK_TIME = 12;
-    uint256 JITTER_MAX = 1000 days;
+    uint256 MAX_JITTER = 1000 days;
 
     function rangeCheck(
         uint256 target,
