@@ -60,17 +60,17 @@ contract Quoter {
     ) external view returns (TokenInfo[] memory outs, TokenInfo[] memory ins) {
         TokenInfo[] memory targets = bounty.infos;
 
-        outs = new TokenInfo[](bounty.infos.length);
+        outs = new TokenInfo[](targets.length);
 
-        ins = new TokenInfo[](bounty.infos.length);
+        ins = new TokenInfo[](targets.length);
 
         uint256 lenOuts;
         uint256 lenIns;
 
-        for (uint256 i; i < bounty.infos.length; i++) {
-            address token = bounty.infos[i].token;
+        for (uint256 i; i < targets.length; i++) {
+            address token = targets[i].token;
 
-            uint256 targetUnits = bounty.infos[i].units;
+            uint256 targetUnits = targets[i].units;
 
             uint256 virtualUnits = vault.virtualUnits(token);
 

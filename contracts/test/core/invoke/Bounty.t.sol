@@ -25,7 +25,7 @@ contract BountyTest is StatefulTest {
     Bounty internal bountyHolder;
     bool internal reenter;
     bool internal mintOnCallback;
-    FlashSwap internal flashSwapHolder;
+    bool internal flashSwap;
 
     function testInitialBounty(uint256 quantity) public {
         TokenInfo[] memory tokens = seedInitial(quantity);
@@ -76,16 +76,6 @@ contract BountyTest is StatefulTest {
             deadline: block.timestamp + 2 days
         });
 
-        (TokenInfo[] memory outs, TokenInfo[] memory ins) = quoter
-            .quoteFulfillBounty(_bounty, indexToken.totalSupply());
-
-        FlashSwap memory _flashSwap = FlashSwap({
-            tokenIn: newTokens[tokens.length].token,
-            tokenOut: newTokens[0].token,
-            amountIn: ins[0].units,
-            amountOut: outs[0].units
-        });
-
         bytes32 _hash = bounty.hashBounty(_bounty);
 
         vm.prank(authority);
@@ -93,7 +83,7 @@ contract BountyTest is StatefulTest {
         vm.expectRevert(); // should fail due to lack of balance
         bounty.fulfillBounty(_bounty, true);
 
-        holdFlashSwap(_flashSwap);
+        flashSwap = true;
         bounty.fulfillBounty(_bounty, true);
     }
 
@@ -292,12 +282,12 @@ contract BountyTest is StatefulTest {
         if (mintOnCallback) {
             indexToken.mint(address(this), 1000 ether);
         }
-        if (flashSwapHolder.amountIn > 0) {
+        if (flashSwap) {
             swapTokens(
-                flashSwapHolder.tokenIn,
-                flashSwapHolder.tokenOut,
-                flashSwapHolder.amountIn,
-                flashSwapHolder.amountOut
+                ins[0].token,
+                outs[0].token,
+                ins[0].units,
+                outs[0].units
             );
         }
     }
@@ -318,12 +308,5 @@ contract BountyTest is StatefulTest {
         for (uint256 i = 0; i < _bounty.infos.length; i++) {
             bountyHolder.infos.push(_bounty.infos[i]);
         }
-    }
-
-    function holdFlashSwap(FlashSwap memory _flashSwap) internal {
-        flashSwapHolder.amountIn = _flashSwap.amountIn;
-        flashSwapHolder.amountOut = _flashSwap.amountOut;
-        flashSwapHolder.tokenIn = _flashSwap.tokenIn;
-        flashSwapHolder.tokenOut = _flashSwap.tokenOut;
     }
 }

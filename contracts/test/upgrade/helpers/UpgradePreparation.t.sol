@@ -4,7 +4,7 @@ import "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 import {GnosisTest, GnosisTransaction} from "./Gnosis.t.sol";
 import {CoreDeployScript} from "src/scripts/CoreDeploy.s.sol";
-import {InitialBountyHelper, AMKT, MULTISIG, PROXY_ADMIN, PROXY, INFLATION_RATE, AMKT as AMKTAddress} from "src/scripts/Config.sol";
+import {InitialBountyHelper, AMKT_PROXY, MULTISIG, PROXY_ADMIN, INFLATION_RATE} from "src/scripts/Config.sol";
 import {TokenInfo} from "src/Common.sol";
 import {InvokeableBounty} from "src/invoke/Bounty.sol";
 import {Bounty} from "src/interfaces/IInvokeableBounty.sol";
@@ -57,7 +57,7 @@ contract UpgradePreparationTest is GnosisTest {
     function setDeployedContracts() internal {
         triggerMigrationWarning_setDeployedContracts = true; // Flip when addresses are updated
 
-        AMKT = IndexToken(AMKTAddress);
+        AMKT = IndexToken(AMKT_PROXY);
         CoreDeployScript script = new CoreDeployScript();
         CoreDeployScript.DeployedContracts memory deployed = script.run();
         vault = deployed.vault;
@@ -158,7 +158,7 @@ contract UpgradePreparationTest is GnosisTest {
             to: PROXY_ADMIN,
             data: abi.encodeWithSelector(
                 bytes4(keccak256("upgradeAndCall(address,address,bytes)")),
-                PROXY,
+                AMKT_PROXY,
                 newTokenImplementation,
                 abi.encodeWithSignature("initialize(address)", vault)
             )

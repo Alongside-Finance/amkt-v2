@@ -46,7 +46,7 @@ contract MigrationChecklistTest is UpgradedTest {
 
     bool triggerMigrationWarning_getCurrentPrice;
 
-    function test_printBatchExecutionData() public {
+    function test_printBatchExecutionData() public view {
         bool shouldPrintExecutionData = false;
         if (shouldPrintExecutionData) {
             console.logBytes(batchExecutionData);

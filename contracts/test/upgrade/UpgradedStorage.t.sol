@@ -1,7 +1,7 @@
 pragma solidity =0.8.18;
 
 import "forge-std/Test.sol";
-import {InitialBountyHelper, MULTISIG, FEE_RECEIPIENT, INFLATION_RATE, PROXY, PROXY_ADMIN} from "src/scripts/Config.sol";
+import {InitialBountyHelper, MULTISIG, FEE_RECEIPIENT, INFLATION_RATE, AMKT_PROXY, PROXY_ADMIN} from "src/scripts/Config.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {UpgradedTest} from "test/upgrade/helpers/Upgraded.t.sol";

@@ -25,12 +25,13 @@ address constant FEE_RECEIPIENT = address(
 
 uint256 constant INFLATION_RATE = 304132280;
 
-address constant PROXY = address(0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D);
+address constant AMKT_PROXY = address(
+    0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D
+);
+
 address constant PROXY_ADMIN = address(
     0x998930C351EcB4918A5c5238B62d5277fE45ab9b
 );
-
-address constant AMKT = address(0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D);
 
 contract InitialBountyHelper {
     // Native
@@ -60,24 +61,24 @@ contract InitialBountyHelper {
     // Rainbow Bridge
     address constant NEAR = address(0x85F17Cf997934a597031b2E18a9aB6ebD4B9f6a4);
 
-    function tokens() public returns (TokenInfo[] memory) {
-        TokenInfo[] memory tokens = new TokenInfo[](15);
-        tokens[0] = TokenInfo(BTC, 214000);
-        tokens[1] = TokenInfo(ETH, 13247609203137000);
-        tokens[2] = TokenInfo(BNB, 16948415447489000);
-        tokens[3] = TokenInfo(SOL, 45793000);
-        tokens[4] = TokenInfo(MATIC, 1024515857143020000);
-        tokens[5] = TokenInfo(LINK, 61345559996701000);
-        tokens[6] = TokenInfo(SHIB, 64925596531841000000000);
-        tokens[7] = TokenInfo(AVAX, 39069959245135000);
-        tokens[8] = TokenInfo(UNI, 63620590868597000);
-        tokens[9] = TokenInfo(MKR, 107701044471000);
-        tokens[10] = TokenInfo(LDO, 98078322467883000);
-        tokens[11] = TokenInfo(CRO, 278310000);
-        tokens[12] = TokenInfo(MNT, 342021551889928000);
-        tokens[13] = TokenInfo(OP, 96994465621464000);
-        tokens[14] = TokenInfo(QNT, 1329997149324000);
-        return tokens;
+    function tokens() public pure returns (TokenInfo[] memory) {
+        TokenInfo[] memory _tokens = new TokenInfo[](15);
+        _tokens[0] = TokenInfo(BTC, 214000);
+        _tokens[1] = TokenInfo(ETH, 13247609203137000);
+        _tokens[2] = TokenInfo(BNB, 16948415447489000);
+        _tokens[3] = TokenInfo(SOL, 45793000);
+        _tokens[4] = TokenInfo(MATIC, 1024515857143020000);
+        _tokens[5] = TokenInfo(LINK, 61345559996701000);
+        _tokens[6] = TokenInfo(SHIB, 64925596531841000000000);
+        _tokens[7] = TokenInfo(AVAX, 39069959245135000);
+        _tokens[8] = TokenInfo(UNI, 63620590868597000);
+        _tokens[9] = TokenInfo(MKR, 107701044471000);
+        _tokens[10] = TokenInfo(LDO, 98078322467883000);
+        _tokens[11] = TokenInfo(CRO, 278310000);
+        _tokens[12] = TokenInfo(MNT, 342021551889928000);
+        _tokens[13] = TokenInfo(OP, 96994465621464000);
+        _tokens[14] = TokenInfo(QNT, 1329997149324000);
+        return _tokens;
     }
 
     // WARNING:

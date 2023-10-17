@@ -34,7 +34,10 @@ contract SymbolicVaultTest is SymbolicStatefulTest {
         uint256 newFeeRecipientBalance = indexToken.balanceOf(feeReciever);
         uint256 expectedSupply = initialSupply + expectedInflation;
         assertEq(newSupply, expectedSupply);
-        assertEq(newFeeRecipientBalance, expectedInflation);
+        assertEq(
+            newFeeRecipientBalance,
+            initialFeeRecipientBalance + expectedInflation
+        );
         uint256 valueMultiplier = fdiv(
             initialSupply,
             initialSupply + expectedInflation

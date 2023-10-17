@@ -88,7 +88,7 @@ contract GnosisTest is BaseTest {
         address gasToken,
         address refundReceiver,
         uint256 nonce
-    ) public returns (bytes memory) {
+    ) public view returns (bytes memory) {
         bytes memory txHashData = safe.encodeTransactionData(
             to,
             value,
@@ -113,7 +113,7 @@ contract GnosisTest is BaseTest {
 
     function getBatchExecutionData(
         GnosisTransaction[] memory batch
-    ) public returns (bytes memory) {
+    ) public view returns (bytes memory) {
         bytes memory transactions = new bytes(0);
         for (uint256 i = 0; i < batch.length; i++) {
             transactions = abi.encodePacked(

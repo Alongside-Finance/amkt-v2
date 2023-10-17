@@ -1,7 +1,7 @@
 pragma solidity =0.8.18;
 
 import "forge-std/Test.sol";
-import {InitialBountyHelper, MULTISIG, FEE_RECEIPIENT, INFLATION_RATE, PROXY, PROXY_ADMIN} from "src/scripts/Config.sol";
+import {InitialBountyHelper, MULTISIG, FEE_RECEIPIENT, INFLATION_RATE, PROXY_ADMIN, AMKT_PROXY} from "src/scripts/Config.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {UpgradedTest} from "test/upgrade/helpers/Upgraded.t.sol";
@@ -22,7 +22,7 @@ contract UpgradedStateTest is UpgradedTest {
             address(0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D)
         );
         assertEq(
-            address(PROXY),
+            address(AMKT_PROXY),
             address(0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D)
         );
         assertEq(
@@ -83,7 +83,7 @@ contract UpgradedStateTest is UpgradedTest {
 
     function testProxyState() public {
         ITransparentUpgradeableProxy proxy = ITransparentUpgradeableProxy(
-            PROXY
+            AMKT_PROXY
         );
         ProxyAdmin proxyAdmin = ProxyAdmin(PROXY_ADMIN);
         assertEq(

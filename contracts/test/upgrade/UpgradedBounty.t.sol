@@ -196,8 +196,10 @@ contract UpgradedBountyTest is UpgradedTest {
         Bounty memory bounty
     ) internal {
         Dealer dealer = new Dealer();
-        (TokenInfo[] memory outs, TokenInfo[] memory ins) = quoter
-            .quoteFulfillBounty(bounty, AMKT.totalSupply());
+        (, TokenInfo[] memory ins) = quoter.quoteFulfillBounty(
+            bounty,
+            AMKT.totalSupply()
+        );
         for (uint256 i = 0; i < ins.length; i++) {
             if (ins[i].units == 0) {
                 continue;

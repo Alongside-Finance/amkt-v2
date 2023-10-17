@@ -175,7 +175,10 @@ contract VaultTest is StatefulTest {
         uint256 newSupply = indexToken.totalSupply();
         uint256 newFeeRecipientBalance = indexToken.balanceOf(feeReciever);
         assertEq(newSupply, initialSupply + expectedInflation);
-        assertEq(newFeeRecipientBalance, expectedInflation);
+        assertEq(
+            newFeeRecipientBalance,
+            initialFeeRecipientBalance + expectedInflation
+        );
         uint256 valueMultiplier = fdiv(
             initialSupply,
             initialSupply + expectedInflation

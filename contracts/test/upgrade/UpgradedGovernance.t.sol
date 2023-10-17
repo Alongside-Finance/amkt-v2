@@ -27,7 +27,7 @@ contract UpgradedGovernanceTest is UpgradedTest {
         uint256 value,
         bytes memory data,
         string memory description
-    ) public returns (Proposal memory) {
+    ) public pure returns (Proposal memory) {
         Proposal memory proposal = Proposal(
             new address[](1),
             new uint256[](1),

@@ -11,7 +11,7 @@ import {AlongsideGovernor} from "src/Governor.sol";
 import {Quoter} from "periphery/Quoter.sol";
 import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
 import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
-import {AMKT, MULTISIG, FEE_RECEIPIENT, PROXY, PROXY_ADMIN, VERSION, NAME, SYMBOL, CANCELLATION_PERIOD} from "./Config.sol";
+import {AMKT_PROXY, MULTISIG, FEE_RECEIPIENT, PROXY_ADMIN, VERSION, NAME, SYMBOL, CANCELLATION_PERIOD} from "./Config.sol";
 import {IIndexToken} from "src/interfaces/IIndexToken.sol";
 
 contract CoreDeployScript is Script {
@@ -41,7 +41,7 @@ contract CoreDeployScript is Script {
         );
 
         deployed.governor = new AlongsideGovernor(
-            IVotes(AMKT),
+            IVotes(AMKT_PROXY),
             deployed.timelockController
         );
 
@@ -72,7 +72,7 @@ contract CoreDeployScript is Script {
             deployed.invokeableBounty,
             deployed.activeBounty
         ) = deployVault({
-            indexToken: IIndexToken(AMKT),
+            indexToken: IIndexToken(AMKT_PROXY),
             _vaultOwner: MULTISIG,
             _bountySetter: MULTISIG,
             emergencyResponder: MULTISIG,

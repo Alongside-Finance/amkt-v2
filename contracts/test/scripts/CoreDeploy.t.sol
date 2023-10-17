@@ -1,7 +1,7 @@
 pragma solidity =0.8.18;
 
 import "forge-std/Test.sol";
-import {AMKT as AMKTAddress} from "src/scripts/Config.sol";
+import {AMKT_PROXY} from "src/scripts/Config.sol";
 import {IndexToken} from "src/IndexToken.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {CoreDeployScript} from "src/scripts/CoreDeploy.s.sol";
@@ -37,7 +37,7 @@ contract CoreDeployTest is Test {
         uint256 mainnetFork = vm.createFork(MAINNET_RPC_URL);
         vm.selectFork(mainnetFork);
         vm.rollFork(TARGET_BLOCK);
-        AMKT = IndexToken(AMKTAddress);
+        AMKT = IndexToken(AMKT_PROXY);
     }
 
     function deployContracts() internal {
