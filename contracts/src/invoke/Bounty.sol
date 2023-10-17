@@ -161,7 +161,6 @@ contract InvokeableBounty is IInvokeableBounty {
         // store the lengths because we don't actually know the size off the bat
         uint256 lenOuts;
         uint256 lenIns;
-        uint256 lenNominals;
 
         for (uint256 i; i < input.targets.length; i++) {
             address token = input.targets[i].token;
@@ -197,12 +196,13 @@ contract InvokeableBounty is IInvokeableBounty {
                 continue;
             }
 
-            nominals[lenNominals] = IVault.SetNominalArgs(token, targetUnits);
-
-            unchecked {
-                lenNominals++;
-            }
+            nominals[lenOuts + lenIns - 1] = IVault.SetNominalArgs(
+                token,
+                targetUnits
+            );
         }
+
+        uint256 lenNominals = lenOuts + lenIns;
 
         // use assembly to set the actual sizes so were not sending over a bunch of empty data
         // no effect, since the compiler is planning on allocating outside of this empty zone anyway

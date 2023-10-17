@@ -13,7 +13,20 @@ import {console} from "forge-std/console.sol";
 import {IActiveBounty} from "src/interfaces/IActiveBounty.sol";
 
 contract UpgradedBountyTest is UpgradedTest {
-    function testBountyInvariant(uint256 numTokensToAdd, uint256 rand) public {
+    function _setUpTestBountyInvariant(
+        uint256 numTokensToAdd,
+        uint256 rand
+    )
+        internal
+        returns (
+            TokenInfo[] memory,
+            TokenInfo[] memory,
+            uint256[] memory,
+            uint256[] memory,
+            uint256[] memory,
+            uint256[] memory
+        )
+    {
         numTokensToAdd = bound(numTokensToAdd, 0, 25);
         TokenInfo[] memory oldUnits = vault.virtualUnits();
 
@@ -67,7 +80,25 @@ contract UpgradedBountyTest is UpgradedTest {
 
         // fulfill bounty by fulfiller should succeed
         timelockInvokeableBounty.fulfillBounty(bounty, false);
+        return (
+            oldUnits,
+            proposedUnits,
+            oldUnitsVaultBalances,
+            oldUnitsFulfillerBalances,
+            proposedUnitsVaultBalances,
+            proposedUnitsFulfillerBalances
+        );
+    }
 
+    function testBountyInvariants(uint256 numTokensToAdd, uint256 rand) public {
+        (
+            TokenInfo[] memory oldUnits,
+            TokenInfo[] memory proposedUnits,
+            uint256[] memory oldUnitsVaultBalances,
+            uint256[] memory oldUnitsFulfillerBalances,
+            uint256[] memory proposedUnitsVaultBalances,
+            uint256[] memory proposedUnitsFulfillerBalances
+        ) = _setUpTestBountyInvariant(numTokensToAdd, rand);
         // INVARIANT 1: proposed units are the same as fulfilled units, minus tokens to be removed
         TokenInfo[] memory fulfilledUnits = vault.virtualUnits();
         uint256 skipCounter = 0;
@@ -82,6 +113,7 @@ contract UpgradedBountyTest is UpgradedTest {
                 );
             }
         }
+
         // INVARIANT 2a: vault balance increases by fmul(targetUnits - virtualUnits + 1, totalSupply) + 1, fulfiller balance decreases by the same amount
         // INVARIANT 2b: fulfiller balance increases by fmul(virtualUnits - targetUnits, totalSupply), vault balance decreases by the same amount
         uint256 totalSupply = AMKT.totalSupply();
