@@ -16,7 +16,7 @@ contract IndexTokenTest is Test {
     }
 
     function testInitializeAgainRevert() public {
-        vm.expectRevert();
+        vm.expectRevert("IndexToken: already initialized");
         indexToken.initialize(address(1));
     }
 

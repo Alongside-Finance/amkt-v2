@@ -21,7 +21,7 @@ contract VArrayTest is Test {
         address testAddress = address(0xdeadbeefdeadbeef);
 
         arr.add(testAddress);
-        vm.expectRevert();
+        vm.expectRevert("VerifiableArray: element already exists");
         arr.add(testAddress);
     }
 
@@ -40,7 +40,7 @@ contract VArrayTest is Test {
 
     function testRevertRemoveNonExistent() public {
         address testAddress = address(0xdeadbeefdeadbeef);
-        vm.expectRevert();
+        vm.expectRevert("VerifiableArray: element not found");
         arr.remove(testAddress);
     }
 
@@ -109,7 +109,7 @@ contract VArrayTest is Test {
         address testAddress = address(0xdeadbeefdeadbeef);
 
         assertEq(!arr.includes(testAddress), true); // should return false
-        vm.expectRevert();
+        vm.expectRevert("VerifiableArray: element not found");
         arr.remove(testAddress);
     }
 

@@ -5,11 +5,12 @@ import {Dealer} from "test/Dealer.t.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {InvokeableBounty} from "src/invoke/Bounty.sol";
-import {Bounty} from "src/interfaces/IInvokeableBounty.sol";
+import {Bounty, IInvokeableBounty} from "src/interfaces/IInvokeableBounty.sol";
 import {MockMintableToken} from "mocks/MockMintableToken.sol";
 import {MULTISIG} from "src/scripts/Config.sol";
 import {fmul} from "src/lib/FixedPoint.sol";
 import {console} from "forge-std/console.sol";
+import {IActiveBounty} from "src/interfaces/IActiveBounty.sol";
 
 contract UpgradedBountyTest is UpgradedTest {
     function testBountyInvariant(uint256 numTokensToAdd, uint256 rand) public {
@@ -23,7 +24,7 @@ contract UpgradedBountyTest is UpgradedTest {
 
         // set bounty by anyone except timelock should fail
         vm.startPrank(address(3));
-        vm.expectRevert();
+        vm.expectRevert(IActiveBounty.ActiveBountyAuth.selector);
         timelockActiveBounty.setHash(_hash);
         vm.stopPrank();
 
@@ -60,7 +61,7 @@ contract UpgradedBountyTest is UpgradedTest {
 
         // fulfill bounty by anyone except fulfiller should fail
         vm.startPrank(address(4));
-        vm.expectRevert();
+        vm.expectRevert(IInvokeableBounty.BountyInvalidFulfiller.selector);
         timelockInvokeableBounty.fulfillBounty(bounty, false);
         vm.stopPrank();
 

@@ -67,7 +67,7 @@ contract VaultTest is StatefulTest {
     }
 
     function testShouldNotAllowSetFeeTooLarge() public {
-        vm.expectRevert();
+        vm.expectRevert(IVault.AMKTVaultInflationRateTooLarge.selector);
         vault.setInflationRate(1e18 + 1); // SCALAR is 1e18
         vault.setInflationRate(1e18);
     }

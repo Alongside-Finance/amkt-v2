@@ -2,6 +2,7 @@ pragma solidity =0.8.18;
 
 import "forge-std/Test.sol";
 import "src/invoke/ActiveBounty.sol";
+import "src/interfaces/IActiveBounty.sol";
 
 contract ActiveBountyTest is Test {
     ActiveBounty private activeBounty;
@@ -27,7 +28,7 @@ contract ActiveBountyTest is Test {
     function testSetHashNotByAuthorityShouldRevert() public {
         ActiveBounty nonAuthorityBounty = new ActiveBounty(address(1));
         bytes32 newBountyHash = keccak256("New Bounty");
-        vm.expectRevert();
+        vm.expectRevert(IActiveBounty.ActiveBountyAuth.selector);
         nonAuthorityBounty.setHash(newBountyHash);
     }
 }
