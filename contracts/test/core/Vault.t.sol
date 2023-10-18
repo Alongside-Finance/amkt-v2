@@ -106,7 +106,9 @@ contract VaultTest is StatefulTest {
 
     function rebalancerFunctions(bool toFail) public {
         if (toFail) vm.expectRevert();
-        vault.invokeSetNominal(IVault.SetNominalArgs(address(0), 1));
+        IVault.SetNominalArgs[] memory args = new IVault.SetNominalArgs[](1);
+        args[0] = IVault.SetNominalArgs(address(0), 1);
+        vault.invokeSetNominals(args);
         // TODO: set nominals
     }
 
@@ -121,7 +123,9 @@ contract VaultTest is StatefulTest {
         address[] memory tokens = vault.underlying();
 
         if (toFail) vm.expectRevert();
-        vault.invokeERC20(IVault.InvokeERC20Args(tokens[0], address(0), 0));
+        IVault.InvokeERC20Args[] memory args = new IVault.InvokeERC20Args[](1);
+        args[0] = IVault.InvokeERC20Args(tokens[0], address(0), 0);
+        vault.invokeERC20s(args);
     }
 
     function ownerFunctions(bool toFail) public {
