@@ -32,17 +32,14 @@ contract UpgradePreparationTest is GnosisTest {
     ActiveBounty timelockActiveBounty;
     Quoter quoter;
     bytes batchExecutionData;
-    uint256 MIGRAITON_WARNING_fork_block = 18229914; // WARNING: must be updated before submission.
 
+    bool triggerMigrationWarning_forkBlock;
     bool triggerMigrationWarning_setDeployedContracts;
     bool triggerMigrationWarning_warpForward;
     bool triggerMigrationWarning_safeBalances;
 
     function setUp() public virtual {
-        vm.createSelectFork(
-            vm.envString("MAINNET_RPC"),
-            MIGRAITON_WARNING_fork_block
-        );
+        fork();
         enableSimulation();
         setDeployedContracts();
         warpForward(1 days + 2 hours); // there will be some time after we deploy the contracts, and it may be long.
@@ -50,6 +47,13 @@ contract UpgradePreparationTest is GnosisTest {
         checkSafeBalances();
         GnosisTransaction[] memory batch = createUpgradeBatch();
         batchExecutionData = getBatchExecutionData(batch);
+    }
+
+    // WARNING: Fork block number must be updated prior to simulation
+    // Expected date of finalization is October 30, 2023
+    function fork() internal {
+        triggerMigrationWarning_forkBlock = true;
+        vm.createSelectFork(vm.envString("MAINNET_RPC"), 18229914);
     }
 
     // WARNING: addresses must be updated before submission.

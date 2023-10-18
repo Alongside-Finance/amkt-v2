@@ -53,6 +53,12 @@ contract MigrationChecklistTest is UpgradedTest {
         }
     }
 
+    // WARNING: Fork block number must be updated prior to simulation
+    // Expected date of finalization is October 30, 2023
+    function test_MIGRATION_WARNING_forkBlock() public {
+        assertFalse(triggerMigrationWarning_forkBlock);
+    }
+
     // WARNING: This test should fail until warping is no longer used in test preparation.
     // Expected date of finalization is October 30, 2023
     function test_MIGRATION_WARNING_warpForward() public {
