@@ -1,7 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity =0.8.18;
 
 import {Script} from "forge-std/Script.sol";
-
 import {IndexToken} from "src/IndexToken.sol";
 import {Vault} from "src/Vault.sol";
 import {Issuance} from "src/invoke/Issuance.sol";

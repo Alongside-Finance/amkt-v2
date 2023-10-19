@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity =0.8.18;
 
 import {VerifiableAddressArray} from "src/lib/VArray.sol";
@@ -22,7 +23,7 @@ contract Issuance is IIssuance {
         vault.invariantCheck();
     }
 
-    modifier ReentrancyGuard() {
+    modifier reentrancyGuard() {
         if (reentrancyLock > 1) revert IssuanceReentrant();
         reentrancyLock = 2;
         _;
@@ -37,7 +38,7 @@ contract Issuance is IIssuance {
     /// @param amount The amount of index tokens to issue
     /// @dev requires approval of underlying tokens
     /// @dev reentrancy guard in case callback in tokens
-    function issue(uint256 amount) external invariantCheck ReentrancyGuard {
+    function issue(uint256 amount) external invariantCheck reentrancyGuard {
         TokenInfo[] memory tokens = vault.virtualUnits();
 
         if (tokens.length == 0) revert IssuanceNoTokens();
@@ -63,7 +64,7 @@ contract Issuance is IIssuance {
     /// @param amount The amount of index tokens to redeem
     /// @dev requies approval of index token
     /// @dev reentrancy guard in case callback in tokens
-    function redeem(uint256 amount) external invariantCheck ReentrancyGuard {
+    function redeem(uint256 amount) external invariantCheck reentrancyGuard {
         TokenInfo[] memory tokens = vault.virtualUnits();
 
         if (tokens.length == 0) revert IssuanceNoTokens();

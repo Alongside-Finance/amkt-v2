@@ -1,4 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity =0.8.18;
+
 import {IVault} from "src/interfaces/IVault.sol";
 import {fmul} from "src/lib/FixedPoint.sol";
 import {TokenInfo} from "src/Common.sol";

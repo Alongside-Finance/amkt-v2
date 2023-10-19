@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity =0.8.18;
 
 /// O(1) insertion / deletion to an array

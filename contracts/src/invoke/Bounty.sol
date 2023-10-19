@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity =0.8.18;
 
 import {IIndexToken} from "src/interfaces/IIndexToken.sol";
@@ -26,7 +27,7 @@ contract InvokeableBounty is IInvokeableBounty {
 
     uint256 public reentrancyLock = 1;
 
-    modifier ReentrancyGuard() {
+    modifier reentrancyGuard() {
         if (reentrancyLock > 1) revert BountyReentrant();
         reentrancyLock = 2;
         _;
@@ -63,7 +64,7 @@ contract InvokeableBounty is IInvokeableBounty {
     function fulfillBounty(
         Bounty memory bounty,
         bool callback
-    ) external ReentrancyGuard invariantCheck {
+    ) external reentrancyGuard invariantCheck {
         bytes32 bountyHash = hashBounty(bounty);
 
         if (activeBounty.activeBounty() != bountyHash)
