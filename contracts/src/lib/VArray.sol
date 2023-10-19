@@ -7,7 +7,7 @@ library VerifiableAddressArray {
     struct VerifiableArray {
         address[] elements;
         mapping(address => uint256) indexOf;
-        // use an additaonal SSTORE to save a SLOAD at user runtime
+        // use an additional SSTORE to save a SLOAD at user runtime
         mapping(address => bool) included;
     }
 

@@ -55,7 +55,7 @@ contract InvokeableBounty is IInvokeableBounty {
     /// @dev we send out the tokens first, so we need to check for weird supply stuff
     /// @dev also we dont follow CEI so we need to check for reentrancy
     /// @dev the units in the bounty are the target units, ie amount of units per 1e18 amkt
-    /// @dev check for supply becasue even though they mint/burn at the smae price becasue nominals havent been changed yet,
+    /// @dev check for supply because even though they mint/burn at the smae price becasue nominals havent been changed yet,
     ///      if the  supply changes the "value" of the first leg will be differnt from the "value" of the second leg
     ///
     ///
@@ -206,7 +206,7 @@ contract InvokeableBounty is IInvokeableBounty {
         uint256 lenNominals = lenOuts + lenIns;
 
         // use assembly to set the actual sizes so were not sending over a bunch of empty data
-        // no effect, since the compiler is planning on allocating outside of this empty zone anyway
+        // safe, since the compiler is planning on allocating outside of this empty zone anyway
         assembly {
             mstore(outs, lenOuts)
             mstore(ins, lenIns)
