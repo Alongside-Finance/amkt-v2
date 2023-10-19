@@ -189,15 +189,6 @@ contract Vault is Ownable2Step, IVault {
         }
     }
 
-    /// @notice Set the nominal units of a token
-    /// @param args The SetNominalArgs
-    /// @dev only rebalancer
-    function invokeSetNominal(
-        SetNominalArgs calldata args
-    ) external whenNotEmergency only(rebalancer) {
-        _setNominal(args);
-    }
-
     ///////////////////////// ISSUANCE /////////////////////////
 
     /// @notice Mint index tokens
@@ -233,13 +224,6 @@ contract Vault is Ownable2Step, IVault {
 
             _invokeERC20(arg.token, arg.to, arg.amount);
         }
-    }
-
-    /// @notice Invoke ERC20 transfer
-    /// @param args The InvokeERC20Args
-    /// @dev only invokers
-    function invokeERC20(InvokeERC20Args calldata args) external onlyInvokers {
-        _invokeERC20(args.token, args.to, args.amount);
     }
 
     ///////////////////////// VIEW ////////////////////////

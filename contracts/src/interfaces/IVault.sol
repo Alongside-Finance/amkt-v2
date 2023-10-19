@@ -49,10 +49,6 @@ interface IVault {
 
     function invokeSetNominals(SetNominalArgs[] calldata args) external;
 
-    function invokeERC20(InvokeERC20Args calldata args) external;
-
-    function invokeSetNominal(SetNominalArgs calldata args) external;
-
     function virtualUnits(address token) external view returns (uint256);
 
     function virtualUnits() external view returns (TokenInfo[] memory);

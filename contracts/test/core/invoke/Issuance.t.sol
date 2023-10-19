@@ -21,13 +21,13 @@ contract IssuanceTest is StatefulTest {
             address(vault)
         );
         uint256 amountToRemove = currentBalance - requiredBalance + 3; // 3 is added because 2 is added via issue
-        vault.invokeERC20(
-            IVault.InvokeERC20Args(
-                virtualUnits[0].token,
-                address(1),
-                amountToRemove
-            )
+        IVault.InvokeERC20Args[] memory args = new IVault.InvokeERC20Args[](1);
+        args[0] = IVault.InvokeERC20Args(
+            virtualUnits[0].token,
+            address(1),
+            amountToRemove
         );
+        vault.invokeERC20s(args);
         vault.setIssuance(address(issuance));
 
         uint256 amount = 1e18;
