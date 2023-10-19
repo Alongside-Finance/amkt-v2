@@ -1,4 +1,5 @@
-pragma solidity =0.8.15;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity =0.8.18;
 
 uint256 constant SCALAR = 1e18;
 

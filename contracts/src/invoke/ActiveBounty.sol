@@ -1,14 +1,15 @@
-pragma solidity =0.8.15;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity =0.8.18;
 
-contract ActiveBounty {
-    error ActiveBountyAuth();
-    event ActiveBountyHashSet(bytes32 bountyHash);
+import {IActiveBounty} from "src/interfaces/IActiveBounty.sol";
 
+contract ActiveBounty is IActiveBounty {
     address public immutable authority;
 
     bytes32 public activeBounty;
 
     constructor(address _authority) {
+        if (_authority == address(0)) revert ActiveBountyZeroCheck();
         authority = _authority;
     }
 

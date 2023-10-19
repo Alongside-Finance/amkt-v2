@@ -1,22 +1,26 @@
-pragma solidity =0.8.15;
+pragma solidity =0.8.18;
 
 import "forge-std/Test.sol";
 import {Vault} from "src/Vault.sol";
 import {Issuance} from "src/invoke/Issuance.sol";
-import {InvokeableBounty, Bounty, Rebalancer} from "src/invoke/Bounty.sol";
+import {InvokeableBounty} from "src/invoke/Bounty.sol";
+import {Bounty} from "src/interfaces/IInvokeableBounty.sol";
+import {IRebalancer} from "src/interfaces/IRebalancer.sol";
 import {ActiveBounty} from "src/invoke/ActiveBounty.sol";
-import {MockMintableToken} from "../mocks/MockMintableToken.sol";
+import {MockMintableToken} from "test/utils/MockMintableToken.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
-import {BaseTest} from "../BaseTest.t.sol";
+import {BaseTest} from "test/utils/BaseTest.t.sol";
 import {IIndexToken} from "src/interfaces/IIndexToken.sol";
-import {FEE_SCALED} from "src/scripts/Config.sol";
+import {INFLATION_RATE} from "src/scripts/Config.sol";
+import {Quoter} from "periphery/Quoter.sol";
 
-contract StatefulTest is BaseTest, Rebalancer {
+contract StatefulTest is BaseTest, IRebalancer {
     Vault vault;
     InvokeableBounty bounty;
     Issuance issuance;
     ActiveBounty activeBounty;
+    Quoter quoter;
 
     MockMintableToken indexToken;
 
@@ -27,7 +31,7 @@ contract StatefulTest is BaseTest, Rebalancer {
     address constant emergencyResponder =
         address(bytes20(keccak256("emergencyResponder")));
 
-    function setUp() public {
+    function setUp() public virtual {
         indexToken = new MockMintableToken("Index", "INDEX", 18, 1e18);
 
         activeBounty = new ActiveBounty(authority);
@@ -37,10 +41,12 @@ contract StatefulTest is BaseTest, Rebalancer {
             address(this),
             feeReciever,
             emergencyResponder,
-            FEE_SCALED
+            INFLATION_RATE
         );
 
         issuance = new Issuance(address(vault));
+
+        quoter = new Quoter(address(vault));
 
         bounty = new InvokeableBounty(
             address(vault),
@@ -56,6 +62,7 @@ contract StatefulTest is BaseTest, Rebalancer {
     function seedInitial(
         uint256 quantity
     ) internal returns (TokenInfo[] memory tokens) {
+        quantity = bound(quantity, 0, 99);
         if (quantity == 0) {
             return tokens;
         }
@@ -77,8 +84,12 @@ contract StatefulTest is BaseTest, Rebalancer {
     }
 
     function mint(uint256 amount) internal {
-        TokenInfo[] memory tokens = issuance.quote(amount);
+        TokenInfo[] memory tokens = quoter.quoteIssue(amount);
         for (uint256 i = 0; i < tokens.length; i++) {
+            MockMintableToken(tokens[i].token).mint(
+                address(this),
+                tokens[i].units
+            );
             IERC20(tokens[i].token).approve(address(issuance), tokens[i].units);
         }
 
@@ -117,7 +128,7 @@ library Mocks {
 
             uint256 amount = (1 + i) * 1e18;
 
-            IERC20(addr).approve(address(approve), amount);
+            IERC20(addr).approve(address(approve), amount + 2); // add 2 to account for fulfillBounty rounding
 
             tokens[i] = TokenInfo({token: addr, units: amount});
         }
@@ -129,6 +140,7 @@ library Mocks {
         return
             Bounty({
                 infos: tokens,
+                fulfiller: address(0),
                 salt: keccak256(abi.encode(block.timestamp)),
                 deadline: block.timestamp + 1000000000
             });

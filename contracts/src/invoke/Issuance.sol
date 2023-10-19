@@ -1,16 +1,16 @@
-pragma solidity =0.8.15;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity =0.8.18;
 
-import {VerifiableAddressArray} from "../lib/VArray.sol";
-import {IIndexToken} from "../interfaces/IIndexToken.sol";
-import {TokenInfo} from "../Common.sol";
-import {IVault} from "../interfaces/IVault.sol";
-import {SCALAR, fmul} from "../lib/FixedPoint.sol";
+import {VerifiableAddressArray} from "src/lib/VArray.sol";
+import {IIndexToken} from "src/interfaces/IIndexToken.sol";
+import {TokenInfo} from "src/Common.sol";
+import {IVault} from "src/interfaces/IVault.sol";
+import {SCALAR, fmul, fdiv} from "src/lib/FixedPoint.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IIssuance} from "src/interfaces/IIssuance.sol";
 
-contract Issuance {
-    error IssuanceReentrant();
-
+contract Issuance is IIssuance {
     using VerifiableAddressArray for VerifiableAddressArray.VerifiableArray;
     using SafeERC20 for IERC20;
 
@@ -23,7 +23,7 @@ contract Issuance {
         vault.invariantCheck();
     }
 
-    modifier ReentrancyGuard() {
+    modifier reentrancyGuard() {
         if (reentrancyLock > 1) revert IssuanceReentrant();
         reentrancyLock = 2;
         _;
@@ -38,14 +38,13 @@ contract Issuance {
     /// @param amount The amount of index tokens to issue
     /// @dev requires approval of underlying tokens
     /// @dev reentrancy guard in case callback in tokens
-    function issue(uint256 amount) external invariantCheck ReentrancyGuard {
-        vault.tryInflation();
-        TokenInfo[] memory tokens = vault.realUnits();
+    function issue(uint256 amount) external invariantCheck reentrancyGuard {
+        TokenInfo[] memory tokens = vault.virtualUnits();
 
-        require(tokens.length > 0, "No tokens in vault");
+        if (tokens.length == 0) revert IssuanceNoTokens();
 
         for (uint256 i; i < tokens.length; ) {
-            uint256 underlyingAmount = fmul(tokens[i].units, amount) + 1;
+            uint256 underlyingAmount = fmul(tokens[i].units + 1, amount) + 1;
 
             IERC20(tokens[i].token).safeTransferFrom(
                 msg.sender,
@@ -65,11 +64,10 @@ contract Issuance {
     /// @param amount The amount of index tokens to redeem
     /// @dev requies approval of index token
     /// @dev reentrancy guard in case callback in tokens
-    function redeem(uint256 amount) external invariantCheck ReentrancyGuard {
-        vault.tryInflation();
-        TokenInfo[] memory tokens = vault.realUnits();
+    function redeem(uint256 amount) external invariantCheck reentrancyGuard {
+        TokenInfo[] memory tokens = vault.virtualUnits();
 
-        require(tokens.length > 0, "No tokens in vault");
+        if (tokens.length == 0) revert IssuanceNoTokens();
 
         IVault.InvokeERC20Args[] memory args = new IVault.InvokeERC20Args[](
             tokens.length
@@ -92,19 +90,5 @@ contract Issuance {
         vault.invokeBurn(msg.sender, amount);
 
         vault.invokeERC20s(args);
-    }
-
-    /// @notice Quote the amount of underlying tokens needed to issue index tokens
-    /// @param amount The amount of index tokens to issue
-    /// @return tokens The underlying tokens and amounts needed to issue index tokens
-    /// @dev subtract 1 from each unit to account for rounding if you need an exact redemption quote
-    function quote(uint256 amount) external view returns (TokenInfo[] memory) {
-        TokenInfo[] memory tokens = vault.realUnits();
-
-        for (uint256 i; i < tokens.length; i++) {
-            tokens[i].units = fmul(tokens[i].units, amount) + 1;
-        }
-
-        return tokens;
     }
 }

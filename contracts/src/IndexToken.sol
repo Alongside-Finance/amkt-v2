@@ -1,7 +1,7 @@
-// SPDX-License-Identifier: MIT
-pragma solidity =0.8.15;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity =0.8.18;
 
-import {IIndexToken} from "./interfaces/IIndexToken.sol";
+import {IIndexToken} from "src/interfaces/IIndexToken.sol";
 import {ERC20VotesUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol";
 
 /// @title AMKT Token
@@ -13,7 +13,7 @@ contract IndexToken is ERC20VotesUpgradeable, IIndexToken {
     /// Alongside
     ///=============================================================================================
 
-    /// @notice Slot for minter addres
+    /// @notice Slot for minter address
     /// @notice cast keccak Alongside::Token::MinterSlot
     bytes32 public constant MINTER_SLOT =
         0x1af730152eea9813c49583a406e8dd55a4df08cae9e33ae45721374fdde82bae;
@@ -45,9 +45,22 @@ contract IndexToken is ERC20VotesUpgradeable, IIndexToken {
             sstore(102, hashedVersion)
         }
 
+        Checkpoint[] storage _totalSupplyCheckpoints;
+        assembly {
+            _totalSupplyCheckpoints.slot := 206
+        }
+
+        _totalSupplyCheckpoints.push(
+            Checkpoint({
+                fromBlock: uint32(block.number - 1),
+                votes: uint224(totalSupply())
+            })
+        );
+
         assembly {
             sstore(MINTER_SLOT, _minter)
         }
+
         emit MinterSet(_minter);
     }
 

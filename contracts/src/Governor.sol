@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: MIT
-pragma solidity =0.8.15;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity =0.8.18;
 
 import "@openzeppelin/contracts/governance/Governor.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorSettings.sol";
@@ -87,6 +87,16 @@ contract AlongsideGovernor is
         returns (uint256)
     {
         return super.proposalThreshold();
+    }
+
+    function quorumDenominator()
+        public
+        view
+        virtual
+        override(GovernorVotesQuorumFraction)
+        returns (uint256)
+    {
+        return 10000;
     }
 
     function _execute(

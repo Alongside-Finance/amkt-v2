@@ -1,10 +1,10 @@
-pragma solidity =0.8.15;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity =0.8.18;
 
-import {VerifiableAddressArray} from "./lib/VArray.sol";
-import {IVault} from "./interfaces/IVault.sol";
-import {Multiplier} from "./lib/Multiplier.sol";
-import {TokenInfo} from "./Common.sol";
-import {IIndexToken} from "./interfaces/IIndexToken.sol";
+import {VerifiableAddressArray} from "src/lib/VArray.sol";
+import {IVault} from "src/interfaces/IVault.sol";
+import {TokenInfo} from "src/Common.sol";
+import {IIndexToken} from "src/interfaces/IIndexToken.sol";
 import {SCALAR, fdiv, fmul, finv} from "./lib/FixedPoint.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -23,14 +23,12 @@ contract Vault is Ownable2Step, IVault {
     address public feeRecipient;
     address public emergencyResponder;
 
-    uint256 public feeScaled;
+    uint256 public inflationRate;
 
-    // exposed in multiplier()
-    uint256 internal lastKnownTimestamp;
-    uint256 internal lastKnownMultiplier;
+    uint256 public lastKnownTimestamp;
 
     VerifiableAddressArray.VerifiableArray internal _underlying;
-    mapping(address => uint256) internal nominals;
+    mapping(address => uint256) internal _nominals;
 
     ///////////////////////// MODIFIERS / CONSTRUCTOR /////////////////////////
 
@@ -59,16 +57,19 @@ contract Vault is Ownable2Step, IVault {
     /// @param _indexToken The index token address
     /// @param _owner The owner of the vault
     /// @param _feeRecipient The recipient of the fee
-    /// @param _feeScaled The *daily* fee scaled by 1e18
+    /// @param _inflationRate The per second inflation rate
     constructor(
         IIndexToken _indexToken,
         address _owner,
         address _feeRecipient,
         address _emergencyResponder,
-        uint256 _feeScaled
+        uint256 _inflationRate
     ) {
-        if (_feeScaled > SCALAR) {
-            revert AMKTVaultFeeTooLarge();
+        if (_owner == address(0)) revert VaultZeroCheck();
+        if (_feeRecipient == address(0)) revert VaultZeroCheck();
+        if (_emergencyResponder == address(0)) revert VaultZeroCheck();
+        if (_inflationRate > SCALAR) {
+            revert AMKTVaultInflationRateTooLarge();
         }
 
         indexToken = _indexToken;
@@ -78,9 +79,8 @@ contract Vault is Ownable2Step, IVault {
         emergencyResponder = _emergencyResponder;
 
         feeRecipient = _feeRecipient;
-        feeScaled = _feeScaled;
+        inflationRate = _inflationRate;
 
-        lastKnownMultiplier = SCALAR;
         lastKnownTimestamp = block.timestamp;
     }
 
@@ -90,6 +90,7 @@ contract Vault is Ownable2Step, IVault {
     /// @param _issuance The issuance module address
     /// @dev only owner
     function setIssuance(address _issuance) external only(owner()) {
+        if (_issuance == address(0)) revert VaultZeroCheck();
         issuance = _issuance;
         emit VaultIssuanceSet(_issuance);
     }
@@ -98,6 +99,7 @@ contract Vault is Ownable2Step, IVault {
     /// @param _rebalancer The rebalancer module address
     /// @dev only owner
     function setRebalancer(address _rebalancer) external only(owner()) {
+        if (_rebalancer == address(0)) revert VaultZeroCheck();
         rebalancer = _rebalancer;
         emit VaultRebalancerSet(_rebalancer);
     }
@@ -106,6 +108,7 @@ contract Vault is Ownable2Step, IVault {
     /// @param _feeRecipient The fee recipient address
     /// @dev only owner
     function setFeeRecipient(address _feeRecipient) external only(owner()) {
+        if (_feeRecipient == address(0)) revert VaultZeroCheck();
         feeRecipient = _feeRecipient;
         emit VaultFeeRecipientSet(_feeRecipient);
     }
@@ -116,21 +119,20 @@ contract Vault is Ownable2Step, IVault {
     function setEmergencyResponder(
         address _emergencyResponder
     ) external only(owner()) {
+        if (_emergencyResponder == address(0)) revert VaultZeroCheck();
         emergencyResponder = _emergencyResponder;
         emit VaultEmergencyResponderSet(_emergencyResponder);
     }
 
-    /// @notice Set the fee scaled
-    /// @param _feeScaled The fee scaled by 1e18
+    /// @notice Set the inflation rate
+    /// @param _inflationRate The per second inflation rate
     /// @dev only owner & accrues inflation
-    function setFeeScaled(uint256 _feeScaled) external only(owner()) {
-        if (_feeScaled > SCALAR) {
-            revert AMKTVaultFeeTooLarge();
+    function setInflationRate(uint256 _inflationRate) external only(owner()) {
+        if (_inflationRate > SCALAR) {
+            revert AMKTVaultInflationRateTooLarge();
         }
-
-        tryInflation();
-        feeScaled = _feeScaled;
-        emit VaultFeeScaledSet(_feeScaled);
+        inflationRate = _inflationRate;
+        emit VaultInflationRateSet(_inflationRate);
     }
 
     /// @notice Set the emergency flag
@@ -144,31 +146,34 @@ contract Vault is Ownable2Step, IVault {
     ///////////////////////// INFLATION /////////////////////////
 
     /// @notice Try to accrue inflation
-    /// @dev returns the current multiplier
-    function tryInflation() public returns (uint256) {
+    function tryInflation() external only(feeRecipient) {
+        if (block.timestamp < lastKnownTimestamp + 1 days)
+            revert AMKTVaultFeeTooEarly();
         uint256 startingSupply = indexToken.totalSupply();
+        uint256 timestampDiff = block.timestamp - lastKnownTimestamp;
+        uint256 inflation = fmul(startingSupply, timestampDiff * inflationRate);
+        if (inflation == 0) revert AMKTVaultFeeTooSmall();
 
-        (
-            uint256 timestamp,
-            uint256 trackedMultiplier,
-            uint256 newFeeAccrued,
-            uint256 currentMultiplier
-        ) = multiplier();
+        lastKnownTimestamp = block.timestamp;
 
-        if (newFeeAccrued < SCALAR) {
-            uint256 inflation = fmul(startingSupply, finv(newFeeAccrued)) -
-                startingSupply;
+        uint256 valueMultiplier = fdiv(
+            startingSupply,
+            startingSupply + inflation
+        );
 
-            lastKnownMultiplier = trackedMultiplier;
-            lastKnownTimestamp = timestamp;
-
-            if (inflation > 0) {
-                indexToken.mint(feeRecipient, inflation);
-                emit VaultFeeMinted(feeRecipient, inflation);
-            }
+        TokenInfo[] memory tokens = virtualUnits();
+        for (uint256 i = 0; i < tokens.length; i++) {
+            _setNominal(
+                SetNominalArgs({
+                    token: tokens[i].token,
+                    virtualUnits: fmul(tokens[i].units, valueMultiplier)
+                })
+            );
         }
 
-        return currentMultiplier;
+        indexToken.mint(feeRecipient, inflation);
+        invariantCheck();
+        emit VaultFeeMinted(feeRecipient, inflation);
     }
 
     ///////////////////////// REBALANCER /////////////////////////
@@ -182,25 +187,6 @@ contract Vault is Ownable2Step, IVault {
         for (uint256 i; i < args.length; i++) {
             _setNominal(args[i]);
         }
-    }
-
-    /// @notice Set the nominal units of a token
-    /// @param args The SetNominalArgs
-    /// @dev only rebalancer
-    function invokeSetNominal(
-        SetNominalArgs calldata args
-    ) external whenNotEmergency only(rebalancer) {
-        _setNominal(args);
-    }
-
-    /// @notice Set the multiplier
-    /// @param _multiplier The multiplier
-    /// @dev only rebalancer
-    /// @dev this is only used to set the multiplier to 1 after a rebalance so far
-    function invokeSetMultiplier(
-        uint256 _multiplier
-    ) external whenNotEmergency only(rebalancer) {
-        lastKnownMultiplier = _multiplier;
     }
 
     ///////////////////////// ISSUANCE /////////////////////////
@@ -240,13 +226,6 @@ contract Vault is Ownable2Step, IVault {
         }
     }
 
-    /// @notice Invoke ERC20 transfer
-    /// @param args The InvokeERC20Args
-    /// @dev only invokers
-    function invokeERC20(InvokeERC20Args calldata args) external onlyInvokers {
-        _invokeERC20(args.token, args.to, args.amount);
-    }
-
     ///////////////////////// VIEW ////////////////////////
 
     /// @notice Returns true if the token is an underlying
@@ -261,12 +240,12 @@ contract Vault is Ownable2Step, IVault {
     /// @param token address
     /// @return uint256
     function virtualUnits(address token) public view returns (uint256) {
-        return nominals[token];
+        return _nominals[token];
     }
 
     /// @notice Returns the virtual units of all tokens
     /// @return TokenInfo[] memory
-    function virtualUnits() external view returns (TokenInfo[] memory) {
+    function virtualUnits() public view returns (TokenInfo[] memory) {
         address[] storage stor = _underlying.toStorageArray();
         uint256 len = stor.length;
 
@@ -274,35 +253,7 @@ contract Vault is Ownable2Step, IVault {
 
         for (uint256 i; i < len; i++) {
             address token = stor[i];
-            info[i] = TokenInfo({token: token, units: nominals[token]});
-        }
-
-        return info;
-    }
-
-    /// @notice Returns the real units of a token
-    /// @dev warning! does not revert on non-underlying token
-    function realUnits(address token) external view returns (uint256) {
-        (, , , uint256 currentMultiplier) = multiplier();
-        return _computeRealUnits(token, currentMultiplier);
-    }
-
-    /// @notice Returns the real units of all tokens
-    /// @return TokenInfo[] memory
-    function realUnits() public view returns (TokenInfo[] memory) {
-        address[] storage stor = _underlying.toStorageArray();
-        uint256 len = stor.length;
-
-        TokenInfo[] memory info = new TokenInfo[](len);
-
-        (, , , uint256 currentMultiplier) = multiplier();
-
-        for (uint256 i; i < len; i++) {
-            address token = stor[i];
-            info[i] = TokenInfo({
-                token: token,
-                units: _computeRealUnits(token, currentMultiplier)
-            });
+            info[i] = TokenInfo({token: token, units: _nominals[token]});
         }
 
         return info;
@@ -320,50 +271,17 @@ contract Vault is Ownable2Step, IVault {
         return _underlying.size();
     }
 
-    /// @notice Returns the multiplier
-    /// @return trackedTimestamp the new tracked timestamp
-    /// @return trackedMultiplier the new tracked multiplier, this is helpful to cache so we don't need to start from the beginning
-    /// @return newFeeAccrued the new fee from this call, does not account for the old tracked multiplier, this does not incude intermediate values and is how inflation accrual works
-    /// @return currentMultiplier the new multiplier for the current block timestamp, this is an intermediate value and not tracked, it is what's applied to the nominals
-    /// @dev view function so this does't actually do anything
-    function multiplier()
-        public
-        view
-        returns (
-            uint256 trackedTimestamp,
-            uint256 trackedMultiplier,
-            uint256 newFeeAccrued,
-            uint256 currentMultiplier
-        )
-    {
-        (
-            trackedTimestamp,
-            trackedMultiplier,
-            newFeeAccrued,
-            currentMultiplier
-        ) = Multiplier.computeMultiplier(
-            lastKnownTimestamp,
-            lastKnownMultiplier,
-            feeScaled
-        );
-    }
-
     /// @notice Checks that the vault is in a valid state
     /// @notice i.e. we can wind down to 0 safely
     /// @notice reverts if the check fails
     function invariantCheck() public view {
-        TokenInfo[] memory tokens = realUnits();
-
-        (, , , uint256 currentMultiplier) = multiplier();
-
-        // adjust total supply by inverse of intraday fee (inflation)
-        uint256 totalSupply = fmul(
-            fdiv(lastKnownMultiplier, currentMultiplier),
-            indexToken.totalSupply()
-        );
+        TokenInfo[] memory tokens = virtualUnits();
 
         for (uint256 i; i < tokens.length; ) {
-            uint256 expectedAmount = fmul(tokens[i].units, totalSupply);
+            uint256 expectedAmount = fmul(
+                tokens[i].units,
+                indexToken.totalSupply()
+            );
             if (
                 IERC20(tokens[i].token).balanceOf(address(this)) <
                 expectedAmount
@@ -382,7 +300,7 @@ contract Vault is Ownable2Step, IVault {
         uint256 _virtualUnits = args.virtualUnits;
 
         if (_virtualUnits == 0) {
-            delete nominals[token];
+            delete _nominals[token];
             _underlying.remove(token);
             return;
         }
@@ -391,17 +309,10 @@ contract Vault is Ownable2Step, IVault {
             _underlying.add(token);
         }
 
-        nominals[token] = _virtualUnits;
+        _nominals[token] = _virtualUnits;
     }
 
     function _invokeERC20(address token, address to, uint256 amount) internal {
         IERC20(token).safeTransfer(to, amount);
-    }
-
-    function _computeRealUnits(
-        address token,
-        uint256 _multiplier
-    ) internal view returns (uint256) {
-        return fmul(virtualUnits(token), _multiplier);
     }
 }

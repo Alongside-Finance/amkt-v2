@@ -1,47 +1,18 @@
-pragma solidity =0.8.15;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity =0.8.18;
 
-import {IIndexToken} from "../interfaces/IIndexToken.sol";
-import {IVault} from "../interfaces/IVault.sol";
-import {TokenInfo} from "../Common.sol";
-import {SCALAR, fmul} from "../lib/FixedPoint.sol";
+import {IIndexToken} from "src/interfaces/IIndexToken.sol";
+import {IVault} from "src/interfaces/IVault.sol";
+import {IInvokeableBounty, Bounty, QuoteInput} from "src/interfaces/IInvokeableBounty.sol";
+import {IActiveBounty} from "src/interfaces/IActiveBounty.sol";
+import {IRebalancer} from "src/interfaces/IRebalancer.sol";
+import {TokenInfo} from "src/Common.sol";
+import {SCALAR, fmul} from "src/lib/FixedPoint.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-interface Rebalancer {
-    function rebalanceCallback(
-        TokenInfo[] calldata required,
-        TokenInfo[] calldata received
-    ) external;
-}
-
-interface IActiveBounty {
-    function activeBounty() external view returns (bytes32);
-
-    function authority() external view returns (address);
-}
-
-struct Bounty {
-    TokenInfo[] infos;
-    uint256 deadline;
-    bytes32 salt;
-}
-
-struct QuoteInput {
-    TokenInfo[] targets;
-    uint256 supply;
-    uint256 trackedMultiplier;
-}
-
-contract InvokeableBounty {
+contract InvokeableBounty is IInvokeableBounty {
     using SafeERC20 for IERC20;
-    error BountyInvalidHash();
-    error BountyAlreadyCompleted();
-    error BountyPastDeadline();
-    error BountyAMKTSupplyChange();
-    error BountyReentrant();
-    error BountyMustIncludeAllUnderlyings();
-
-    event BountyFulfilled(Bounty bounty, bool callback);
 
     mapping(bytes32 => bool) public completedBounties;
 
@@ -56,7 +27,7 @@ contract InvokeableBounty {
 
     uint256 public reentrancyLock = 1;
 
-    modifier ReentrancyGuard() {
+    modifier reentrancyGuard() {
         if (reentrancyLock > 1) revert BountyReentrant();
         reentrancyLock = 2;
         _;
@@ -81,11 +52,10 @@ contract InvokeableBounty {
         chainId = _chainId;
     }
 
-    /// @notice fulfill a bounty, were going to reset the multiplier to 1 (SCALAR) here
     /// @dev we send out the tokens first, so we need to check for weird supply stuff
     /// @dev also we dont follow CEI so we need to check for reentrancy
     /// @dev the units in the bounty are the target units, ie amount of units per 1e18 amkt
-    /// @dev check for supply becasue even though they mint/burn at the smae price becasue nominals havent been changed yet,
+    /// @dev check for supply because even though they mint/burn at the smae price becasue nominals havent been changed yet,
     ///      if the  supply changes the "value" of the first leg will be differnt from the "value" of the second leg
     ///
     ///
@@ -94,7 +64,7 @@ contract InvokeableBounty {
     function fulfillBounty(
         Bounty memory bounty,
         bool callback
-    ) external ReentrancyGuard invariantCheck {
+    ) external reentrancyGuard invariantCheck {
         bytes32 bountyHash = hashBounty(bounty);
 
         if (activeBounty.activeBounty() != bountyHash)
@@ -104,9 +74,8 @@ contract InvokeableBounty {
 
         if (block.timestamp > bounty.deadline) revert BountyPastDeadline();
 
-        vault.tryInflation();
-
-        (, uint256 trackedMultiplier, , ) = vault.multiplier();
+        if (bounty.fulfiller != address(0) && bounty.fulfiller != msg.sender)
+            revert BountyInvalidFulfiller();
 
         uint256 startingSupply = indexToken.totalSupply();
 
@@ -115,7 +84,7 @@ contract InvokeableBounty {
             TokenInfo[] memory ins,
             IVault.SetNominalArgs[] memory nominals,
             uint256 underlyingTally
-        ) = _quote(QuoteInput(bounty.infos, startingSupply, trackedMultiplier));
+        ) = _quote(QuoteInput(bounty.infos, startingSupply));
 
         if (underlyingTally < vault.underlyingLength())
             revert BountyMustIncludeAllUnderlyings();
@@ -124,7 +93,10 @@ contract InvokeableBounty {
         vault.invokeERC20s(outs);
 
         if (callback) {
-            Rebalancer(msg.sender).rebalanceCallback(ins, intoTokenInfo(outs));
+            IRebalancer(msg.sender).rebalanceCallback(
+                ins,
+                _intoTokenInfo(outs)
+            );
         }
 
         if (indexToken.totalSupply() != startingSupply) {
@@ -146,34 +118,28 @@ contract InvokeableBounty {
         }
 
         vault.invokeSetNominals(nominals);
-        vault.invokeSetMultiplier(SCALAR);
 
         completedBounties[bountyHash] = true;
         emit BountyFulfilled(bounty, callback);
     }
 
-    /// @notice quote a bounty, returns the ins and outs
-    /// @dev the units in the bounty are the target units, ie amount of units per 1e18 amkt
-    /// @param bounty the bounty to quote
-    function quoteBounty(
-        Bounty calldata bounty
-    ) external view returns (TokenInfo[] memory outs, TokenInfo[] memory) {
-        (, uint256 trackedMultipler, , ) = vault.multiplier();
-
-        uint256 startingSupply = indexToken.totalSupply();
-
-        TokenInfo[] memory targets = bounty.infos;
-
-        (
-            IVault.InvokeERC20Args[] memory _outs,
-            TokenInfo[] memory ins,
-            ,
-
-        ) = _quote(QuoteInput(targets, startingSupply, trackedMultipler));
-
-        outs = intoTokenInfo(_outs);
-        return (outs, ins);
+    /// @notice hash a bounty
+    /// @param bounty, the bounty to hash
+    function hashBounty(
+        Bounty memory bounty
+    ) public view returns (bytes32 hash) {
+        return
+            keccak256(
+                abi.encode(
+                    "alongside::invoker::bounty",
+                    abi.encode(version),
+                    abi.encode(chainId),
+                    keccak256(abi.encode(bounty))
+                )
+            );
     }
+
+    ///////////////////////// INTERNAL /////////////////////////
 
     function _quote(
         QuoteInput memory input
@@ -193,10 +159,9 @@ contract InvokeableBounty {
 
         nominals = new IVault.SetNominalArgs[](input.targets.length);
 
-        // store the lengths because we dont actually know the size off the bat
+        // store the lengths because we don't actually know the size off the bat
         uint256 lenOuts;
         uint256 lenIns;
-        uint256 lenNominals;
 
         for (uint256 i; i < input.targets.length; i++) {
             address token = input.targets[i].token;
@@ -206,50 +171,42 @@ contract InvokeableBounty {
             // number of target units per 1e18 amkt
             uint256 targetUnits = input.targets[i].units;
 
-            uint256 realUnitsAtLastFeeTimestamp = fmul(
-                vault.virtualUnits(token),
-                input.trackedMultiplier
-            );
+            uint256 virtualUnits = vault.virtualUnits(token);
 
-            if (realUnitsAtLastFeeTimestamp > targetUnits) {
+            if (virtualUnits > targetUnits) {
                 outs[lenOuts] = IVault.InvokeERC20Args(
                     token,
                     msg.sender,
-                    fmul(
-                        realUnitsAtLastFeeTimestamp - targetUnits,
-                        input.supply
-                    )
+                    fmul(virtualUnits - targetUnits, input.supply)
                 );
 
                 unchecked {
                     lenOuts++;
                 }
-            } else if (targetUnits > realUnitsAtLastFeeTimestamp) {
+            } else if (targetUnits > virtualUnits) {
                 ins[lenIns] = TokenInfo(
                     token,
-                    fmul(
-                        targetUnits - realUnitsAtLastFeeTimestamp,
-                        input.supply
-                    )
+                    fmul(targetUnits - virtualUnits + 1, input.supply) + 1
                 );
 
                 unchecked {
                     lenIns++;
                 }
             } else {
-                // theyre equal so we dont need to do anything
+                // they're equal, so we don't need to do anything
                 continue;
             }
 
-            nominals[lenNominals] = IVault.SetNominalArgs(token, targetUnits);
-
-            unchecked {
-                lenNominals++;
-            }
+            nominals[lenOuts + lenIns - 1] = IVault.SetNominalArgs(
+                token,
+                targetUnits
+            );
         }
 
+        uint256 lenNominals = lenOuts + lenIns;
+
         // use assembly to set the actual sizes so were not sending over a bunch of empty data
-        // no effect, since the compiler is planning on allocating outside of this empty zone anyway
+        // safe, since the compiler is planning on allocating outside of this empty zone anyway
         assembly {
             mstore(outs, lenOuts)
             mstore(ins, lenIns)
@@ -259,23 +216,7 @@ contract InvokeableBounty {
         return (outs, ins, nominals, underlyingTally);
     }
 
-    /// @notice hash a bounty
-    /// @param bounty, the bounty to hash
-    function hashBounty(
-        Bounty memory bounty
-    ) public view returns (bytes32 hash) {
-        return
-            keccak256(
-                abi.encodePacked(
-                    "alongside::invoker::bounty",
-                    abi.encode(version),
-                    abi.encode(chainId),
-                    keccak256(abi.encode(bounty))
-                )
-            );
-    }
-
-    function intoTokenInfo(
+    function _intoTokenInfo(
         IVault.InvokeERC20Args[] memory args
     ) internal pure returns (TokenInfo[] memory infos) {
         infos = new TokenInfo[](args.length);

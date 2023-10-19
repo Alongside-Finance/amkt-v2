@@ -1,4 +1,4 @@
-pragma solidity =0.8.15;
+pragma solidity =0.8.18;
 
 import "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
@@ -47,7 +47,7 @@ contract GovernorTest is Test {
         uint256 blockNumber = block.number; // Current block
         vm.roll(block.number + 1); // set block number higher
         uint256 expectedQuorum = GOVERNOR_NUMERATOR;
-        uint256 governorDemoniator = 100;
+        uint256 governorDemoniator = 10000;
         assertEq(
             governor.quorum(blockNumber),
             (expectedQuorum * token.totalSupply()) / governorDemoniator

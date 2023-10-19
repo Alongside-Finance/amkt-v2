@@ -1,9 +1,11 @@
 ds-test/=lib/forge-std/lib/ds-test/src/
 forge-std/=lib/forge-std/src/
 src/=src/
+test/=test/
 invoke-modules/=src/invoke/
 core-libs/=src/lib/
 core-test/=test/core/
 mocks/=test/mocks/
 @openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
 @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+halmost-cheatcodes/=lib/halmos-cheatcodes/src

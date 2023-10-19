@@ -1,4 +1,5 @@
-pragma solidity =0.8.15;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity =0.8.18;
 
 import {TokenInfo} from "src/Common.sol";
 
@@ -15,7 +16,7 @@ uint256 constant AVG_BLOCK_TIME = 12; // seconds
 uint256 constant VOTE_DELAY = 1 days / AVG_BLOCK_TIME;
 uint256 constant VOTE_PERIOD = 4 days / AVG_BLOCK_TIME;
 uint256 constant PROPOSAL_THRESHOLD = 100e18; // Number of votes required to create a proposal
-uint256 constant GOVERNOR_NUMERATOR = 5;
+uint256 constant GOVERNOR_NUMERATOR = 250;
 
 address constant MULTISIG = address(0xAeB9ef94b6542BE7112f3a295646B5AaAa9Fca13);
 
@@ -23,19 +24,20 @@ address constant FEE_RECEIPIENT = address(
     0xC19a5b6E0a923519603985153515222D59cb3F2e
 );
 
-uint256 constant FEE_SCALED = 26151474053915;
+uint256 constant INFLATION_RATE = 304132280;
 
-address constant PROXY = address(0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D);
+address constant AMKT_PROXY = address(
+    0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D
+);
+
 address constant PROXY_ADMIN = address(
     0x998930C351EcB4918A5c5238B62d5277fE45ab9b
 );
 
-address constant AMKT = address(0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D);
-
 contract InitialBountyHelper {
     // Native
     address constant BTC = address(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599);
-    address constant ETH = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+    address constant ETH = address(0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0);
     address constant MATIC =
         address(0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0);
     address constant FTM = address(0x4E15361FD6b4BB609Fa63C81A2be19d873717870);
@@ -60,32 +62,31 @@ contract InitialBountyHelper {
     // Rainbow Bridge
     address constant NEAR = address(0x85F17Cf997934a597031b2E18a9aB6ebD4B9f6a4);
 
-    function tokens() public returns (TokenInfo[] memory) {
-        TokenInfo[] memory tokens = new TokenInfo[](15);
-
-        // The amounts will be determined shortly before the bounty is proposed.
-        // The goal is to have the bounty be equivalent the net asset value of AMKT at the time of proposal.
-        // 15 assets to be included in the index
-        tokens[0] = TokenInfo(BTC, 1);
-        tokens[1] = TokenInfo(ETH, 1);
-        tokens[2] = TokenInfo(BNB, 1);
-        tokens[3] = TokenInfo(SOL, 1);
-        tokens[4] = TokenInfo(MATIC, 1);
-        tokens[5] = TokenInfo(SHIB, 1);
-        tokens[6] = TokenInfo(AVAX, 1);
-        tokens[7] = TokenInfo(LINK, 1);
-        tokens[8] = TokenInfo(UNI, 1);
-        tokens[9] = TokenInfo(LDO, 1);
-        tokens[10] = TokenInfo(MNT, 1);
-        tokens[11] = TokenInfo(CRO, 1);
-        tokens[12] = TokenInfo(QNT, 1);
-        tokens[13] = TokenInfo(ARB, 1);
-        tokens[14] = TokenInfo(MKR, 1);
-        // tokens[15] = TokenInfo(NEAR, 1);
-        // tokens[16] = TokenInfo(OP, 1);
-        // tokens[17] = TokenInfo(AAVE, 1);
-        // tokens[18] = TokenInfo(GRT, 1);
-
-        return tokens;
+    function tokens() public pure returns (TokenInfo[] memory) {
+        TokenInfo[] memory _tokens = new TokenInfo[](15);
+        _tokens[0] = TokenInfo(BTC, 214000);
+        _tokens[1] = TokenInfo(ETH, 13247609203137000);
+        _tokens[2] = TokenInfo(BNB, 16948415447489000);
+        _tokens[3] = TokenInfo(SOL, 45793000);
+        _tokens[4] = TokenInfo(MATIC, 1024515857143020000);
+        _tokens[5] = TokenInfo(LINK, 61345559996701000);
+        _tokens[6] = TokenInfo(SHIB, 64925596531841000000000);
+        _tokens[7] = TokenInfo(AVAX, 39069959245135000);
+        _tokens[8] = TokenInfo(UNI, 63620590868597000);
+        _tokens[9] = TokenInfo(MKR, 107701044471000);
+        _tokens[10] = TokenInfo(LDO, 98078322467883000);
+        _tokens[11] = TokenInfo(CRO, 278310000);
+        _tokens[12] = TokenInfo(MNT, 342021551889928000);
+        _tokens[13] = TokenInfo(OP, 96994465621464000);
+        _tokens[14] = TokenInfo(QNT, 1329997149324000);
+        return _tokens;
     }
+
+    // WARNING:
+    // The amounts will be determined shortly before the bounty is proposed.
+    // The goal is to have the bounty be equivalent the net asset value of AMKT at the time of proposal.
+    // 15 assets to be included in the index
+    // Once tokens and their amounts are finalized, switch this to true
+    // Expected date of finalization is October 30, 2023
+    bool public constant triggerMigrationWarning_finalTokens = true; // Flip when tokens are finalized
 }

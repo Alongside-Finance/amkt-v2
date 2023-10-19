@@ -1,20 +1,24 @@
-pragma solidity =0.8.15;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity =0.8.18;
 
-import {TokenInfo} from "../Common.sol";
-import {IIndexToken} from "./IIndexToken.sol";
+import {TokenInfo} from "src/Common.sol";
+import {IIndexToken} from "src/interfaces/IIndexToken.sol";
 
 interface IVault {
     error AMKTVaultOnlyInvokers();
     error AMKTVaultOnly(address who);
-    error AMKTVaultFeeTooLarge();
+    error AMKTVaultInflationRateTooLarge();
+    error AMKTVaultFeeTooEarly();
+    error AMKTVaultFeeTooSmall();
     error AMKTVaultEmergency();
     error VaultInvariant();
+    error VaultZeroCheck();
 
     event VaultIssuanceSet(address issuance);
     event VaultRebalancerSet(address rebalancer);
     event VaultFeeRecipientSet(address feeRecipient);
     event VaultEmergencyResponderSet(address emergencyResponder);
-    event VaultFeeScaledSet(uint256 feeScaled);
+    event VaultInflationRateSet(uint256 inflationRate);
     event VaultEmergencySet(bool emergency);
     event VaultFeeMinted(address indexed to, uint256 amount);
 
@@ -33,27 +37,21 @@ interface IVault {
 
     function rebalancer() external view returns (address);
 
-    function tryInflation() external returns (uint256);
+    function tryInflation() external;
 
-    function feeScaled() external view returns (uint256);
+    function inflationRate() external view returns (uint256);
 
     function feeRecipient() external view returns (address);
+
+    function lastKnownTimestamp() external view returns (uint256);
 
     function invokeERC20s(InvokeERC20Args[] calldata args) external;
 
     function invokeSetNominals(SetNominalArgs[] calldata args) external;
 
-    function invokeERC20(InvokeERC20Args calldata args) external;
-
-    function invokeSetNominal(SetNominalArgs calldata args) external;
-
-    function invokeSetMultiplier(uint256 multiplier) external;
-
     function virtualUnits(address token) external view returns (uint256);
 
-    function realUnits(address token) external view returns (uint256);
-
-    function realUnits() external view returns (TokenInfo[] memory);
+    function virtualUnits() external view returns (TokenInfo[] memory);
 
     function invariantCheck() external view;
 
@@ -68,14 +66,4 @@ interface IVault {
     function invokeBurn(address from, uint256 amount) external;
 
     function indexToken() external view returns (IIndexToken);
-
-    function multiplier()
-        external
-        view
-        returns (
-            uint256 lastTrackedTimestamp,
-            uint256 lastTrackedMultiplier,
-            uint256 newFeeAccrued,
-            uint256 multiplier
-        );
 }

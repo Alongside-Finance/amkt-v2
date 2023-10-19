@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: MIT
-pragma solidity =0.8.15;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity =0.8.18;
 
 /// O(1) insertion / deletion to an array
 /// can also check inclusion
@@ -7,7 +7,7 @@ library VerifiableAddressArray {
     struct VerifiableArray {
         address[] elements;
         mapping(address => uint256) indexOf;
-        // use an additaonal SSTORE to save a SLOAD at user runtime
+        // use an additional SSTORE to save a SLOAD at user runtime
         mapping(address => bool) included;
     }
 

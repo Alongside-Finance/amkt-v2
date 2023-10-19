@@ -1,0 +1,100 @@
+@startuml system 
+title AMKT v2 System Relationship Diagram
+allow_mixing
+node Governance {
+    class TimelockController {
+        -_minDelay
+        #schedule()
+        #cancel()
+        #execute()
+    }
+    class Governor {
+        -_votingDelay
+        -_votingPeriod
+        -_proposalThreshold
+        +delegate()
+        +castVote()
+        +propose()
+        +queue()
+        +execute()
+    }
+    class ProxyAdmin {
+        #upgrade()
+    }
+    entity "Governance Multisig"
+    actor "User A"
+}
+
+node Core {
+    class Vault {
+        -_underlying
+        -_nominals
+        -_setNominal()
+        -_invokeERC20()
+        +virtualUnits()
+        +invariantCheck()
+        #invokeSetNominals()
+        #invokeERC20s()
+        #invokeMint()
+        #invokeBurn()
+        #setEmergency()
+        #set[Config]()
+        #tryInflation()
+    }
+
+    class InvokeableBounty {
+        #fulfillBounty()
+    }
+
+    class ActiveBounty {
+        +activeBounty
+        #setHash()
+    }
+
+    class Issuance {
+        +issue()
+        +redeem()
+    }
+    actor "User B"
+    actor "User C"
+    entity "Emergency Multisig"
+    entity "Fee Recipient"
+}
+
+
+node AMKT {
+    class TransparentUpgradeableProxy {
+        -_fallback()
+        #upgradeTo()
+    }
+    class IndexToken {
+        +minter
+        +balanceOf()
+        +transfer()
+        #mint()
+        #burn()
+    }
+}
+
+
+"User A" ..> Governor
+Governor ..> TimelockController: schedule()
+TimelockController ..> ProxyAdmin
+"Governance Multisig" ..> TimelockController: schedule/cancel/execute()
+
+"User B" <..> Issuance: issue/redeem()
+"User C" <..> InvokeableBounty: fulfillBounty()
+Issuance ..> Vault
+InvokeableBounty ..> Vault 
+ActiveBounty <.. InvokeableBounty
+"Emergency Multisig" ..> Vault: setEmergency()
+"Fee Recipient" ..> Vault: tryInflation()
+
+TransparentUpgradeableProxy <..> IndexToken: delegatecall
+
+Governance ..> Core: Vault: set[Config]()
+Governance ..> Core: ActiveBounty: setHash()
+Core ..> AMKT: mint/burn()
+Governance ..> AMKT: upgradeTo()
+@enduml
+
