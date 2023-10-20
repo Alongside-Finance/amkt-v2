@@ -55,8 +55,8 @@ node Core {
         +issue()
         +redeem()
     }
-    actor "User B"
     actor "User C"
+    actor "User B"
     entity "Emergency Multisig"
     entity "Fee Recipient"
 }
@@ -82,8 +82,8 @@ Governor ..> TimelockController: schedule()
 TimelockController ..> ProxyAdmin
 "Governance Multisig" ..> TimelockController: schedule/cancel/execute()
 
-"User B" <..> Issuance: issue/redeem()
 "User C" <..> InvokeableBounty: fulfillBounty()
+"User B" <..> Issuance: issue/redeem()
 Issuance ..> Vault
 InvokeableBounty ..> Vault 
 ActiveBounty <.. InvokeableBounty
