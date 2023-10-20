@@ -97,7 +97,6 @@ contract StatefulTest is BaseTest, IRebalancer {
     }
 
     function burn(uint256 amount) internal {
-        indexToken.approve(address(issuance), amount);
         issuance.redeem(amount);
     }
 

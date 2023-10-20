@@ -62,7 +62,6 @@ contract Issuance is IIssuance {
 
     /// @notice Redeem index tokens
     /// @param amount The amount of index tokens to redeem
-    /// @dev requies approval of index token
     /// @dev reentrancy guard in case callback in tokens
     function redeem(uint256 amount) external invariantCheck reentrancyGuard {
         TokenInfo[] memory tokens = vault.virtualUnits();
