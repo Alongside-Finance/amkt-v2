@@ -87,6 +87,123 @@ contract BountyTest is StatefulTest {
         bounty.fulfillBounty(_bounty, true);
     }
 
+    function testRevertReconstitutionNotAllUnderlying() public {
+        MockMintableToken mockToken = new MockMintableToken(
+            "Mock",
+            "MOCK",
+            18,
+            0
+        );
+
+        TokenInfo[] memory tokens = seedInitial(15);
+        TokenInfo[] memory newTokens = new TokenInfo[](tokens.length + 1);
+        for (uint i = 0; i < tokens.length; i++) {
+            newTokens[i] = tokens[i];
+        }
+        newTokens[tokens.length].token = address(mockToken);
+        newTokens[tokens.length].units = tokens[0].units;
+        newTokens[tokens.length - 1].token = address(mockToken);
+        newTokens[tokens.length - 1].units = tokens[0].units;
+        newTokens[0].units = 0;
+
+        for (uint256 i = 0; i < newTokens.length; i++) {
+            IERC20(address(newTokens[i].token)).approve(
+                address(bounty),
+                type(uint256).max
+            );
+        }
+
+        Bounty memory _bounty = Bounty({
+            infos: newTokens,
+            fulfiller: address(0),
+            salt: keccak256("test"),
+            deadline: block.timestamp + 2 days
+        });
+
+        bytes32 _hash = bounty.hashBounty(_bounty);
+
+        vm.prank(authority);
+        activeBounty.setHash(_hash);
+        flashSwap = true;
+        vm.expectRevert(
+            IInvokeableBounty.BountyMustIncludeAllUnderlyings.selector
+        );
+        bounty.fulfillBounty(_bounty, true);
+    }
+
+    function testRevertReconstitutionTooShort() public {
+        MockMintableToken mockToken = new MockMintableToken(
+            "Mock",
+            "MOCK",
+            18,
+            0
+        );
+
+        TokenInfo[] memory tokens = seedInitial(15);
+        TokenInfo[] memory newTokens = new TokenInfo[](tokens.length - 1);
+        for (uint i = 0; i < tokens.length - 1; i++) {
+            newTokens[i] = tokens[i];
+        }
+        newTokens[0].units = 0;
+
+        for (uint256 i = 0; i < newTokens.length; i++) {
+            IERC20(address(newTokens[i].token)).approve(
+                address(bounty),
+                type(uint256).max
+            );
+        }
+
+        Bounty memory _bounty = Bounty({
+            infos: newTokens,
+            fulfiller: address(0),
+            salt: keccak256("test"),
+            deadline: block.timestamp + 2 days
+        });
+
+        bytes32 _hash = bounty.hashBounty(_bounty);
+
+        vm.prank(authority);
+        activeBounty.setHash(_hash);
+        flashSwap = true;
+        vm.expectRevert(
+            IInvokeableBounty.BountyMustIncludeAllUnderlyings.selector
+        );
+        bounty.fulfillBounty(_bounty, true);
+    }
+
+    function testRevertReconstitutionInvalidToken() public {
+        MockMintableToken mockToken = new MockMintableToken(
+            "Mock",
+            "MOCK",
+            18,
+            0
+        );
+
+        TokenInfo[] memory tokens = seedInitial(15);
+        TokenInfo[] memory newTokens = new TokenInfo[](tokens.length + 1);
+        for (uint i = 0; i < tokens.length; i++) {
+            newTokens[i] = tokens[i];
+        }
+        newTokens[tokens.length].token = address(0);
+        newTokens[tokens.length].units = tokens[0].units;
+        newTokens[0].units = 0;
+
+        Bounty memory _bounty = Bounty({
+            infos: newTokens,
+            fulfiller: address(0),
+            salt: keccak256("test"),
+            deadline: block.timestamp + 2 days
+        });
+
+        bytes32 _hash = bounty.hashBounty(_bounty);
+
+        vm.prank(authority);
+        activeBounty.setHash(_hash);
+        flashSwap = true;
+        vm.expectRevert(IInvokeableBounty.BountyInvalidToken.selector);
+        bounty.fulfillBounty(_bounty, true);
+    }
+
     function testRebalance() public {
         uint256 oneDayMark = block.timestamp + 1 days;
         TokenInfo[] memory tokens = seedInitial(15);
