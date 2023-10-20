@@ -134,9 +134,6 @@ contract UpgradedIssuanceTest is UpgradedTest {
         vm.assume(jitter < MAX_JITTER);
         vm.assume(amount <= AMKT.balanceOf(largeAmktHolder));
         feeRecipientTryInflation();
-        vm.startPrank(largeAmktHolder);
-        AMKT.approve(address(issuance), AMKT.balanceOf(largeAmktHolder));
-        vm.stopPrank();
         _warpForward(jitter);
         feeRecipientTryInflation();
         vm.prank(largeAmktHolder);
