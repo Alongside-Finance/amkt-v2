@@ -23,6 +23,7 @@ interface IInvokeableBounty {
     error BountyReentrant();
     error BountyMustIncludeAllUnderlyings();
     error BountyInvalidFulfiller();
+    error BountyInvalidToken();
 
     event BountyFulfilled(Bounty bounty, bool callback);
 

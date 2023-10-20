@@ -65,29 +65,17 @@ contract InvokeableBounty is IInvokeableBounty {
         Bounty memory bounty,
         bool callback
     ) external reentrancyGuard invariantCheck {
+        _validateInput(bounty);
+
         bytes32 bountyHash = hashBounty(bounty);
-
-        if (activeBounty.activeBounty() != bountyHash)
-            revert BountyInvalidHash();
-
-        if (completedBounties[bountyHash]) revert BountyAlreadyCompleted();
-
-        if (block.timestamp > bounty.deadline) revert BountyPastDeadline();
-
-        if (bounty.fulfiller != address(0) && bounty.fulfiller != msg.sender)
-            revert BountyInvalidFulfiller();
 
         uint256 startingSupply = indexToken.totalSupply();
 
         (
             IVault.InvokeERC20Args[] memory outs,
             TokenInfo[] memory ins,
-            IVault.SetNominalArgs[] memory nominals,
-            uint256 underlyingTally
+            IVault.SetNominalArgs[] memory nominals
         ) = _quote(QuoteInput(bounty.infos, startingSupply));
-
-        if (underlyingTally != vault.underlyingLength())
-            revert BountyMustIncludeAllUnderlyings();
 
         // sends all the tokens to the rebalancer first
         vault.invokeERC20s(outs);
@@ -99,9 +87,8 @@ contract InvokeableBounty is IInvokeableBounty {
             );
         }
 
-        if (indexToken.totalSupply() != startingSupply) {
-            revert BountyAMKTSupplyChange();
-        }
+        // in case rebalancer has a callback
+        _checkSupplyChange(startingSupply);
 
         // take all tokens from msg.sender
         for (uint256 i; i < ins.length; i++) {
@@ -113,9 +100,7 @@ contract InvokeableBounty is IInvokeableBounty {
         }
 
         // in case any tokens have a callback
-        if (indexToken.totalSupply() != startingSupply) {
-            revert BountyAMKTSupplyChange();
-        }
+        _checkSupplyChange(startingSupply);
 
         vault.invokeSetNominals(nominals);
 
@@ -141,6 +126,38 @@ contract InvokeableBounty is IInvokeableBounty {
 
     ///////////////////////// INTERNAL /////////////////////////
 
+    function _validateInput(Bounty memory bounty) internal {
+        bytes32 bountyHash = hashBounty(bounty);
+
+        if (activeBounty.activeBounty() != bountyHash)
+            revert BountyInvalidHash();
+
+        if (completedBounties[bountyHash]) revert BountyAlreadyCompleted();
+
+        if (block.timestamp > bounty.deadline) revert BountyPastDeadline();
+
+        if (bounty.fulfiller != address(0) && bounty.fulfiller != msg.sender)
+            revert BountyInvalidFulfiller();
+
+        if (bounty.infos.length < vault.underlyingLength())
+            revert BountyMustIncludeAllUnderlyings();
+
+        address[] memory prevTokens = vault.underlying();
+
+        for (uint256 i; i < bounty.infos.length; i++) {
+            if (i < prevTokens.length && prevTokens[i] != bounty.infos[i].token)
+                revert BountyMustIncludeAllUnderlyings();
+            if (bounty.infos[i].token == address(0))
+                revert BountyInvalidToken();
+        }
+    }
+
+    function _checkSupplyChange(uint256 startingSupply) internal {
+        if (indexToken.totalSupply() != startingSupply) {
+            revert BountyAMKTSupplyChange();
+        }
+    }
+
     function _quote(
         QuoteInput memory input
     )
@@ -149,8 +166,7 @@ contract InvokeableBounty is IInvokeableBounty {
         returns (
             IVault.InvokeERC20Args[] memory outs,
             TokenInfo[] memory ins,
-            IVault.SetNominalArgs[] memory nominals,
-            uint256 underlyingTally
+            IVault.SetNominalArgs[] memory nominals
         )
     {
         outs = new IVault.InvokeERC20Args[](input.targets.length);
@@ -165,8 +181,6 @@ contract InvokeableBounty is IInvokeableBounty {
 
         for (uint256 i; i < input.targets.length; i++) {
             address token = input.targets[i].token;
-
-            if (vault.isUnderlying(token)) underlyingTally++;
 
             // number of target units per 1e18 amkt
             uint256 targetUnits = input.targets[i].units;
@@ -213,7 +227,7 @@ contract InvokeableBounty is IInvokeableBounty {
             mstore(nominals, lenNominals)
         }
 
-        return (outs, ins, nominals, underlyingTally);
+        return (outs, ins, nominals);
     }
 
     function _intoTokenInfo(
