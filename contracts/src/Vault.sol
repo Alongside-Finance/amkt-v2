@@ -84,7 +84,7 @@ contract Vault is Ownable2Step, IVault {
         lastKnownTimestamp = block.timestamp;
     }
 
-    ///////////////////////// OWNER /////////////////////////
+    ///////////////////////// CONFIG /////////////////////////
 
     /// @notice Set the issuance module for the vault
     /// @param _issuance The issuance module address
@@ -176,7 +176,7 @@ contract Vault is Ownable2Step, IVault {
         emit VaultFeeMinted(feeRecipient, inflation);
     }
 
-    ///////////////////////// REBALANCER /////////////////////////
+    ///////////////////////// INVOKE /////////////////////////
 
     /// @notice Set the nominal units of more than one token
     /// @param args The SetNominalArgs[]
@@ -189,7 +189,16 @@ contract Vault is Ownable2Step, IVault {
         }
     }
 
-    ///////////////////////// ISSUANCE /////////////////////////
+    /// @notice Invoke ERC20 transfers
+    /// @param args The InvokeERC20Args[]
+    /// @dev only invokers
+    function invokeERC20s(
+        InvokeERC20Args[] calldata args
+    ) external onlyInvokers {
+        for (uint256 i; i < args.length; i++) {
+            _transferERC20(args[i]);
+        }
+    }
 
     /// @notice Mint index tokens
     /// @param to The recipient of the index tokens
@@ -210,23 +219,19 @@ contract Vault is Ownable2Step, IVault {
         indexToken.burn(from, amount);
     }
 
-    ///////////////////////// INVOKERS /////////////////////////
+    ///////////////////////// VIEW ////////////////////////
 
-    /// @notice Invoke ERC20 transfers
-    /// @param args The InvokeERC20Args[]
-    /// @dev only invokers
-    function invokeERC20s(
-        InvokeERC20Args[] calldata args
-    ) external onlyInvokers {
-        uint256 len = args.length;
-        for (uint256 i; i < len; i++) {
-            InvokeERC20Args calldata arg = args[i];
-
-            _invokeERC20(arg.token, arg.to, arg.amount);
-        }
+    /// @notice Returns the underlying tokens
+    /// @return address[] memory of underlying tokens with nominal units > 0
+    function underlying() external view returns (address[] memory) {
+        return _underlying.toMemoryArray();
     }
 
-    ///////////////////////// VIEW ////////////////////////
+    /// @notice Returns the underlying tokens and their nominal units
+    /// @return the number of tokens backing the index
+    function underlyingLength() external view returns (uint256) {
+        return _underlying.size();
+    }
 
     /// @notice Returns true if the token is an underlying
     /// @param _token address
@@ -257,18 +262,6 @@ contract Vault is Ownable2Step, IVault {
         }
 
         return info;
-    }
-
-    /// @notice Returns the underlying tokens
-    /// @return address[] memory of underlying tokens with nominal units > 0
-    function underlying() external view returns (address[] memory) {
-        return _underlying.toMemoryArray();
-    }
-
-    /// @notice Returns the underlying tokens and their nominal units
-    /// @return the number of tokens backing the index
-    function underlyingLength() external view returns (uint256) {
-        return _underlying.size();
     }
 
     /// @notice Checks that the vault is in a valid state
@@ -312,7 +305,7 @@ contract Vault is Ownable2Step, IVault {
         _nominals[token] = _virtualUnits;
     }
 
-    function _invokeERC20(address token, address to, uint256 amount) internal {
-        IERC20(token).safeTransfer(to, amount);
+    function _transferERC20(InvokeERC20Args memory args) internal {
+        IERC20(args.token).safeTransfer(args.to, args.amount);
     }
 }

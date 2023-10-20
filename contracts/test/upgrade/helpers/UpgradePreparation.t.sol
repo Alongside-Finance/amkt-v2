@@ -4,7 +4,7 @@ import "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 import {GnosisTest, GnosisTransaction} from "./Gnosis.t.sol";
 import {CoreDeployScript} from "src/scripts/CoreDeploy.s.sol";
-import {InitialBountyHelper, AMKT_PROXY, MULTISIG, PROXY_ADMIN, INFLATION_RATE} from "src/scripts/Config.sol";
+import {InitialBountyHelper, AMKT_PROXY, MULTISIG, PROXY_ADMIN, INFLATION_RATE, CANCELLATION_PERIOD, AVG_BLOCK_TIME} from "src/scripts/Config.sol";
 import {TokenInfo} from "src/Common.sol";
 import {InvokeableBounty} from "src/invoke/Bounty.sol";
 import {Bounty} from "src/interfaces/IInvokeableBounty.sol";
@@ -44,9 +44,12 @@ contract UpgradePreparationTest is GnosisTest {
         setDeployedContracts();
         warpForward(1 days + 2 hours); // there will be some time after we deploy the contracts, and it may be long.
         mockSafeBalances();
-        checkSafeBalances();
         GnosisTransaction[] memory batch = createUpgradeBatch();
         batchExecutionData = getBatchExecutionData(batch);
+
+        // sanity checks
+        checkSafeBalances();
+        checkCoreDeploy();
     }
 
     // WARNING: Fork block number must be updated prior to simulation
@@ -85,19 +88,6 @@ contract UpgradePreparationTest is GnosisTest {
         // timelockActiveBounty = ActiveBounty(address(0));
         // timelockInvokeableBounty = InvokeableBounty(address(0));
         // quoter = Quoter(address(0));
-    }
-
-    function checkSafeBalances() internal {
-        // check that the safe balance matches exactly what the initial bounty helper expects
-        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
-        uint256 totalSupply = AMKT.totalSupply();
-        for (uint256 i = 0; i < tokens.length; i++) {
-            IERC20 token = IERC20(tokens[i].token);
-            assertEq(
-                token.balanceOf(MULTISIG),
-                fmul(tokens[i].units + 1, totalSupply) + 1
-            );
-        }
     }
 
     // BATCH DESCRIPTION
@@ -218,8 +208,6 @@ contract UpgradePreparationTest is GnosisTest {
         return batch;
     }
 
-    // Mock helpers
-
     // WARNING: must be removed before submission.
     // Expected date of finalization is October 30, 2023
     function warpForward(uint256 sec) internal {
@@ -240,5 +228,36 @@ contract UpgradePreparationTest is GnosisTest {
                 fmul(tokens[i].units + 1, AMKT.totalSupply()) + 1
             );
         }
+    }
+
+    // check that the safe balance matches exactly what the initial bounty helper expects
+    function checkSafeBalances() public {
+        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
+        uint256 totalSupply = AMKT.totalSupply();
+        for (uint256 i = 0; i < tokens.length; i++) {
+            IERC20 token = IERC20(tokens[i].token);
+            assertEq(
+                token.balanceOf(MULTISIG),
+                fmul(tokens[i].units + 1, totalSupply) + 1
+            );
+        }
+    }
+
+    // check that the deployed contracts match what we expect as a result of core deploy script
+    function checkCoreDeploy() public {
+        assertEq(address(AMKT), AMKT_PROXY);
+        assertEq(address(vault), address(issuance.vault()));
+        assertEq(address(issuance), address(vault.issuance()));
+        assertEq(address(invokeableBounty), address(vault.rebalancer()));
+        assertEq(
+            address(activeBounty),
+            address(invokeableBounty.activeBounty())
+        );
+        assertEq(address(AMKT), address(invokeableBounty.indexToken()));
+        assertEq(address(AMKT), address(vault.indexToken()));
+        assertEq(vault.inflationRate(), 0);
+        assertEq(vault.emergencyResponder(), MULTISIG);
+        assertEq(vault.emergency(), false);
+        assertEq(vault.pendingOwner(), MULTISIG);
     }
 }

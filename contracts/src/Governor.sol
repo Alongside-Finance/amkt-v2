@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFractio
 import "@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol";
 import "@openzeppelin/contracts/governance/TimelockController.sol";
 
-import {VOTE_DELAY, VOTE_PERIOD, PROPOSAL_THRESHOLD, GOVERNOR_NUMERATOR} from "src/scripts/Config.sol";
+import {VOTE_DELAY, VOTE_PERIOD, PROPOSAL_THRESHOLD, QUORUM_NUMERATOR} from "src/scripts/Config.sol";
 
 contract AlongsideGovernor is
     Governor,
@@ -26,7 +26,7 @@ contract AlongsideGovernor is
         Governor("Alongside Governor")
         GovernorSettings(VOTE_DELAY, VOTE_PERIOD, PROPOSAL_THRESHOLD)
         GovernorVotes(_token)
-        GovernorVotesQuorumFraction(GOVERNOR_NUMERATOR)
+        GovernorVotesQuorumFraction(QUORUM_NUMERATOR)
         GovernorTimelockControl(_timelock)
     {}
 

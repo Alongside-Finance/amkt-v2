@@ -6,7 +6,7 @@ import {TokenInfo} from "src/Common.sol";
 // MAINNET CONFIGS
 string constant NAME = "Alongside Crypto Market Index";
 string constant SYMBOL = "AMKT";
-uint256 constant VERSION = 0;
+uint256 constant BOUNTY_VERSION = 0;
 
 // timelock is measured in seconds
 uint256 constant CANCELLATION_PERIOD = 4 days;
@@ -15,8 +15,8 @@ uint256 constant CANCELLATION_PERIOD = 4 days;
 uint256 constant AVG_BLOCK_TIME = 12; // seconds
 uint256 constant VOTE_DELAY = 1 days / AVG_BLOCK_TIME;
 uint256 constant VOTE_PERIOD = 4 days / AVG_BLOCK_TIME;
-uint256 constant PROPOSAL_THRESHOLD = 100e18; // Number of votes required to create a proposal
-uint256 constant GOVERNOR_NUMERATOR = 250;
+uint256 constant PROPOSAL_THRESHOLD = 100e18; // 100 AMKT. Number of votes required to create a proposal
+uint256 constant QUORUM_NUMERATOR = 250; // 2.5%. Denominator is 10000.
 
 address constant MULTISIG = address(0xAeB9ef94b6542BE7112f3a295646B5AaAa9Fca13);
 
@@ -24,7 +24,7 @@ address constant FEE_RECEIPIENT = address(
     0xC19a5b6E0a923519603985153515222D59cb3F2e
 );
 
-uint256 constant INFLATION_RATE = 304132280;
+uint256 constant INFLATION_RATE = 304132280; // per second rate for 95 bps per year
 
 address constant AMKT_PROXY = address(
     0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D

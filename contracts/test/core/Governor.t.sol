@@ -5,7 +5,7 @@ import {console} from "forge-std/console.sol";
 import {AlongsideGovernor} from "src/Governor.sol";
 import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
 import {ERC20VotesMock} from "@openzeppelin/contracts/mocks/ERC20VotesMock.sol";
-import {CANCELLATION_PERIOD, VOTE_DELAY, VOTE_PERIOD, PROPOSAL_THRESHOLD, GOVERNOR_NUMERATOR} from "src/scripts/Config.sol";
+import {CANCELLATION_PERIOD, VOTE_DELAY, VOTE_PERIOD, PROPOSAL_THRESHOLD, QUORUM_NUMERATOR} from "src/scripts/Config.sol";
 
 contract GovernorTest is Test {
     ERC20VotesMock private token;
@@ -46,7 +46,7 @@ contract GovernorTest is Test {
     function testQuorum() public {
         uint256 blockNumber = block.number; // Current block
         vm.roll(block.number + 1); // set block number higher
-        uint256 expectedQuorum = GOVERNOR_NUMERATOR;
+        uint256 expectedQuorum = QUORUM_NUMERATOR;
         uint256 governorDemoniator = 10000;
         assertEq(
             governor.quorum(blockNumber),

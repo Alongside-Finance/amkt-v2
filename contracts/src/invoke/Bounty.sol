@@ -59,7 +59,7 @@ contract InvokeableBounty is IInvokeableBounty {
     ///      if the  supply changes the "value" of the first leg will be differnt from the "value" of the second leg
     ///
     ///
-    /// @param bounty the bounty to fulfill
+    /// @param bounty the bounty to fulfill. if fulfiller is 0, anyone can fulfill
     /// @param callback whether or not to call the rebalancer callback
     function fulfillBounty(
         Bounty memory bounty,
@@ -86,7 +86,7 @@ contract InvokeableBounty is IInvokeableBounty {
             uint256 underlyingTally
         ) = _quote(QuoteInput(bounty.infos, startingSupply));
 
-        if (underlyingTally < vault.underlyingLength())
+        if (underlyingTally != vault.underlyingLength())
             revert BountyMustIncludeAllUnderlyings();
 
         // sends all the tokens to the rebalancer first

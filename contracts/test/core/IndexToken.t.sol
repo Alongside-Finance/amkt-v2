@@ -10,6 +10,13 @@ contract IndexTokenTest is Test {
         indexToken = new IndexToken();
     }
 
+    function testMinterSlot() public {
+        assertEq(
+            keccak256("Alongside::Token::MinterSlot"),
+            0x1af730152eea9813c49583a406e8dd55a4df08cae9e33ae45721374fdde82bae
+        );
+    }
+
     function testInitialMinter() public {
         indexToken.initialize(address(this));
         assertEq(indexToken.minter(), address(this));

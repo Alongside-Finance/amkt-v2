@@ -3,7 +3,7 @@ pragma solidity =0.8.18;
 import {UpgradedTest} from "test/upgrade/helpers/Upgraded.t.sol";
 import {Dealer} from "test/utils/Dealer.t.sol";
 import {TokenInfo} from "src/Common.sol";
-import {InitialBountyHelper, VOTE_DELAY, VOTE_PERIOD, CANCELLATION_PERIOD, MULTISIG} from "src/scripts/Config.sol";
+import {InitialBountyHelper, VOTE_DELAY, VOTE_PERIOD, CANCELLATION_PERIOD, MULTISIG, AMKT_PROXY, PROXY_ADMIN} from "src/scripts/Config.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {fmul} from "src/lib/FixedPoint.sol";
 import {console} from "forge-std/console.sol";
@@ -190,6 +190,43 @@ contract UpgradedGovernanceTest is UpgradedTest {
             0,
             keccak256("hash"),
             timelockController.getMinDelay()
+        );
+        warpForward(4 days);
+        timelockController.execute(
+            address(vault),
+            0,
+            abi.encodeWithSignature("acceptOwnership()"),
+            0,
+            keccak256("hash")
+        );
+        vm.stopPrank();
+    }
+
+    function testUpgradeIndexToken() public {
+        vm.startPrank(MULTISIG);
+        timelockController.schedule(
+            address(PROXY_ADMIN),
+            0,
+            abi.encodeWithSelector(
+                bytes4(keccak256("upgrade(address,address)")),
+                AMKT_PROXY,
+                address(vault)
+            ),
+            0,
+            keccak256("hash"),
+            timelockController.getMinDelay()
+        );
+        warpForward(4 days);
+        timelockController.execute(
+            address(PROXY_ADMIN),
+            0,
+            abi.encodeWithSelector(
+                bytes4(keccak256("upgrade(address,address)")),
+                AMKT_PROXY,
+                address(vault)
+            ),
+            0,
+            keccak256("hash")
         );
         vm.stopPrank();
     }
