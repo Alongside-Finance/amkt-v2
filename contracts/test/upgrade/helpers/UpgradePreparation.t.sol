@@ -90,29 +90,41 @@ contract UpgradePreparationTest is GnosisTest {
     function checkSafeBalances() internal {
         // check that the safe balance matches exactly what the initial bounty helper expects
         TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
+        uint256 totalSupply = AMKT.totalSupply();
         for (uint256 i = 0; i < tokens.length; i++) {
             IERC20 token = IERC20(tokens[i].token);
             assertEq(
                 token.balanceOf(MULTISIG),
-                fmul(tokens[i].units + 1, AMKT.totalSupply()) + 1
+                fmul(tokens[i].units + 1, totalSupply) + 1
             );
         }
     }
 
+    // BATCH DESCRIPTION
+    // 0-14: Approve tokens to invokeable bounty
+    // 15: Set bounty hash to active bounty
+    // 16: Accept ownership of vault
+    // 17: Fulfill initial bounty
+    // 18: Upgrade and initialize
+    // 19: Set fee scaled
+    // 20: Set rebalancer to timeblock bounty
+    // 21: Transfer vault ownership to timelock
+    // 22: Transfer proxyAdmin ownership to timelock
     function createUpgradeBatch() public returns (GnosisTransaction[] memory) {
         // Initialize batch with known size
         TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
         uint256 batchLength = tokens.length + 8;
         GnosisTransaction[] memory batch = new GnosisTransaction[](batchLength);
 
-        // First 15 transactions are approving each token in the index for the issuance contract
+        // Approve tokens to invokeable bounty
+        uint256 totalSupply = AMKT.totalSupply();
         for (uint256 i = 0; i < 15; i++) {
             batch[i] = GnosisTransaction({
                 to: tokens[i].token,
                 data: abi.encodeWithSelector(
                     bytes4(keccak256("approve(address,uint256)")),
                     invokeableBounty,
-                    2 ** 256 - 1
+                    fmul(tokens[i].units + 1, totalSupply) + 1
                 )
             });
         }
