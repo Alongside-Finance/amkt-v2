@@ -95,7 +95,6 @@ contract SymbolicStatefulTest is SymTest, BaseTest {
     }
 
     function burn(uint256 amount) internal {
-        indexToken.approve(address(issuance), amount);
         issuance.redeem(amount);
     }
 

@@ -54,7 +54,6 @@ contract IssuanceInvariantTest is StatefulTest {
             );
         }
 
-        indexToken.approve(address(issuance), redeemAmount);
         issuance.redeem(redeemAmount);
 
         uint256[] memory endingRedemptionVaultBalances = new uint256[](
