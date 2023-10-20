@@ -16,7 +16,7 @@ import {fmul} from "src/lib/FixedPoint.sol";
 // | _initialized        | uint8                                           | 0    | 0      | 1     | 1                                                                             |
 // | _initializing       | bool                                            | 0    | 1      | 1     | 1                                                                             |
 // | __gap               | uint256[50]                                     | 1    | 0      | 1600  | 0                                                                             |
-// | _bytesalances           | mapping(address => uint256)                     | 51   | 0      | 32    | 0                                                                             |
+// | _balances           | mapping(address => uint256)                     | 51   | 0      | 32    | 0                                                                             |
 // | _allowances         | mapping(address => mapping(address => uint256)) | 52   | 0      | 32    | 0                                                                             |
 // | _totalSupply        | uint256                                         | 53   | 0      | 32    | 0                                                                             |
 // | _name               | string                                          | 54   | 0      | 32    | 47686211349250439718325492568846024043110354150518125751593386513137622056988 |
@@ -44,7 +44,7 @@ import {fmul} from "src/lib/FixedPoint.sol";
 // | _initialized                     | uint8                                                         | 0    | 0      | 1     |
 // | _initializing                    | bool                                                          | 0    | 1      | 1     |
 // | __gap                            | uint256[50]                                                   | 1    | 0      | 1600  |
-// | _bytesalances                        | mapping(address => uint256)                                   | 51   | 0      | 32    |
+// | _balances                        | mapping(address => uint256)                                   | 51   | 0      | 32    |
 // | _allowances                      | mapping(address => mapping(address => uint256))               | 52   | 0      | 32    |
 // | _totalSupply                     | uint256                                                       | 53   | 0      | 32    |
 // | _name                            | string                                                        | 54   | 0      | 32    |
@@ -90,7 +90,7 @@ contract UpgradedStorageTest is UpgradedTest {
     // uint256[50] __gap
 
     //// SLOT 51
-    // mapping(address => uint256) _bytesalances
+    // mapping(address => uint256) _balances
     function testStorageSlot51() public {
         address[] memory addressesToCheck = new address[](2);
         uint256[] memory balancesToCheck = new uint256[](2);
