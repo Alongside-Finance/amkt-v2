@@ -126,7 +126,7 @@ contract InvokeableBounty is IInvokeableBounty {
 
     ///////////////////////// INTERNAL /////////////////////////
 
-    function _validateInput(Bounty memory bounty) internal {
+    function _validateInput(Bounty memory bounty) internal view {
         bytes32 bountyHash = hashBounty(bounty);
 
         if (activeBounty.activeBounty() != bountyHash)
@@ -152,7 +152,7 @@ contract InvokeableBounty is IInvokeableBounty {
         }
     }
 
-    function _checkSupplyChange(uint256 startingSupply) internal {
+    function _checkSupplyChange(uint256 startingSupply) internal view {
         if (indexToken.totalSupply() != startingSupply) {
             revert BountyAMKTSupplyChange();
         }
