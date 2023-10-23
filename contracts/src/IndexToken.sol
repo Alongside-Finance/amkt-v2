@@ -18,6 +18,9 @@ contract IndexToken is ERC20VotesUpgradeable, IIndexToken {
     bytes32 public constant MINTER_SLOT =
         0x1af730152eea9813c49583a406e8dd55a4df08cae9e33ae45721374fdde82bae;
 
+    /// @dev Make sure storage slots used in previous versions are not reused
+    uint256[6] private __gap;
+
     ///=============================================================================================
     /// Modifiers
     ///=============================================================================================
