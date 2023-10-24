@@ -11,7 +11,7 @@ import {AlongsideGovernor} from "src/Governor.sol";
 import {Quoter} from "periphery/Quoter.sol";
 import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
 import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
-import {AMKT_PROXY, MULTISIG, FEE_RECEIPIENT, PROXY_ADMIN, BOUNTY_VERSION, NAME, SYMBOL, CANCELLATION_PERIOD} from "./Config.sol";
+import {AMKT_PROXY, MULTISIG, FEE_RECEIPIENT, PROXY_ADMIN, NAME, SYMBOL, CANCELLATION_PERIOD} from "./Config.sol";
 import {IIndexToken} from "src/interfaces/IIndexToken.sol";
 
 contract CoreDeployScript is Script {
@@ -93,7 +93,8 @@ contract CoreDeployScript is Script {
             deployed.timelockActiveBounty
         ) = deployBounty(
             address(deployed.vault),
-            address(deployed.timelockController)
+            address(deployed.timelockController),
+            1
         );
 
         vm.stopBroadcast();
@@ -120,7 +121,7 @@ contract CoreDeployScript is Script {
         (
             InvokeableBounty _invokeableBounty,
             ActiveBounty _activeBounty
-        ) = deployBounty(address(_vault), _bountySetter);
+        ) = deployBounty(address(_vault), _bountySetter, 0);
 
         _vault.setIssuance(address(_issuance));
         _vault.setRebalancer(address(_invokeableBounty));
@@ -138,14 +139,15 @@ contract CoreDeployScript is Script {
 
     function deployBounty(
         address _vault,
-        address _bountySetter
+        address _bountySetter,
+        uint256 version
     ) internal returns (InvokeableBounty, ActiveBounty) {
         ActiveBounty activeBounty = new ActiveBounty(_bountySetter);
 
         InvokeableBounty invokeableBounty = new InvokeableBounty({
             _vault: _vault,
             _activeBounty: address(activeBounty),
-            _version: BOUNTY_VERSION,
+            _version: version,
             _chainId: 1
         });
 
