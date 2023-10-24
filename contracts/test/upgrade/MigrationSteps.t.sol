@@ -10,12 +10,14 @@ contract MigrationStepsTest is Test {
     function testStep0_deployContracts() public {
         // Deploy contracts using CoreDeploy.s.sol and set the contract addresses in:
         // `UpgradePreparation` and `test_MIGRATION_WARNING_deployedContracts`
+        // Set `triggerMigrationWarning_setDeployedContracts` in `setDeployedContract` to `false` upon completion
         assertTrue(false);
     }
 
     function testStep1_setFinalTokenUnits() public {
         // By step 1, it is assumed that all the funds have been transferred to the multisig.
         // Update InitialBountyHelper's token's list to reflect the final bounty units.
+        // Set `triggerMigrationWarning_finalTokens` in `Config` to `false` upon completion
         assertTrue(false);
     }
 
@@ -31,7 +33,8 @@ contract MigrationStepsTest is Test {
     }
 
     function testStep4_updateCurrentPrice() public {
-        // Update `getCurrentPrice` in `UpgradePreparation` to reflect the latest prices.
+        // Update `MIGRATION_WARNING_getCurrentPrice` in `MigrationChecklist` to reflect the latest prices.
+        // Set `triggerMigrationWarning_getCurrentPrice` in `MigrationChecklist` to `false` upon completion
         assertTrue(false);
     }
 
@@ -46,12 +49,13 @@ contract MigrationStepsTest is Test {
     }
 
     function testStep7_fixTokenState() public {
-        // `testtokenState` in `UpgradedState.t.sol` should be updated to reflect the final token state.
+        // `testTokenState` in `UpgradedState.t.sol` should be updated to reflect the final token state.
         assertTrue(false);
     }
 
     function testStep8_insertInputCalldata() public {
         // Insert the calldata for `inputBatchExecutionData` in `Upgraded.t.sol`
+        // Set `triggerMigrationWarning_executeUpgradeBundle` in `Upgraded.t.sol` to `false` upon completion
         assertTrue(false);
     }
 
