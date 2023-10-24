@@ -5,10 +5,19 @@ import {UpgradePreparationTest} from "test/upgrade/helpers/UpgradePreparation.t.
 contract UpgradedTest is UpgradePreparationTest {
     bytes inputBatchExecutionData = hex"deadbabe";
     bool triggerMigrationWarning_executeUpgradeBundle;
+    string forkOverrideUrl = "none";
 
     function setUp() public override {
-        super.setUp();
-        executeUpgradeBundle();
+        if (
+            keccak256(abi.encodePacked(forkOverrideUrl)) ==
+            keccak256(abi.encodePacked("none"))
+        ) {
+            super.setUp();
+            executeUpgradeBundle();
+        } else {
+            vm.createSelectFork(vm.envString(forkOverrideUrl));
+            super.setDeployedContracts();
+        }
     }
 
     // WARN:
