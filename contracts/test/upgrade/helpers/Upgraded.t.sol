@@ -15,7 +15,7 @@ contract UpgradedTest is UpgradePreparationTest {
             super.setUp();
             executeUpgradeBundle();
         } else {
-            vm.createSelectFork(vm.envString(forkOverrideUrl));
+            vm.createSelectFork(forkOverrideUrl);
             super.setDeployedContracts();
         }
     }
