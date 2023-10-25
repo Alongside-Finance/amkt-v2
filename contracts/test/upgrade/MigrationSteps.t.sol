@@ -11,7 +11,7 @@ contract MigrationStepsTest is Test {
         // Deploy contracts using CoreDeploy.s.sol and set the contract addresses in:
         // `UpgradePreparation` and `test_MIGRATION_WARNING_deployedContracts`
         // Set `triggerMigrationWarning_setDeployedContracts` in `setDeployedContract` to `false` upon completion
-        // Run `test_MIGRATION_WARNING_deployedContracts` to confirm this step is over.
+        // Run `test_MIGRATION_WARNING_deployedContracts` and `test_MIGRATION_WARNING_deployedContractsBehavior` to confirm this step is over.
         assertTrue(false);
     }
 
