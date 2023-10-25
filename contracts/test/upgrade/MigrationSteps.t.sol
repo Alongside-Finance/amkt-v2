@@ -43,8 +43,8 @@ contract MigrationStepsTest is Test {
         assertTrue(false);
     }
 
-    function testStep6_removeWarp() public {
-        // Remove `warp` in `UpgradePreparation`
+    function testStep6_removeWarpForward() public {
+        // Remove `warpForward` in `UpgradePreparation`
         assertTrue(false);
     }
 
