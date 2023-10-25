@@ -95,7 +95,7 @@ contract BountyRoundingTest is StatefulTest {
         );
         vm.startPrank(user);
         USDC.approve(address(issuance), 1e8);
-        issuance.issue(2e8);
+        issuance.issue(1e8);
         vm.stopPrank();
         console.log(" ");
         console.log("after user mint");
