@@ -48,12 +48,7 @@ contract StatefulTest is BaseTest, IRebalancer {
 
         quoter = new Quoter(address(vault));
 
-        bounty = new InvokeableBounty(
-            address(vault),
-            address(activeBounty),
-            0,
-            1
-        );
+        bounty = new InvokeableBounty(address(vault), address(activeBounty));
 
         vault.setIssuance(address(issuance));
         vault.setRebalancer(address(bounty));

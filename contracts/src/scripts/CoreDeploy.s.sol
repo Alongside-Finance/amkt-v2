@@ -11,7 +11,7 @@ import {AlongsideGovernor} from "src/Governor.sol";
 import {Quoter} from "periphery/Quoter.sol";
 import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
 import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
-import {AMKT_PROXY, MULTISIG, FEE_RECEIPIENT, PROXY_ADMIN, BOUNTY_VERSION, NAME, SYMBOL, CANCELLATION_PERIOD} from "./Config.sol";
+import {AMKT_PROXY, MULTISIG, FEE_RECEIPIENT, PROXY_ADMIN, NAME, SYMBOL, CANCELLATION_PERIOD} from "./Config.sol";
 import {IIndexToken} from "src/interfaces/IIndexToken.sol";
 
 contract CoreDeployScript is Script {
@@ -144,9 +144,7 @@ contract CoreDeployScript is Script {
 
         InvokeableBounty invokeableBounty = new InvokeableBounty({
             _vault: _vault,
-            _activeBounty: address(activeBounty),
-            _version: BOUNTY_VERSION,
-            _chainId: 1
+            _activeBounty: address(activeBounty)
         });
 
         return (invokeableBounty, activeBounty);
