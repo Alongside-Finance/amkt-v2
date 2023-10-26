@@ -70,8 +70,6 @@ contract MigrationChecklistTest is UpgradedTest {
         assertEq(address(governor), address(payable(address(1))));
         assertEq(address(timelockController), address(payable(address(1))));
         assertEq(newTokenImplementation, address(1));
-        assertEq(address(timelockActiveBounty), address(1));
-        assertEq(address(timelockInvokeableBounty), address(1));
     }
 
     // WARNING: This test should fail until `tokens` in InitialBountyHelper is finalized.

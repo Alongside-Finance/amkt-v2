@@ -23,8 +23,6 @@ contract CoreDeployScript is Script {
         AlongsideGovernor governor;
         TimelockController timelockController;
         address newTokenImplementation;
-        InvokeableBounty timelockInvokeableBounty;
-        ActiveBounty timelockActiveBounty;
         Quoter quoter;
     }
 
@@ -86,15 +84,6 @@ contract CoreDeployScript is Script {
         IndexToken newTokenImplementation = new IndexToken();
         newTokenImplementation.initialize(address(1));
         deployed.newTokenImplementation = address(newTokenImplementation);
-
-        // Deploy another set of bounty contracts to transfer to timelock controller, since bounty contracts are immutable.
-        (
-            deployed.timelockInvokeableBounty,
-            deployed.timelockActiveBounty
-        ) = deployBounty(
-            address(deployed.vault),
-            address(deployed.timelockController)
-        );
 
         vm.stopBroadcast();
         return deployed;
