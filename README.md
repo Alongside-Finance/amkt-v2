@@ -38,7 +38,7 @@ The core system aims to be modular and minimal for maximal safety and extensibil
 
 ### Governance
 
-Governance is responsible for facilitating rebalances, configuring the Vault, and upgrading AMKT. Users can participate in governance with AMKT via [Tally](link-to-tally). Every governance action is subject to a minimum delay of 4 days, enforced by the `TimelockController`.
+Governance is responsible for facilitating rebalances, configuring the Vault, and upgrading AMKT. Users can participate in governance with AMKT via [Tally](link-to-tally). Every governance action is subject to a minimum delay of 3 days, enforced by the `TimelockController`.
 
 To prevent against a malicious token Governance takeover, the Governance Multisig is the only entity authorized to cancel and execute transactions scheduled in `TimelockController`.
 

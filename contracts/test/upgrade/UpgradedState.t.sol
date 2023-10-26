@@ -34,12 +34,12 @@ contract UpgradedStateTest is UpgradedTest {
     function testGovernanceConfig() public {
         uint256 AVG_BLOCK_TIME = 12;
         assertEq(governor.votingDelay(), 1 days / AVG_BLOCK_TIME);
-        assertEq(governor.votingPeriod(), 4 days / AVG_BLOCK_TIME);
+        assertEq(governor.votingPeriod(), 3 days / AVG_BLOCK_TIME);
         assertEq(governor.proposalThreshold(), 100e18);
         assertEq(governor.quorumNumerator(), 250);
         assertEq(governor.quorumDenominator(), 10000);
         assertEq(governor.timelock(), address(timelockController));
-        assertEq(timelockController.getMinDelay(), 4 days);
+        assertEq(timelockController.getMinDelay(), 3 days);
         assertEq(
             governor.quorum(block.number - 1),
             (AMKT.totalSupply() * 250) / 10000
@@ -50,7 +50,7 @@ contract UpgradedStateTest is UpgradedTest {
     }
 
     function testTimelockConfig() public {
-        assertEq(timelockController.getMinDelay(), 4 days);
+        assertEq(timelockController.getMinDelay(), 3 days);
         assertEq(
             timelockController.hasRole(
                 timelockController.EXECUTOR_ROLE(),

@@ -9,12 +9,12 @@ string constant SYMBOL = "AMKT";
 uint256 constant BOUNTY_VERSION = 0;
 
 // timelock is measured in seconds
-uint256 constant CANCELLATION_PERIOD = 4 days;
+uint256 constant CANCELLATION_PERIOD = 3 days;
 
 // governor measured in blocks
 uint256 constant AVG_BLOCK_TIME = 12; // seconds
 uint256 constant VOTE_DELAY = 1 days / AVG_BLOCK_TIME;
-uint256 constant VOTE_PERIOD = 4 days / AVG_BLOCK_TIME;
+uint256 constant VOTE_PERIOD = 3 days / AVG_BLOCK_TIME;
 uint256 constant PROPOSAL_THRESHOLD = 100e18; // 100 AMKT. Number of votes required to create a proposal
 uint256 constant QUORUM_NUMERATOR = 250; // 2.5%. Denominator is 10000.
 

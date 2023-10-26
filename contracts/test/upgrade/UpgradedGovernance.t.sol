@@ -191,7 +191,7 @@ contract UpgradedGovernanceTest is UpgradedTest {
             keccak256("hash"),
             timelockController.getMinDelay()
         );
-        warpForward(4 days);
+        warpForward(3 days);
         timelockController.execute(
             address(vault),
             0,
@@ -216,7 +216,7 @@ contract UpgradedGovernanceTest is UpgradedTest {
             keccak256("hash"),
             timelockController.getMinDelay()
         );
-        warpForward(4 days);
+        warpForward(3 days);
         timelockController.execute(
             address(PROXY_ADMIN),
             0,
@@ -421,7 +421,7 @@ contract UpgradedGovernanceTest is UpgradedTest {
         governor.castVote(newProposalId, 1);
         governor.castVote(proposalId, 1);
 
-        vm.expectRevert(); // queueing before 4 days of voting should fail
+        vm.expectRevert(); // queueing before 3 days of voting should fail
         governor.queue(
             executeSetVoteDelayProposal.targets,
             executeSetVoteDelayProposal.values,
@@ -473,7 +473,7 @@ contract UpgradedGovernanceTest is UpgradedTest {
             timelockController.getMinDelay()
         );
 
-        // EXECUTE AFTER 1 DAY + 4 DAYS + 4 DAYS
+        // EXECUTE AFTER 1 DAY + 3 DAYS + 3 DAYS
         bytes32 operationId = timelockController.hashOperationBatch(
             executeSetVoteDelayProposal.targets,
             executeSetVoteDelayProposal.values,
