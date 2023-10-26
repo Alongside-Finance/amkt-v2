@@ -31,7 +31,7 @@ contract MigrationStepsTest is Test {
     }
 
     function testStep3_removeForkBlock() public {
-        // Remove `fork` from `UpgradePreparation`.
+        // Remove fork block parameter from `fork` in `UpgradePreparation`.
         // NOTE: Foundry may cache forked state. Use `forge clean` every time you want to run a clean fork.
         // run `test_MIGRATION_WARNING_forkBlock` to confirm this step is over.
         assertTrue(false);
