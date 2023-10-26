@@ -9,6 +9,7 @@ import {console} from "forge-std/console.sol";
 contract BountyRoundingTest is StatefulTest {
     address fulfiller = address(bytes20(keccak256("fulfiller")));
     address user = address(bytes20(keccak256("user")));
+    uint256 userMintAmount = 1e11;
 
     function testBug() public {
         // setup
@@ -20,8 +21,7 @@ contract BountyRoundingTest is StatefulTest {
         USDC.approve(address(bounty), 10000e6);
         WETH.approve(address(bounty), 10000e18);
         vm.stopPrank();
-        USDC.mint(user, 1e8);
-
+        USDC.mint(user, userMintAmount);
         // original bounty
 
         console.log(" ");
@@ -94,8 +94,8 @@ contract BountyRoundingTest is StatefulTest {
             WETH.balanceOf(address(vault))
         );
         vm.startPrank(user);
-        USDC.approve(address(issuance), 1e8);
-        issuance.issue(1e8);
+        USDC.approve(address(issuance), userMintAmount);
+        issuance.issue(userMintAmount);
         vm.stopPrank();
         console.log(" ");
         console.log("after user mint");
@@ -167,7 +167,7 @@ contract BountyRoundingTest is StatefulTest {
             WETH.balanceOf(address(vault))
         );
         vm.prank(user);
-        issuance.redeem(1e8);
+        issuance.redeem(userMintAmount);
         console.log(" ");
         console.log("after user redeem");
         console.log(
