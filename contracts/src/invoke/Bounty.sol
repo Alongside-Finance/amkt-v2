@@ -22,9 +22,6 @@ contract InvokeableBounty is IInvokeableBounty {
 
     IActiveBounty public immutable activeBounty;
 
-    uint256 public immutable version;
-    uint256 public immutable chainId;
-
     uint256 public reentrancyLock = 1;
 
     modifier reentrancyGuard() {
@@ -39,17 +36,10 @@ contract InvokeableBounty is IInvokeableBounty {
         vault.invariantCheck();
     }
 
-    constructor(
-        address _vault,
-        address _activeBounty,
-        uint256 _version,
-        uint256 _chainId
-    ) {
+    constructor(address _vault, address _activeBounty) {
         vault = IVault(_vault);
         indexToken = IIndexToken(vault.indexToken());
         activeBounty = IActiveBounty(_activeBounty);
-        version = _version;
-        chainId = _chainId;
     }
 
     /// @dev we send out the tokens first, so we need to check for weird supply stuff
@@ -115,8 +105,6 @@ contract InvokeableBounty is IInvokeableBounty {
             keccak256(
                 abi.encode(
                     "alongside::invoker::bounty",
-                    abi.encode(version),
-                    abi.encode(chainId),
                     keccak256(abi.encode(bounty))
                 )
             );

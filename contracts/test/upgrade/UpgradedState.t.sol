@@ -133,8 +133,6 @@ contract UpgradedStateTest is UpgradedTest {
             address(invokeableBounty.activeBounty()),
             address(activeBounty)
         );
-        assertEq(invokeableBounty.version(), 0);
-        assertEq(invokeableBounty.chainId(), 1);
         assertEq(activeBounty.authority(), MULTISIG);
 
         assertEq(address(timelockInvokeableBounty.indexToken()), address(AMKT));
@@ -143,8 +141,6 @@ contract UpgradedStateTest is UpgradedTest {
             address(timelockInvokeableBounty.activeBounty()),
             address(timelockActiveBounty)
         );
-        assertEq(timelockInvokeableBounty.version(), 0);
-        assertEq(timelockInvokeableBounty.chainId(), 1);
         assertEq(timelockActiveBounty.authority(), address(timelockController));
     }
 

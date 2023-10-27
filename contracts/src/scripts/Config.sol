@@ -6,7 +6,6 @@ import {TokenInfo} from "src/Common.sol";
 // MAINNET CONFIGS
 string constant NAME = "Alongside Crypto Market Index";
 string constant SYMBOL = "AMKT";
-uint256 constant BOUNTY_VERSION = 0;
 
 // timelock is measured in seconds
 uint256 constant CANCELLATION_PERIOD = 4 days;
