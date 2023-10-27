@@ -65,9 +65,7 @@ contract InvokeableBounty is IInvokeableBounty {
         Bounty memory bounty,
         bool callback
     ) external reentrancyGuard invariantCheck {
-        _validateInput(bounty);
-
-        bytes32 bountyHash = hashBounty(bounty);
+        bytes32 bountyHash = _validateInput(bounty);
 
         uint256 startingSupply = indexToken.totalSupply();
 
@@ -126,7 +124,7 @@ contract InvokeableBounty is IInvokeableBounty {
 
     ///////////////////////// INTERNAL /////////////////////////
 
-    function _validateInput(Bounty memory bounty) internal view {
+    function _validateInput(Bounty memory bounty) internal view returns (bytes32) {
         bytes32 bountyHash = hashBounty(bounty);
 
         if (activeBounty.activeBounty() != bountyHash)
@@ -150,6 +148,8 @@ contract InvokeableBounty is IInvokeableBounty {
             if (bounty.infos[i].token == address(0))
                 revert BountyInvalidToken();
         }
+
+        return bountyHash;
     }
 
     function _checkSupplyChange(uint256 startingSupply) internal view {
