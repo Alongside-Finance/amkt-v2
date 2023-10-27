@@ -139,8 +139,8 @@ contract MigrationChecklistTest is UpgradedTest {
             nav += value;
         }
         // WARNING: update expected NAV value here
-        assertGe(nav, 2_500_000e18); // sanity check: greater than 2.5 million
-        assertLe(nav, 2_510_000e18); // sanity checl: less than 2.51 million
+        assertGe(nav, 2_500_000e18); // sanity check: greater than 2.5 million TODO: pull this number from market cap
+        assertLe(nav, 2_510_000e18); // sanity checl: less than 2.51 million TODO: pull this number from market cap
     }
 
     // WARNING: Manual prices must be updated upon finalization
