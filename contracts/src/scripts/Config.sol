@@ -85,7 +85,7 @@ contract InitialBountyHelper {
     // The amounts will be determined shortly before the bounty is proposed.
     // The goal is to have the bounty be equivalent the net asset value of AMKT at the time of proposal.
     // 15 assets to be included in the index
-    // Once tokens and their amounts are finalized, switch this to true
+    // Once tokens and their amounts are finalized, switch this to false
     // Expected date of finalization is October 30, 2023
     bool public constant triggerMigrationWarning_finalTokens = true; // Flip when tokens are finalized
 }
