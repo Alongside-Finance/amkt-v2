@@ -57,6 +57,7 @@ contract Vault is Ownable2Step, IVault {
     /// @param _indexToken The index token address
     /// @param _owner The owner of the vault
     /// @param _feeRecipient The recipient of the fee
+    /// @param _emergencyResponder The emergency responder, can set emergency flag
     /// @param _inflationRate The per second inflation rate
     constructor(
         IIndexToken _indexToken,
