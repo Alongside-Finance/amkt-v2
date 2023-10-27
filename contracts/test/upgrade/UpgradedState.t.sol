@@ -116,7 +116,7 @@ contract UpgradedStateTest is UpgradedTest {
     function testVaultState() public {
         assertEq(vault.underlyingLength(), 15);
         assertEq(vault.issuance(), address(issuance));
-        assertEq(vault.rebalancer(), address(timelockInvokeableBounty));
+        assertEq(vault.rebalancer(), address(invokeableBounty));
         assertEq(vault.feeRecipient(), FEE_RECEIPIENT);
         assertEq(vault.emergencyResponder(), MULTISIG);
         assertEq(vault.emergency(), false);
@@ -134,14 +134,6 @@ contract UpgradedStateTest is UpgradedTest {
             address(activeBounty)
         );
         assertEq(activeBounty.authority(), MULTISIG);
-
-        assertEq(address(timelockInvokeableBounty.indexToken()), address(AMKT));
-        assertEq(address(timelockInvokeableBounty.vault()), address(vault));
-        assertEq(
-            address(timelockInvokeableBounty.activeBounty()),
-            address(timelockActiveBounty)
-        );
-        assertEq(timelockActiveBounty.authority(), address(timelockController));
     }
 
     function testTokens() public {

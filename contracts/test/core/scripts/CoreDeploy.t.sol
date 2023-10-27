@@ -23,8 +23,6 @@ contract CoreDeployTest is Test {
     AlongsideGovernor governor;
     TimelockController timelockController;
     address newTokenImplementation;
-    InvokeableBounty timelockInvokeableBounty;
-    ActiveBounty timelockActiveBounty;
 
     function setUp() public virtual {
         forkMainnet();
@@ -50,8 +48,6 @@ contract CoreDeployTest is Test {
         governor = deployed.governor;
         timelockController = deployed.timelockController;
         newTokenImplementation = deployed.newTokenImplementation;
-        timelockInvokeableBounty = deployed.timelockInvokeableBounty;
-        timelockActiveBounty = deployed.timelockActiveBounty;
     }
 
     function testGovernanceConfig() public {

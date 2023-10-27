@@ -28,8 +28,6 @@ contract UpgradePreparationTest is GnosisTest {
     AlongsideGovernor governor;
     TimelockController timelockController;
     address newTokenImplementation;
-    InvokeableBounty timelockInvokeableBounty;
-    ActiveBounty timelockActiveBounty;
     Quoter quoter;
     bytes batchExecutionData;
 
@@ -74,8 +72,6 @@ contract UpgradePreparationTest is GnosisTest {
         governor = deployed.governor;
         timelockController = deployed.timelockController;
         newTokenImplementation = deployed.newTokenImplementation;
-        timelockInvokeableBounty = deployed.timelockInvokeableBounty;
-        timelockActiveBounty = deployed.timelockActiveBounty;
         quoter = deployed.quoter;
         // The below template can be used when the addresses are known.
         // vault = Vault(address(0));
@@ -85,8 +81,6 @@ contract UpgradePreparationTest is GnosisTest {
         // governor = AlongsideGovernor(payable(address(0)));
         // timelockController = TimelockController(payable(address(0)));
         // newTokenImplementation = address(0);
-        // timelockActiveBounty = ActiveBounty(address(0));
-        // timelockInvokeableBounty = InvokeableBounty(address(0));
         // quoter = Quoter(address(0));
     }
 
@@ -179,17 +173,8 @@ contract UpgradePreparationTest is GnosisTest {
             )
         });
 
-        // Set rebalancer to timeblock bounty
-        batch[20] = GnosisTransaction({
-            to: address(vault),
-            data: abi.encodeWithSelector(
-                bytes4(keccak256("setRebalancer(address)")),
-                timelockInvokeableBounty
-            )
-        });
-
         // Transfer vault ownership to timelock
-        batch[21] = GnosisTransaction({
+        batch[20] = GnosisTransaction({
             to: address(vault),
             data: abi.encodeWithSelector(
                 bytes4(keccak256("transferOwnership(address)")),
@@ -198,7 +183,7 @@ contract UpgradePreparationTest is GnosisTest {
         });
 
         // Transfer proxyAdmin ownership to timelock
-        batch[22] = GnosisTransaction({
+        batch[21] = GnosisTransaction({
             to: PROXY_ADMIN,
             data: abi.encodeWithSelector(
                 bytes4(keccak256("transferOwnership(address)")),
