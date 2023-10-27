@@ -41,19 +41,9 @@ contract UpgradedGovernanceTest is UpgradedTest {
         return proposal;
     }
 
-    function testRebalance() public {
-        Proposal memory proposal = createSingleItemProposal(
-            address(InvokeableBounty(vault.rebalancer()).activeBounty()),
-            0,
-            abi.encodeWithSignature("setHash(bytes32)", keccak256("hash")),
-            "Test set hash"
-        );
-        makeProposalPass(proposal);
-        assertEq(
-            IActiveBounty(InvokeableBounty(vault.rebalancer()).activeBounty())
-                .activeBounty(),
-            keccak256("hash")
-        );
+    function testMultisigHasBountyAuthority() public {
+        vm.prank(MULTISIG);
+        activeBounty.setHash(keccak256("hash"));
     }
 
     function testAcceptVaultOwnership() public {

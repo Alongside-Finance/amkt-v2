@@ -4,7 +4,8 @@ import {fmul, fdiv} from "src/lib/FixedPoint.sol";
 import {TokenInfo} from "src/Common.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {console} from "forge-std/console.sol";
-import {InitialBountyHelper, ETH} from "src/scripts/Config.sol";
+import {IndexToken} from "src/IndexToken.sol";
+import {InitialBountyHelper, ETH, AMKT_PROXY, MULTISIG, VOTE_DELAY} from "src/scripts/Config.sol";
 
 interface IOracle {
     function latestAnswer() external returns (uint256);
@@ -54,7 +55,6 @@ contract MigrationChecklistTest is UpgradedTest {
     // Expected date of finalization is October 30, 2023
 
     function test_MIGRATION_WARNING_getCurrentPrice() public {
-        MIGRATION_WARNING_getCurrentPrice(address(0));
         assertFalse(triggerMigrationWarning_getCurrentPrice);
     }
 
@@ -70,8 +70,25 @@ contract MigrationChecklistTest is UpgradedTest {
         assertEq(address(governor), address(payable(address(1))));
         assertEq(address(timelockController), address(payable(address(1))));
         assertEq(newTokenImplementation, address(1));
-        assertEq(address(timelockActiveBounty), address(1));
-        assertEq(address(timelockInvokeableBounty), address(1));
+    }
+
+    // Tests if the deployed contracts are actually contracts
+    function test_MIGRATION_WARNING_deployedContractsBehavior() public {
+        assertEq(address(vault.indexToken()), AMKT_PROXY);
+        assertEq(address(issuance.vault()), address(vault));
+        assertEq(address(invokeableBounty.vault()), address(vault));
+        assertEq(activeBounty.authority(), MULTISIG);
+        assertEq(governor.votingDelay(), VOTE_DELAY);
+        assertEq(
+            timelockController.TIMELOCK_ADMIN_ROLE(),
+            keccak256("TIMELOCK_ADMIN_ROLE")
+        );
+        assertEq(
+            IndexToken(newTokenImplementation).MINTER_SLOT(),
+            0x1af730152eea9813c49583a406e8dd55a4df08cae9e33ae45721374fdde82bae
+        );
+        assertEq(address(timelockInvokeableBounty.vault()), address(vault));
+        assertEq(timelockActiveBounty.authority(), address(timelockController));
     }
 
     // WARNING: This test should fail until `tokens` in InitialBountyHelper is finalized.

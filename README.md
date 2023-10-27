@@ -2,7 +2,7 @@
 
 Alongside Crypto Market Index (AMKT) is a fully backed market index, providing exposure to a market-cap weighted basket of assets, to be rebalanced quarterly.
 
-The next iteration of AMKT moves custody on-chain, relying on `Vault` to custody underlying assets, and on token governance to submit accurate `Bounty` for the next set of underlying assets to rebalance.
+The next iteration of AMKT moves custody on-chain, relying on `Vault` to custody underlying assets, and on governance to submit accurate `Bounty` for the next set of underlying assets to rebalance.
 
 ---
 
@@ -38,7 +38,7 @@ The core system aims to be modular and minimal for maximal safety and extensibil
 
 ### Governance
 
-Governance is responsible for facilitating rebalances, configuring the Vault, and upgrading AMKT. Users can participate in governance with AMKT via [Tally](link-to-tally). Every governance action is subject to a minimum delay of 4 days, enforced by the `TimelockController`.
+Governance is responsible for facilitating rebalances, configuring the Vault, and upgrading AMKT. Users can participate in governance with AMKT via [Tally](link-to-tally). Every governance action besides rebalances is subject to a minimum delay of 4 days, enforced by the `TimelockController`.
 
 To prevent against a malicious token Governance takeover, the Governance Multisig is the only entity authorized to cancel and execute transactions scheduled in `TimelockController`.
 

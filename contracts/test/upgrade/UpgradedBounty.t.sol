@@ -33,17 +33,17 @@ contract UpgradedBountyTest is UpgradedTest {
         // generate a valid bounty
         Bounty memory bounty = _generateValidBounty(numTokensToAdd, rand);
         TokenInfo[] memory proposedUnits = bounty.infos;
-        bytes32 _hash = timelockInvokeableBounty.hashBounty(bounty);
+        bytes32 _hash = invokeableBounty.hashBounty(bounty);
 
         // set bounty by anyone except timelock should fail
         vm.startPrank(address(3));
         vm.expectRevert(IActiveBounty.ActiveBountyAuth.selector);
-        timelockActiveBounty.setHash(_hash);
+        activeBounty.setHash(_hash);
         vm.stopPrank();
 
         // set bounty by timelock should succeed
-        vm.prank(address(timelockController));
-        timelockActiveBounty.setHash(_hash);
+        vm.prank(address(MULTISIG));
+        activeBounty.setHash(_hash);
         _satisfyFulfillerBalances(address(this), bounty);
 
         // store balances for old and new tokens for vault and fulfiller (this contract) before fulfilling
@@ -75,11 +75,11 @@ contract UpgradedBountyTest is UpgradedTest {
         // fulfill bounty by anyone except fulfiller should fail
         vm.startPrank(address(4));
         vm.expectRevert(IInvokeableBounty.BountyInvalidFulfiller.selector);
-        timelockInvokeableBounty.fulfillBounty(bounty, false);
+        invokeableBounty.fulfillBounty(bounty, false);
         vm.stopPrank();
 
         // fulfill bounty by fulfiller should succeed
-        timelockInvokeableBounty.fulfillBounty(bounty, false);
+        invokeableBounty.fulfillBounty(bounty, false);
         return (
             oldUnits,
             proposedUnits,
@@ -208,7 +208,7 @@ contract UpgradedBountyTest is UpgradedTest {
                 continue;
             }
             IERC20(ins[i].token).approve(
-                address(timelockInvokeableBounty),
+                address(invokeableBounty),
                 type(uint256).max
             );
             dealer.dealToken(ins[i].token, fulfiller, ins[i].units); // only deal exactly the units needed
