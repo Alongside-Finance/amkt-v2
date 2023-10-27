@@ -60,6 +60,7 @@ import {fmul} from "src/lib/FixedPoint.sol";
 // | _checkpoints                     | mapping(address => struct ERC20VotesUpgradeable.Checkpoint[]) | 205  | 0      | 32    |
 // | _totalSupplyCheckpoints          | struct ERC20VotesUpgradeable.Checkpoint[]                     | 206  | 0      | 32    |
 // | __gap                            | uint256[47]                                                   | 207  | 0      | 1504  |                                                                        |
+// | __gap                            | uint256[6]                                                    | 254  | 0      | 192   |
 
 contract UpgradedStorageTest is UpgradedTest {
     function testStorageSlotUnstructured() public {
@@ -292,6 +293,9 @@ contract UpgradedStorageTest is UpgradedTest {
 
     //// SLOT 207 - 253
     // uint256[47] __gap
+
+    /// SLOT 254 - 259
+    // uint256[6] __gap
 
     function _bytes(uint256 x) internal pure returns (bytes32) {
         return bytes32(uint256(x));
