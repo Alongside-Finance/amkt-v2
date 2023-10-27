@@ -62,10 +62,10 @@ contract MigrationStepsTest is Test {
         assertTrue(false);
     }
 
-    function testStep8_insertInputCalldata() public {
-        // Insert the calldata for `inputBatchExecutionData` in `Upgraded.t.sol`
-        // Set `triggerMigrationWarning_executeUpgradeBundle` in `Upgraded.t.sol` to `false` upon completion
-        // Run `test_MIGRATION_WARNING_executeUpgradeBundle` and `test_MIGRATION_WARNING_expectedCalldataMatchesInputCalldata` to confirm this step is over.
+    function testStep8_tenderlyFork() public {
+        // Test state of tenderly fork of the upgrade bundle
+        // Set `forkOverrideUrl` in `Upgraded.t.sol` to the tenderly fork rpc url
+        // All tests should pass
         assertTrue(false);
     }
 
@@ -74,10 +74,10 @@ contract MigrationStepsTest is Test {
         assertTrue(false);
     }
 
-    function testStep10_tenderlyFork() public {
-        // Test state of tenderly fork of the upgrade bundle
-        // Set `forkOverrideUrl` in `Upgraded.t.sol` to the tenderly fork rpc url
-        // All tests should pass
+    function testStep10_insertInputCalldata() public {
+        // Insert the calldata for `inputBatchExecutionData` in `Upgraded.t.sol`, which should be copy pasted from the Gnosis Safe UI
+        // Set `triggerMigrationWarning_executeUpgradeBundle` in `Upgraded.t.sol` to `false` upon completion
+        // Run `test_MIGRATION_WARNING_executeUpgradeBundle` and `test_MIGRATION_WARNING_expectedCalldataMatchesInputCalldata` to confirm this step is over.
         assertTrue(false);
     }
 
