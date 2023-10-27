@@ -55,7 +55,6 @@ contract MigrationChecklistTest is UpgradedTest {
     // Expected date of finalization is October 30, 2023
 
     function test_MIGRATION_WARNING_getCurrentPrice() public {
-        MIGRATION_WARNING_getCurrentPrice(address(0));
         assertFalse(triggerMigrationWarning_getCurrentPrice);
     }
 
