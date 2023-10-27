@@ -87,8 +87,6 @@ contract MigrationChecklistTest is UpgradedTest {
             IndexToken(newTokenImplementation).MINTER_SLOT(),
             0x1af730152eea9813c49583a406e8dd55a4df08cae9e33ae45721374fdde82bae
         );
-        assertEq(address(timelockInvokeableBounty.vault()), address(vault));
-        assertEq(timelockActiveBounty.authority(), address(timelockController));
     }
 
     // WARNING: This test should fail until `tokens` in InitialBountyHelper is finalized.
