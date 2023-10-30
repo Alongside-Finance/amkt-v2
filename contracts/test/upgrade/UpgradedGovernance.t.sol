@@ -181,7 +181,7 @@ contract UpgradedGovernanceTest is UpgradedTest {
             keccak256("hash"),
             timelockController.getMinDelay()
         );
-        warpForward(4 days);
+        _warpForward(4 days);
         timelockController.execute(
             address(vault),
             0,
@@ -206,7 +206,7 @@ contract UpgradedGovernanceTest is UpgradedTest {
             keccak256("hash"),
             timelockController.getMinDelay()
         );
-        warpForward(4 days);
+        _warpForward(4 days);
         timelockController.execute(
             address(PROXY_ADMIN),
             0,

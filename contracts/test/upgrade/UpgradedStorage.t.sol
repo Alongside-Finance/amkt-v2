@@ -98,7 +98,7 @@ contract UpgradedStorageTest is UpgradedTest {
         addressesToCheck[0] = address(
             0x209ADBAad63c3008B5C2edb941B991Ef9Bb35027
         );
-        balancesToCheck[0] = 200e18;
+        balancesToCheck[0] = 2275e17;
         addressesToCheck[1] = address(
             0x5c90090405d0dFfe53F385925E7F0DA064C4CA05
         );

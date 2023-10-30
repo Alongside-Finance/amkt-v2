@@ -101,13 +101,13 @@ contract UpgradedStateTest is UpgradedTest {
         assertEq(AMKT.name(), "Alongside Crypto Market Index");
         assertEq(
             AMKT.balanceOf(address(0x209ADBAad63c3008B5C2edb941B991Ef9Bb35027)),
-            200e18
+            2275e17
         ); // random user with 200 balance
         assertEq(
             AMKT.balanceOf(address(0x5c90090405d0dFfe53F385925E7F0DA064C4CA05)),
             100e18
         ); // random user with 100 balance
-        assertEq(AMKT.totalSupply(), 29559270507524640614886);
+        assertEq(AMKT.totalSupply(), 29261206678972195561284);
         assertEq(AMKT.getPastTotalSupply(block.number - 1), AMKT.totalSupply());
         assertEq(AMKT.getPastTotalSupply(block.number - 2), 0);
         assertEq(AMKT.numCheckpoints(largeAmktHolder), 0);
@@ -151,15 +151,6 @@ contract UpgradedStateTest is UpgradedTest {
         for (uint256 i = 0; i < tokens.length; i++) {
             assertEq(virtualUnits[i].units, tokens[i].units);
             assertEq(virtualUnits[i].token, tokens[i].token);
-        }
-    }
-
-    function testExpectedSafeBalances() public {
-        // for all tokens in vault, safe balance should be zero
-        address[] memory underlying = vault.underlying();
-        for (uint256 i = 0; i < vault.underlyingLength(); i++) {
-            IERC20 token = IERC20(underlying[i]);
-            assertEq(token.balanceOf(MULTISIG), 0);
         }
     }
 

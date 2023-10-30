@@ -27,7 +27,7 @@ contract MigrationChecklistTest is UpgradedTest {
     bool triggerMigrationWarning_getCurrentPrice;
 
     function test_printBatchExecutionData() public view {
-        bool shouldPrintExecutionData = false;
+        bool shouldPrintExecutionData = true;
         if (shouldPrintExecutionData) {
             console.logBytes(batchExecutionData);
         }
@@ -39,23 +39,10 @@ contract MigrationChecklistTest is UpgradedTest {
         assertFalse(triggerMigrationWarning_forkBlock);
     }
 
-    // WARNING: This test should fail until warping is no longer used in test preparation.
-    // Expected date of finalization is October 30, 2023
-    function test_MIGRATION_WARNING_warpForward() public {
-        assertFalse(triggerMigrationWarning_warpForward);
-    }
-
     // WARNING: This test should fail until safe balances are no longer mocked
     // Expected date of finalization is October 30, 2023
     function test_MIGRATION_WARNING_safeBalances() public {
         assertFalse(triggerMigrationWarning_safeBalances);
-    }
-
-    // WARNING: This test should fail until latest prices are known for migration
-    // Expected date of finalization is October 30, 2023
-
-    function test_MIGRATION_WARNING_getCurrentPrice() public {
-        assertFalse(triggerMigrationWarning_getCurrentPrice);
     }
 
     // WARNING:
@@ -63,13 +50,42 @@ contract MigrationChecklistTest is UpgradedTest {
     // Expected date of finalization is October 30, 2023
     function test_MIGRATION_WARNING_deployedContracts() public {
         assertFalse(triggerMigrationWarning_setDeployedContracts);
-        assertEq(address(vault), address(1));
-        assertEq(address(issuance), address(1));
-        assertEq(address(invokeableBounty), address(1));
-        assertEq(address(activeBounty), address(1));
-        assertEq(address(governor), address(payable(address(1))));
-        assertEq(address(timelockController), address(payable(address(1))));
-        assertEq(newTokenImplementation, address(1));
+        assertEq(
+            address(vault),
+            address(0xf3bCeDaB2998933c6AAD1cB31430D8bAb329dD8C)
+        );
+        assertEq(
+            address(issuance),
+            address(0x7D1775061A3a713E778aF23806330B532Fa006B0)
+        );
+        assertEq(
+            address(invokeableBounty),
+            address(0xE13Ee59C41c67696754277cDC73710f6D65Ef2Ac)
+        );
+        assertEq(
+            address(activeBounty),
+            address(0x0DAF7e851f6054085432229150c1706988aBc562)
+        );
+        assertEq(
+            address(governor),
+            address(
+                payable(address(0xb6a6f2a56693Dc4f893f8396D945f7dFe03aA9ba))
+            )
+        );
+        assertEq(
+            address(timelockController),
+            address(
+                payable(address(0x4c362faB50Bc81F0F58ef2DA6b6E10b55FC1d478))
+            )
+        );
+        assertEq(
+            newTokenImplementation,
+            address(0xE006fC6Dc996Ba5361Cb880fEf76f8aA9D5A7f70)
+        );
+        assertEq(
+            address(quoter),
+            address(0xE3BE63E1B959c152212ce1dD45D0d2f749eB227c)
+        );
     }
 
     // Tests if the deployed contracts are actually contracts
@@ -139,8 +155,10 @@ contract MigrationChecklistTest is UpgradedTest {
             nav += value;
         }
         // WARNING: update expected NAV value here
-        assertGe(nav, 2_500_000e18); // sanity check: greater than 2.5 million TODO: pull this number from market cap
-        assertLe(nav, 2_510_000e18); // sanity checl: less than 2.51 million TODO: pull this number from market cap
+        // 3078134.67677
+        assertGe(nav, 3_000_000e18); // sanity check: greater than 3 million TODO: pull this number from market cap
+        assertLe(nav, 3_100_000e18); // sanity check: less than 3.1 million TODO: pull this number from market cap
+        assertFalse(triggerMigrationWarning_getCurrentPrice); // This test should fail until latest prices are known for migration
     }
 
     // WARNING: Manual prices must be updated upon finalization
@@ -148,7 +166,7 @@ contract MigrationChecklistTest is UpgradedTest {
     function MIGRATION_WARNING_getCurrentPrice(
         address token
     ) internal returns (uint256) {
-        triggerMigrationWarning_getCurrentPrice = true; // Flip when manual prices are finalized
+        triggerMigrationWarning_getCurrentPrice = false; // Flip when manual prices are finalized
         address[] memory oracles = new address[](15);
         uint256[] memory manualPrices = new uint256[](15); // for tokens that don't have a chainlink oracle, use prices manually
         oracles[0] = address(0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c); // BTC
@@ -157,15 +175,15 @@ contract MigrationChecklistTest is UpgradedTest {
         oracles[3] = address(0x4ffC43a60e009B551865A93d232E33Fce9f01507); // SOL
         oracles[4] = address(0x7bAC85A8a13A4BcD8abb3eB7d6b4d632c5a57676); // MATIC
         oracles[5] = address(0x2c1d072e956AFFC0D435Cb7AC38EF18d24d9127c); // LINK
-        manualPrices[6] = 6910000000000; // SHIB
+        manualPrices[6] = 7993000000000; // SHIB
         oracles[7] = address(0xFF3EEb22B5E3dE6e705b44749C2559d704923FD7); // AVAX
         oracles[8] = address(0x553303d460EE0afB37EdFf9bE42922D8FF63220e); // UNI
         oracles[9] = address(0xec1D1B3b0443256cc3860e24a46F108e699484Aa); // MKR
-        manualPrices[10] = 15200000000000000; //LDO
-        manualPrices[11] = 490430000000000; // CRO
-        manualPrices[12] = 3528950000000000; // MNT
-        manualPrices[13] = 12400000000000000; // OP
-        manualPrices[14] = 85770000000000000000; // QNT
+        manualPrices[10] = 1810000000000000000; //LDO
+        manualPrices[11] = 60340000000000000; // CRO
+        manualPrices[12] = 378200000000000000; // MNT
+        manualPrices[13] = 1410000000000000000; // OP
+        manualPrices[14] = 104870000000000000000; // QNT
 
         TokenInfo[] memory tokens = vault.virtualUnits();
         for (uint256 i = 0; i < tokens.length; i++) {
