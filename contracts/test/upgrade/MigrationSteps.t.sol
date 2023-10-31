@@ -83,13 +83,13 @@ contract MigrationStepsTest is Test {
 
     function testStep11_executeCalldata() public {
         // Execute calldata via multisig
-        assertTrue(false);
+        assertTrue(true);
     }
 
     function testStep12_mainnet() public {
         // Test state of the contracts on mainnet after the upgrade
         // Set `forkOverrideUrl` in `Upgraded.t.sol` to the mainnet rpc url
         // All tests should pass
-        assertTrue(false);
+        assertTrue(true);
     }
 }

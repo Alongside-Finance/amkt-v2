@@ -180,15 +180,15 @@ contract MigrationChecklistTest is UpgradedTest {
         oracles[3] = address(0x4ffC43a60e009B551865A93d232E33Fce9f01507); // SOL
         oracles[4] = address(0x7bAC85A8a13A4BcD8abb3eB7d6b4d632c5a57676); // MATIC
         oracles[5] = address(0x2c1d072e956AFFC0D435Cb7AC38EF18d24d9127c); // LINK
-        manualPrices[6] = 7993000000000; // SHIB
+        manualPrices[6] = 7790000000000; // SHIB
         oracles[7] = address(0xFF3EEb22B5E3dE6e705b44749C2559d704923FD7); // AVAX
         oracles[8] = address(0x553303d460EE0afB37EdFf9bE42922D8FF63220e); // UNI
         oracles[9] = address(0xec1D1B3b0443256cc3860e24a46F108e699484Aa); // MKR
-        manualPrices[10] = 1810000000000000000; //LDO
-        manualPrices[11] = 60340000000000000; // CRO
-        manualPrices[12] = 378200000000000000; // MNT
-        manualPrices[13] = 1410000000000000000; // OP
-        manualPrices[14] = 104870000000000000000; // QNT
+        manualPrices[10] = 1770000000000000000; //LDO
+        manualPrices[11] = 60563000000000000; // CRO
+        manualPrices[12] = 375308000000000000; // MNT
+        manualPrices[13] = 1380000000000000000; // OP
+        manualPrices[14] = 102200000000000000000; // QNT
 
         TokenInfo[] memory tokens = vault.virtualUnits();
         for (uint256 i = 0; i < tokens.length; i++) {
