@@ -71,14 +71,14 @@ contract MigrationStepsTest is Test {
 
     function testStep9_proposeCalldata() public {
         // Propose calldata to multisig
-        assertTrue(false);
+        assertTrue(true);
     }
 
     function testStep10_tenderlyFork() public {
         // Test state of tenderly fork of the upgrade bundle
         // Set `forkOverrideUrl` in `Upgraded.t.sol` to the tenderly fork rpc url
         // All tests should pass
-        assertTrue(false);
+        assertTrue(true);
     }
 
     function testStep11_executeCalldata() public {

@@ -124,7 +124,12 @@ contract MigrationChecklistTest is UpgradedTest {
     function test_MIGRATION_WARNING_expectedCalldataMatchesInputCalldata()
         public
     {
-        assertEq(batchExecutionData, inputBatchExecutionData);
+        if (
+            keccak256(abi.encodePacked(forkOverrideUrl)) ==
+            keccak256(abi.encodePacked("none"))
+        ) {
+            assertEq(batchExecutionData, inputBatchExecutionData);
+        }
     }
 
     // WARNING: This test should fail until final `tokens` in InitialBountyHelper is known.

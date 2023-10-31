@@ -267,7 +267,8 @@ contract UpgradedStorageTest is UpgradedTest {
         );
         assertEq(
             vm.load(address(AMKT), totalSupplyCheckpointsHash),
-            (bytes32(block.number - 1)) | (bytes32(AMKT.totalSupply()) << 32)
+            (bytes32(batchExecutionBlock - 1)) |
+                (bytes32(AMKT.totalSupply()) << 32)
         ); // block.number is casted to 32 bits by SafeCastUpgradeable.toUint32
 
         assertEq(
@@ -275,7 +276,7 @@ contract UpgradedStorageTest is UpgradedTest {
             bytes32(
                 abi.encodePacked(
                     uint224(AMKT.totalSupply()),
-                    uint32(block.number - 1)
+                    uint32(batchExecutionBlock - 1)
                 )
             )
         ); // check using encodePacked too

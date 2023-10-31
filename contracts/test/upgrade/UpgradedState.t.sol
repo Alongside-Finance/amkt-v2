@@ -109,7 +109,11 @@ contract UpgradedStateTest is UpgradedTest {
         ); // random user with 100 balance
         assertEq(AMKT.totalSupply(), 29261206678972195561284);
         assertEq(AMKT.getPastTotalSupply(block.number - 1), AMKT.totalSupply());
-        assertEq(AMKT.getPastTotalSupply(block.number - 2), 0);
+        assertEq(
+            AMKT.getPastTotalSupply(batchExecutionBlock - 1),
+            AMKT.totalSupply()
+        );
+        assertEq(AMKT.getPastTotalSupply(batchExecutionBlock - 2), 0);
         assertEq(AMKT.numCheckpoints(largeAmktHolder), 0);
     }
 
