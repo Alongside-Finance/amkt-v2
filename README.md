@@ -38,7 +38,7 @@ The core system aims to be modular and minimal for maximal safety and extensibil
 
 ### Governance
 
-Governance is responsible for facilitating rebalances, configuring the Vault, and upgrading AMKT. Users can participate in governance with AMKT via [Tally](link-to-tally). Every governance action besides rebalances is subject to a minimum delay of 4 days, enforced by the `TimelockController`.
+Governance is responsible for facilitating rebalances, configuring the Vault, and upgrading AMKT. Users can participate in governance with AMKT via [Tally](https://tally.xyz/gov/amkt). Every governance action besides rebalances is subject to a minimum delay of 4 days, enforced by the `TimelockController`.
 
 To prevent against a malicious token Governance takeover, the Governance Multisig is the only entity authorized to cancel and execute transactions scheduled in `TimelockController`.
 
@@ -67,7 +67,6 @@ Additionally, [Halmos](https://github.com/a16z/halmos) is used for symbolic test
 - [Docs](https://docs.amktdao.com/amkt-documentation/)
 - [Bug Bounty](https://immunefi.com/bounty/alongside/)
 - [DAO Forum](https://discuss.amktdao.com/)
-- [DAO Governance](link-to-tally)
-- [Arbitrage Bot](link-to-arbitrage-bot)
+- [DAO Governance](https://tally.xyz/gov/amkt)
 
 ##
