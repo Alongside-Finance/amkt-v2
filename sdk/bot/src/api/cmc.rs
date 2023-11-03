@@ -112,7 +112,7 @@ impl DataProvider for CMCDataProvider {
             .data
             .into_iter()
             .next()
-            .expect("We should have gotten a quote");
+            .expect(&format!("we should have gotten a quote for {}", ticker));
 
         Ok(quote
             .numeraire

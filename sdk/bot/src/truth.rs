@@ -4,8 +4,9 @@ use serde::{Deserialize, Serialize};
 use v3::pool::FeeTier;
 
 lazy_static::lazy_static! {
-    pub static ref ISSUANCE_ADDRESS: Address = "0x46ad895B3f627b22A4B14E010d0F2ddc5088492A".parse().unwrap();
-    pub static ref VAULT_ADDRESS: Address = "0xE289fa751f8E4A05035B75B8033175ab4F38adDB".parse().unwrap();
+    pub static ref ISSUANCE_ADDRESS: Address = "0x7D1775061A3a713E778aF23806330B532Fa006B0".parse().unwrap();
+    pub static ref VAULT_ADDRESS: Address = "0xf3bCeDaB2998933c6AAD1cB31430D8bAb329dD8C".parse().unwrap();
+    pub static ref QUOTER_ADDRESS: Address = "0xE3BE63E1B959c152212ce1dD45D0d2f749eB227c".parse().unwrap();
     pub static ref UNISWAP_V3_ROUTER_ADDRESS: Address = "0xE592427A0AEce92De3Edee1F18E0157C05861564".parse().unwrap();
     pub static ref EXECUTE: bool = crate::Args::parse().execute;
 }
@@ -78,8 +79,10 @@ macro_rules! create_known_tickers {
 }
 
 create_known_tickers! {
+    (USDC, "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
     (BTC,"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"),
-    (ETH,"0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0"),
+    (WSTETH,"0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0"),
+    (WETH, "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"),
     (MATIC,"0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0"),
     (FTM,"0x4E15361FD6b4BB609Fa63C81A2be19d873717870"),
     (SHIB,"0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE"),

@@ -1,12 +1,18 @@
 use crate::{
     api::DataProvider,
-    eth_executor::Command,
+    eth_executor::{Command, ExecutorHandle},
     strategy::Strategy,
-    truth::{KnownTicker, VAULT_ADDRESS},
+    truth::{KnownTicker, QUOTER_ADDRESS, VAULT_ADDRESS},
     utils::run_with_shutdown,
 };
-use bindings::vault::{TokenInfo, Vault};
-use ethers::{middleware::Middleware, signers::Signer, types::Address};
+use amkt_bindings::{
+    quoter::Quoter,
+    vault::{TokenInfo, Vault},
+};
+use ethers::{
+    middleware::Middleware,
+    types::{Address, U256},
+};
 use rug::{ops::Pow, Float};
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::Mutex;
@@ -25,10 +31,9 @@ where
 {
     strats: Vec<Box<dyn Strategy<M, P>>>,
     sleep: tokio::time::Duration,
-    /// kinda hacky way to let the task spawned own the reciver after self is moved into an arc
-    shutdown: Option<tokio::sync::oneshot::Receiver<()>>,
+    executor_shutdown: Option<tokio::sync::oneshot::Receiver<()>>,
     /// A channel to send commands to the eth executor
-    pub tx: tokio::sync::mpsc::Sender<Vec<Command>>,
+    pub executor_handle: ExecutorHandle,
     pub middleware: Arc<M>,
     pub data_provider: P,
     /// The uniswap v3 factory wrapper
@@ -37,38 +42,42 @@ where
     pub cached_pools: Mutex<HashMap<&'static str, Arc<Pool<M>>>>,
     /// The vault contract for amkt
     pub vault: Vault<M>,
+    pub quoter: Quoter<M>,
 }
 
 impl<M, P> Orchestrator<M, P>
 where
     M: Middleware + Send + Sync + 'static,
     P: DataProvider + Send + Sync + 'static,
+    Self: Send + Sync + 'static,
 {
     pub fn new(
         middleware: Arc<M>,
+        executor_handle: ExecutorHandle,
         data_provider: P,
-        tx: tokio::sync::mpsc::Sender<Vec<Command>>,
-        shutdown: tokio::sync::oneshot::Receiver<()>,
+        executor_shutdown: Option<tokio::sync::oneshot::Receiver<()>>,
         sleep: tokio::time::Duration,
     ) -> Orchestrator<M, P> {
         let factory = Factory::new(*FACTORY_ADDRESS, middleware.clone());
         let vault = Vault::new(*VAULT_ADDRESS, middleware.clone());
+        let quoter = Quoter::new(*QUOTER_ADDRESS, middleware.clone());
 
         Self {
             strats: Vec::new(),
             sleep,
-            shutdown: Some(shutdown),
-            tx,
+            executor_shutdown,
+            executor_handle,
             data_provider,
             middleware,
             factory,
             cached_pools: Mutex::new(HashMap::new()),
             vault,
+            quoter,
         }
     }
 
     pub async fn run(mut self) {
-        let shutdown = self.shutdown.take().expect("Reciver should be here");
+        let executor_shutdown = self.executor_shutdown.take();
 
         let orc = Arc::new(self);
 
@@ -83,14 +92,20 @@ where
             }
         });
 
-        tokio::select! {
-            _ = fut => {
-                tracing::info!("Orchestrator shutdown");
-                return;
-            },
-            _ = shutdown => {
-                tracing::info!("Oneshot Shutdown signal received, shutting down");
-                return;
+        match executor_shutdown {
+            Some(executor_shutdown) => {
+                tokio::select! {
+                    _ = fut => {
+                        tracing::error!("Shutdown flag enabled, Executor Reached max retries or reverts, shutting down");
+
+                    },
+                    _ = executor_shutdown => {
+                        tracing::debug!("Shutdown recived from executor")
+                    }
+                }
+            }
+            None => {
+                fut.await;
             }
         }
     }
@@ -98,7 +113,10 @@ where
     /// serially execute strategies
     pub async fn execute_strategies(self: Arc<Self>) {
         for strategy in &self.strats {
-            match strategy.execute(self.tx.clone(), self.clone()).await {
+            match strategy
+                .execute(self.executor_handle.clone(), self.clone())
+                .await
+            {
                 Ok(_) => tracing::info!("Strategy executed"),
                 Err(e) => tracing::warn!("Strategy failed to execute: {}", e),
             }
@@ -110,7 +128,8 @@ where
         self
     }
 
-    pub async fn nav(&self) -> anyhow::Result<f64> {
+    /// returns the NAV price of AMKT in USD
+    pub async fn nav(&self) -> anyhow::Result<rug::Float> {
         let assets = self
             .vault
             .virtual_units()
@@ -151,17 +170,45 @@ where
 
                         let value = float_nominal * price;
 
-                        Ok(value.to_f64())
+                        Ok(value)
                     }
                     Err(e) => Err(e),
                 }
             })
             .collect::<Vec<_>>();
 
-        Ok(futures::future::try_join_all(futs).await?.iter().sum())
+        let results = futures::future::try_join_all(futs).await?;
+
+        Ok(results
+            .into_iter()
+            .fold(rug::Float::with_val(100, 0), |init, curr| init + curr))
     }
 
-    pub async fn data_provider_price(&self, ticker: KnownTicker) -> anyhow::Result<f64> {
-        self.data_provider.price(ticker).await
+    pub async fn underlying(&self) -> anyhow::Result<Vec<Address>> {
+        let assets = self
+            .vault
+            .virtual_units()
+            .call()
+            .await?
+            .into_iter()
+            .map(|TokenInfo { token: addr, .. }| addr)
+            .collect::<Vec<_>>();
+
+        Ok(assets)
+    }
+
+    pub async fn quote_mint(&self, amount: U256) -> anyhow::Result<Vec<TokenInfo>> {
+        Ok(self.quoter.quote_issue(amount).call().await?)
+    }
+
+    pub async fn quote_burn(&self, amount: U256) -> anyhow::Result<Vec<TokenInfo>> {
+        Ok(self.quoter.quote_redeem(amount).call().await?)
+    }
+
+    pub async fn data_provider_price(&self, ticker: KnownTicker) -> anyhow::Result<rug::Float> {
+        Ok(rug::Float::with_val(
+            100,
+            self.data_provider.price(ticker).await?,
+        ))
     }
 }

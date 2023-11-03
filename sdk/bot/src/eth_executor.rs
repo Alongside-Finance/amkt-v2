@@ -1,6 +1,6 @@
 use crate::truth::{self, ISSUANCE_ADDRESS, UNISWAP_V3_ROUTER_ADDRESS};
 use crate::utils::run_with_shutdown;
-use bindings::{erc20::ERC20, issuance::Issuance};
+use amkt_bindings::{erc20::ERC20, issuance::Issuance};
 use ethers::contract::ContractError;
 use ethers::middleware::SignerMiddleware;
 use ethers::types::Bytes;
@@ -18,13 +18,73 @@ ethers::contract::abigen! {
     "src/abi/ISwapRouter.json",
 }
 
+/// A handle and convience wrapper to interacting with the executor
+#[derive(Clone)]
+pub struct ExecutorHandle {
+    pub tx: mpsc::Sender<Command>,
+    pub address: Address,
+}
+
+impl ExecutorHandle {
+    pub async fn estimate_gas(
+        &self,
+        txs: Vec<TxType>,
+    ) -> anyhow::Result<oneshot::Receiver<anyhow::Result<U256>>> {
+        let (sender, receiver) = oneshot::channel::<anyhow::Result<U256>>();
+
+        let _ = self.tx.send(Command::EstimateGas(sender, txs)).await?;
+
+        Ok(receiver)
+    }
+
+    pub async fn execute(
+        &self,
+        txs: Vec<TxType>,
+    ) -> anyhow::Result<oneshot::Receiver<anyhow::Result<()>>> {
+        let (send, rx) = oneshot::channel::<anyhow::Result<()>>();
+
+        let _ = self.tx.send(Command::Execute(send, txs)).await?;
+
+        Ok(rx)
+    }
+}
+
 type FunctionCall<D, M, S> =
     ethers::contract::FunctionCall<Arc<SignerMiddleware<M, S>>, SignerMiddleware<M, S>, D>;
 
+#[derive(Clone, Copy)]
+enum Mode {
+    EstimateGas,
+    Execute,
+}
+
+impl Mode {
+    fn is_execute(&self) -> bool {
+        match self {
+            Mode::EstimateGas => false,
+            Mode::Execute => true,
+        }
+    }
+}
+
 pub enum Command {
-    Swap {
+    EstimateGas(oneshot::Sender<anyhow::Result<U256>>, Vec<TxType>),
+    Execute(oneshot::Sender<anyhow::Result<()>>, Vec<TxType>),
+}
+
+#[derive(Clone)]
+pub enum TxType {
+    ExactOutput {
         input: Address,
         output: Address,
+        max_in: U256,
+        amount: U256,
+        fee: FeeTier,
+    },
+    ExactInput {
+        input: Address,
+        output: Address,
+        min_out: U256,
         amount: U256,
         fee: FeeTier,
     },
@@ -54,14 +114,16 @@ where
     M: Middleware + 'static,
 {
     signer_middleware: Arc<SignerMiddleware<M, S>>,
-    rx: mpsc::Receiver<Vec<Command>>,
+    rx: mpsc::Receiver<Command>,
     shutdown: Option<oneshot::Sender<()>>,
     issuance: Issuance<SignerMiddleware<M, S>>,
     router: ISwapRouter<SignerMiddleware<M, S>>,
+    running_sum: Option<U256>,
     confirmations: usize,
+    /// errors that dont cost money
     retry: usize,
+    /// errors that cost money
     reverts: usize,
-    should_shutdown: bool,
 }
 
 impl<S, M> EthExecutor<S, M>
@@ -70,6 +132,7 @@ where
     M: Middleware + 'static,
 {
     /// creates a new thread and returns a cloneable sender to send commands to it
+    /// also returns a oneshot reciver that will be sent a message if the executor errors
     pub fn spawn(
         middleware: M,
         signer: S,
@@ -77,13 +140,20 @@ where
         retry: usize,
         reverts: usize,
         should_shutdown: bool,
-    ) -> (mpsc::Sender<Vec<Command>>, oneshot::Receiver<()>) {
+    ) -> (ExecutorHandle, Option<oneshot::Receiver<()>>) {
         let (tx, rx) = mpsc::channel(20);
-        let (shutdown, shutdown_recv) = oneshot::channel::<()>();
+        let (shutdown, shutdown_recv) = if should_shutdown {
+            let (tx, rx) = oneshot::channel::<()>();
+            (Some(tx), Some(rx))
+        } else {
+            (None, None)
+        };
 
         let signer_middleware = Arc::new(ethers::middleware::SignerMiddleware::new(
             middleware, signer,
         ));
+
+        let address = signer_middleware.address();
 
         let _ = std::thread::spawn(move || {
             let issuance = Issuance::new(*ISSUANCE_ADDRESS, signer_middleware.clone());
@@ -96,9 +166,9 @@ where
                 rx,
                 confirmations,
                 retry,
-                shutdown: Some(shutdown),
+                shutdown,
                 reverts,
-                should_shutdown,
+                running_sum: None,
             };
 
             let rt = tokio::runtime::Builder::new_current_thread()
@@ -111,7 +181,7 @@ where
             });
         });
 
-        (tx, shutdown_recv)
+        (ExecutorHandle { address, tx }, shutdown_recv)
     }
 
     /// blocks the runtime thread while it waits for message
@@ -120,66 +190,109 @@ where
     ///
     /// doesnt spawn a task becuase we want them to be serially executed
     async fn handle_commands(mut self) {
-        while let Some(commands) = self.rx.recv().await {
-            for command in commands {
-                let res = match command {
-                    Command::Swap {
+        while let Some(command) = self.rx.recv().await {
+            let (mode, txs, mut maybe_gas_sender, mut maybe_status_sender) = match command {
+                Command::EstimateGas(sender, txs) => {
+                    self.running_sum = Some(U256::zero());
+                    (Mode::EstimateGas, txs, Some(sender), None)
+                }
+                Command::Execute(sender, txs) => (Mode::Execute, txs, None, Some(sender)),
+            };
+
+            for tx in txs.into_iter() {
+                let res = match tx {
+                    TxType::ExactOutput {
                         input,
                         output,
                         amount,
                         fee,
+                        max_in,
                     } => {
-                        tracing::info!("Swapping with {:?}", self.signer_middleware.address());
-
-                        self.handle_swap(input, output, amount, fee).await
+                        tracing::debug!("Executing Exact Output");
+                        self.handle_exact_output(mode, input, output, amount, max_in, fee)
+                            .await
                     }
-                    Command::Approve {
+                    TxType::ExactInput {
+                        input,
+                        output,
+                        min_out,
+                        amount,
+                        fee,
+                    } => {
+                        tracing::debug!("Executing Exact Input");
+                        self.handle_exact_input(mode, input, output, amount, min_out, fee)
+                            .await
+                    }
+                    TxType::Approve {
                         token,
                         spender,
                         amount,
                     } => {
-                        tracing::info!("Approving with {:?}", self.signer_middleware.address());
-
-                        self.handle_approve(token, spender, amount).await
+                        tracing::debug!("Executing Approval");
+                        self.handle_approve(mode, token, spender, amount).await
                     }
-                    Command::Mint { amount } => {
-                        tracing::info!(
-                            "Minting with {:?} amount {}",
-                            self.signer_middleware.address(),
-                            amount
-                        );
-
-                        self.handle_mint(amount).await
+                    TxType::Mint { amount } => {
+                        tracing::debug!("Executing Mint");
+                        self.handle_mint(mode, amount).await
                     }
-                    Command::Burn { amount } => {
-                        tracing::info!(
-                            "Burning with {:?} amount {}",
-                            self.signer_middleware.address(),
-                            amount
-                        );
-
-                        self.handle_burn(amount).await
+                    TxType::Burn { amount } => {
+                        tracing::debug!("Executing Burn");
+                        self.handle_burn(mode, amount).await
                     }
-                    Command::Signed { tx } => {
-                        tracing::info!("Sending tx {:?}", tx);
-
-                        self.handle_signed(tx).await
+                    TxType::Signed { tx } => {
+                        tracing::debug!("Executing Signed");
+                        self.handle_signed(mode, tx).await
                     }
                 };
 
-                if let Err(_) = res {
-                    // if weve reached this point it means that weve either exceeded the retry or revert limit
-                    // we condintally shut down based on runtime command
-                    if self.should_shutdown {
-                        self.shutdown
-                            .take()
-                            .expect("Shutdown to be here")
-                            .send(())
-                            .expect("To send shutdown");
+                // if weve reached this point it means that weve either exceeded the retry or revert limit
+                // or it means gas estimation failed
+                // we condintally shut down based on runtime command
+                if let Err(e) = res {
+                    tracing::error!("Executor Error: {}", e);
+
+                    if mode.is_execute() {
+                        let sender = maybe_status_sender.take().expect("A sender to be here");
+                        let _ = sender.send(Err(e));
+
+                        match self.shutdown {
+                            Some(shutdown) => {
+                                let _ = shutdown.send(());
+                                return;
+                            }
+                            None => {}
+                        }
                     } else {
-                        // if no shutdown then we should break and wait for next bundle
-                        break;
+                        tracing::error!("Gas Estimation failed");
+                        let sender = maybe_gas_sender.take().expect("A sender to be here");
+
+                        let _ = sender.send(Err(anyhow::anyhow!(
+                            "Executor doesnt retry on gas estimation {}",
+                            e
+                        )));
                     }
+
+                    break;
+                }
+            }
+
+            if mode.is_execute() {
+                match maybe_status_sender {
+                    Some(sender) => {
+                        let _ = sender.send(Ok(()));
+                    }
+                    // If there is no sender than we had an error and its already been sent
+                    None => {}
+                }
+            } else {
+                match maybe_gas_sender {
+                    Some(sender) => {
+                        let _ = sender.send(Ok(self
+                            .running_sum
+                            .expect("Running sum to be here on estimate gas")));
+                    }
+                    // If there is no sender than we had an error and its already been sent
+                    None => {}
                 }
             }
         }
@@ -187,78 +300,207 @@ where
 
     async fn handle_approve(
         &mut self,
+        mode: Mode,
         token: Address,
         spender: Address,
         amount: U256,
     ) -> anyhow::Result<()> {
-        if *truth::EXECUTE {
-            let erc20 = ERC20::new(token, self.signer_middleware.clone());
-            let tx = erc20.approve(spender, amount);
+        let erc20 = ERC20::new(token, self.signer_middleware.clone());
+        let tx = erc20.approve(spender, amount);
 
-            self.handle_tx(tx, "Approve").await?;
+        match mode {
+            Mode::EstimateGas => {
+                let gas = tx.estimate_gas().await?;
+                self.running_sum = Some(
+                    self.running_sum
+                        .expect("Running sum to be here on estimate gas")
+                        + gas,
+                );
+            }
+            Mode::Execute => {
+                if *truth::EXECUTE {
+                    Self::execute_tx(tx, self.confirmations, self.retry, self.reverts, "Approve")
+                        .await?;
+                }
+            }
         }
 
         Ok(())
     }
 
-    async fn handle_mint(&mut self, amount: U256) -> anyhow::Result<()> {
-        if *truth::EXECUTE {
-            let tx = self.issuance.issue(amount);
+    async fn handle_mint(&mut self, mode: Mode, amount: U256) -> anyhow::Result<()> {
+        let tx = self.issuance.issue(amount);
 
-            self.handle_tx(tx, "Mint").await?;
+        match mode {
+            Mode::EstimateGas => {
+                let gas = tx.estimate_gas().await?;
+                self.running_sum = Some(
+                    self.running_sum
+                        .expect("Running sum to be here on estimate gas")
+                        + gas,
+                );
+            }
+            Mode::Execute => {
+                if *truth::EXECUTE {
+                    Self::execute_tx(tx, self.confirmations, self.retry, self.reverts, "Mint")
+                        .await?;
+                }
+            }
         }
 
         Ok(())
     }
 
-    async fn handle_burn(&mut self, amount: U256) -> anyhow::Result<()> {
-        if *truth::EXECUTE {
-            let tx = self.issuance.redeem(amount);
+    async fn handle_burn(&mut self, mode: Mode, amount: U256) -> anyhow::Result<()> {
+        let tx = self.issuance.redeem(amount);
 
-            self.handle_tx(tx, "Burn").await?;
+        match mode {
+            Mode::EstimateGas => {
+                let gas = tx.estimate_gas().await?;
+                self.running_sum = Some(
+                    self.running_sum
+                        .expect("Running sum to be here on estimate gas")
+                        + gas,
+                );
+            }
+            Mode::Execute => {
+                if *truth::EXECUTE {
+                    Self::execute_tx(tx, self.confirmations, self.retry, self.reverts, "Burn")
+                        .await?;
+                }
+            }
         }
 
         Ok(())
     }
 
-    async fn handle_signed(&mut self, tx: Transaction) -> anyhow::Result<()> {
+    async fn handle_signed(&mut self, mode: Mode, tx: Transaction) -> anyhow::Result<()> {
         todo!()
     }
 
-    async fn handle_swap(
+    async fn handle_exact_output(
         &mut self,
+        mode: Mode,
         input: Address,
         output: Address,
         amount: U256,
+        max_in: U256,
         fee: FeeTier,
     ) -> anyhow::Result<()> {
-        if *truth::EXECUTE {
-            let last_block = self.signer_middleware.get_block_number().await?;
+        let last_block = self.signer_middleware.get_block_number().await?;
 
-            let last_block_timestmap = self
-                .signer_middleware
-                .get_block(last_block)
-                .await?
-                .expect("A block to be there")
-                .timestamp;
+        let last_block_timestmap = self
+            .signer_middleware
+            .get_block(last_block)
+            .await?
+            .expect("A block to be there")
+            .timestamp;
 
-            let tx = self.router.exact_output(ExactOutputParams {
-                // encoded backwards because were using an exact output
-                path: encode_path(&[output, input], fee),
-                recipient: self.signer_middleware.address(),
-                // fixed 10 block deadline
-                deadline: last_block_timestmap + 120,
-                amount_out: amount,
-                amount_in_maximum: U256::MAX,
-            });
+        let tx = self.router.exact_output(ExactOutputParams {
+            // encoded backwards because were using an exact output
+            path: encode_path(&[output, input], fee).into(),
+            recipient: self.signer_middleware.address(),
+            // fixed 10 block deadline
+            deadline: last_block_timestmap + 120,
+            amount_out: amount,
+            amount_in_maximum: max_in,
+        });
 
-            self.handle_tx(tx, "Swap").await?;
+        tracing::debug!(
+            "calldata: {:?}",
+            hex::encode(&tx.calldata().expect("calldata"))
+        );
+        tracing::debug!(
+            "to {:?}",
+            hex::encode(tx.tx.to().unwrap().as_address().unwrap())
+        );
+
+        match mode {
+            Mode::EstimateGas => {
+                let gas = tx.estimate_gas().await?;
+                self.running_sum = Some(
+                    self.running_sum
+                        .expect("Running sum to be here on estimate gas")
+                        + gas,
+                );
+            }
+            Mode::Execute => {
+                if *truth::EXECUTE {
+                    Self::execute_tx(
+                        tx,
+                        self.confirmations,
+                        self.retry,
+                        self.reverts,
+                        "Exact Output",
+                    )
+                    .await?;
+                }
+            }
         }
 
         Ok(())
     }
 
-    async fn handle_tx<D>(&mut self, tx: FunctionCall<D, M, S>, label: &str) -> anyhow::Result<()>
+    async fn handle_exact_input(
+        &mut self,
+        mode: Mode,
+        input: Address,
+        output: Address,
+        min_out: U256,
+        amount: U256,
+        fee: FeeTier,
+    ) -> anyhow::Result<()> {
+        let last_block = self.signer_middleware.get_block_number().await?;
+
+        let last_block_timestmap = self
+            .signer_middleware
+            .get_block(last_block)
+            .await?
+            .expect("A block to be there")
+            .timestamp;
+
+        let tx = self.router.exact_input(ExactInputParams {
+            path: encode_path(&[input, output], fee).into(),
+            recipient: self.signer_middleware.address(),
+            // fixed 10 block deadline
+            deadline: last_block_timestmap + 120,
+            amount_in: amount,
+            amount_out_minimum: min_out,
+        });
+
+        match mode {
+            Mode::EstimateGas => {
+                let gas = tx.estimate_gas().await?;
+                self.running_sum = Some(
+                    self.running_sum
+                        .expect("Running sum to be here on estimate gas")
+                        + gas,
+                );
+            }
+            Mode::Execute => {
+                if *truth::EXECUTE {
+                    Self::execute_tx(
+                        tx,
+                        self.confirmations,
+                        self.retry,
+                        self.reverts,
+                        "Exact Input",
+                    )
+                    .await?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    async fn execute_tx<D>(
+        tx: FunctionCall<D, M, S>,
+        confirmations: usize,
+        max_retry: usize,
+        max_reverts: usize,
+        label: &str,
+    ) -> anyhow::Result<()>
     where
         D: ethers::abi::Detokenize,
     {
@@ -266,13 +508,13 @@ where
         let mut reverts = 0_usize;
 
         loop {
-            if tries == self.retry {
+            if tries == max_retry {
                 tracing::error!("{} Failed, Max Retries Reached", label);
-                return Err(anyhow::anyhow!(""));
+                return Err(anyhow::anyhow!("To many retries for this bundle"));
             }
 
             match tx.send().await {
-                Ok(tx) => match tx.confirmations(self.confirmations).await {
+                Ok(tx) => match tx.confirmations(confirmations).await {
                     Ok(maybe_recipet) => {
                         if let Some(reciept) = maybe_recipet {
                             tracing::info!(
@@ -293,9 +535,9 @@ where
                     tracing::error!("{} Failed: Revert {:?}", label, bytes);
 
                     reverts += 1;
-                    if reverts == self.reverts {
+                    if reverts == max_reverts {
                         tracing::error!("{} Failed, Max Reverts Reached", label);
-                        return Err(anyhow::anyhow!(""));
+                        return Err(anyhow::anyhow!("Too many Reverts for this Bundle"));
                     }
                 }
                 Err(e) => {
@@ -308,12 +550,17 @@ where
     }
 }
 
-fn encode_path(addrs: &[Address], fee: FeeTier) -> Bytes {
+fn encode_path(addrs: &[Address], fee: FeeTier) -> Vec<u8> {
     let mut path = Vec::<u8>::new();
-    for addr in addrs {
-        path.extend_from_slice(addr.as_bytes());
-        path.extend_from_slice(&[fee as u8])
+    let len = addrs.len();
+
+    for (i, addr) in addrs.iter().enumerate() {
+        path.extend_from_slice(&addr.as_bytes());
+
+        if i != len - 1 {
+            path.extend_from_slice(&fee.as_u24_bytes());
+        }
     }
 
-    Bytes::from(path)
+    path
 }
