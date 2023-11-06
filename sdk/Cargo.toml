@@ -11,5 +11,12 @@ members=[
     "rebalance",
 ]
 
+default-members = [
+    "arb",
+    "bindings",
+    "rebalance",
+]
+
 [workspace.dependencies]
 clap = { version = "4.3.2", features = ["derive"] }
+bindings = {path = "bindings"}
