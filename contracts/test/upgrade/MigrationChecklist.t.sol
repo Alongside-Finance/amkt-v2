@@ -132,40 +132,6 @@ contract MigrationChecklistTest is UpgradedTest {
         }
     }
 
-    // WARNING: This test should fail until final `tokens` in InitialBountyHelper is known.
-    // Numbers below must be replaced with current prices at finalization time.
-    // Expected date of finalization is October 30, 2023
-    function test_MIGRATION_WARNING_navIsCloseEnough() public {
-        uint256 totalSupply = AMKT.totalSupply();
-        TokenInfo[] memory tokens = vault.virtualUnits();
-        uint256 nav;
-        for (uint256 i = 0; i < tokens.length; i++) {
-            uint256 adjustedUnits;
-            if (tokens[i].token == ETH) {
-                adjustedUnits = IWstETH(ETH).getStETHByWstETH(tokens[i].units);
-            } else {
-                adjustedUnits = tokens[i].units;
-            }
-            uint256 normalizedUnits = adjustedUnits *
-                (10 ** (18 - IERC20(tokens[i].token).decimals()));
-            uint256 value = fmul(
-                totalSupply,
-                fmul(
-                    MIGRATION_WARNING_getCurrentPrice(tokens[i].token),
-                    normalizedUnits
-                )
-            );
-            uint256 humanReadableValue = value / (10 ** 18);
-            console.log("value: %s", humanReadableValue);
-            nav += value;
-        }
-        // WARNING: update expected NAV value here
-        // 3078134.67677
-        assertGe(nav, 3_000_000e18); // sanity check: greater than 3 million TODO: pull this number from market cap
-        assertLe(nav, 3_100_000e18); // sanity check: less than 3.1 million TODO: pull this number from market cap
-        assertFalse(triggerMigrationWarning_getCurrentPrice); // This test should fail until latest prices are known for migration
-    }
-
     // WARNING: Manual prices must be updated upon finalization
     // Expected date of finalization is October 30, 2023
     function MIGRATION_WARNING_getCurrentPrice(

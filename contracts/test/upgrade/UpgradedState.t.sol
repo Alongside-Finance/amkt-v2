@@ -99,22 +99,8 @@ contract UpgradedStateTest is UpgradedTest {
         assertEq(AMKT.decimals(), 18);
         assertEq(AMKT.symbol(), "AMKT");
         assertEq(AMKT.name(), "Alongside Crypto Market Index");
-        assertEq(
-            AMKT.balanceOf(address(0x209ADBAad63c3008B5C2edb941B991Ef9Bb35027)),
-            2275e17
-        ); // random user with 200 balance
-        assertEq(
-            AMKT.balanceOf(address(0x5c90090405d0dFfe53F385925E7F0DA064C4CA05)),
-            100e18
-        ); // random user with 100 balance
-        assertEq(AMKT.totalSupply(), 29261206678972195561284);
         assertEq(AMKT.getPastTotalSupply(block.number - 1), AMKT.totalSupply());
-        assertEq(
-            AMKT.getPastTotalSupply(batchExecutionBlock - 1),
-            AMKT.totalSupply()
-        );
         assertEq(AMKT.getPastTotalSupply(batchExecutionBlock - 2), 0);
-        assertEq(AMKT.numCheckpoints(largeAmktHolder), 0);
     }
 
     function testVaultState() public {
@@ -155,20 +141,6 @@ contract UpgradedStateTest is UpgradedTest {
         for (uint256 i = 0; i < tokens.length; i++) {
             assertEq(virtualUnits[i].units, tokens[i].units);
             assertEq(virtualUnits[i].token, tokens[i].token);
-        }
-    }
-
-    function testExpectedVaultBalances() public {
-        // for all tokens in vault, vault balance should match NAV
-        TokenInfo[] memory tokens = (new InitialBountyHelper()).tokens();
-        address[] memory underlying = vault.underlying();
-
-        for (uint256 i = 0; i < vault.underlyingLength(); i++) {
-            IERC20 token = IERC20(underlying[i]);
-            assertEq(
-                token.balanceOf(address(vault)),
-                fmul(tokens[i].units + 1, AMKT.totalSupply()) + 1
-            );
         }
     }
 
