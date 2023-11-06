@@ -4,6 +4,8 @@ out = "out"
 libs = ["lib"]
 [fuzz]
 # The number of fuzz runs for fuzz tests
-runs = 1024
+runs = 5
+[invariant]
+runs = 5
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

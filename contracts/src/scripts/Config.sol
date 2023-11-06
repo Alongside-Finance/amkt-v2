@@ -62,21 +62,21 @@ address constant NEAR = address(0x85F17Cf997934a597031b2E18a9aB6ebD4B9f6a4);
 contract InitialBountyHelper {
     function tokens() public pure returns (TokenInfo[] memory) {
         TokenInfo[] memory _tokens = new TokenInfo[](15);
-        _tokens[0] = TokenInfo(BTC, 214000);
-        _tokens[1] = TokenInfo(ETH, 13247609203137000);
-        _tokens[2] = TokenInfo(BNB, 16948415447489000);
-        _tokens[3] = TokenInfo(SOL, 45793000);
-        _tokens[4] = TokenInfo(MATIC, 1024515857143020000);
-        _tokens[5] = TokenInfo(LINK, 61345559996701000);
-        _tokens[6] = TokenInfo(SHIB, 64925596531841000000000);
-        _tokens[7] = TokenInfo(AVAX, 39069959245135000);
-        _tokens[8] = TokenInfo(UNI, 63620590868597000);
-        _tokens[9] = TokenInfo(MKR, 107701044471000);
-        _tokens[10] = TokenInfo(LDO, 98078322467883000);
-        _tokens[11] = TokenInfo(CRO, 278310000);
-        _tokens[12] = TokenInfo(MNT, 342021551889928000);
-        _tokens[13] = TokenInfo(OP, 96994465621464000);
-        _tokens[14] = TokenInfo(QNT, 1329997149324000);
+        _tokens[0] = TokenInfo(BTC, 210808);
+        _tokens[1] = TokenInfo(ETH, 11341559218314196);
+        _tokens[2] = TokenInfo(BNB, 16376857087864504);
+        _tokens[3] = TokenInfo(SOL, 45261289);
+        _tokens[4] = TokenInfo(MATIC, 1005002983049670270);
+        _tokens[5] = TokenInfo(LINK, 60112353509468574);
+        _tokens[6] = TokenInfo(SHIB, 63620700281571205185534);
+        _tokens[7] = TokenInfo(AVAX, 38334030865722302);
+        _tokens[8] = TokenInfo(UNI, 63495487776147326);
+        _tokens[9] = TokenInfo(MKR, 105536410232513);
+        _tokens[10] = TokenInfo(LDO, 96100274703325102);
+        _tokens[11] = TokenInfo(CRO, 272717390);
+        _tokens[12] = TokenInfo(MNT, 335630438363918014);
+        _tokens[13] = TokenInfo(OP, 95044850012921166);
+        _tokens[14] = TokenInfo(QNT, 1303432234303866);
         return _tokens;
     }
 
@@ -86,5 +86,5 @@ contract InitialBountyHelper {
     // 15 assets to be included in the index
     // Once tokens and their amounts are finalized, switch this to false
     // Expected date of finalization is October 30, 2023
-    bool public constant triggerMigrationWarning_finalTokens = true; // Flip when tokens are finalized
+    bool public constant triggerMigrationWarning_finalTokens = false; // Flip when tokens are finalized
 }
