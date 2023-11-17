@@ -37,7 +37,7 @@ contract astETH is ERC20, Ownable2Step {
             amountToWithdraw = (sharesToBurn * totalstETH) / totalSupply();
         }
         _burn(msg.sender, sharesToBurn);
-        IERC20(stETH).safeTransfer(msg.sender, amountToWithdraw);
+        stETH.safeTransfer(msg.sender, amountToWithdraw);
     }
 
     /// @notice Transfers excess stETH in the contract to the fee recipient
