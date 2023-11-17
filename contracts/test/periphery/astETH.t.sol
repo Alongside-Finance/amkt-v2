@@ -38,12 +38,12 @@ contract astETHTest is BaseTest {
         assertEq(stETH.balanceOf(address(this)), surplus);
     }
 
-    function testRescue(
+    function testEmergency(
         uint256 supply,
         uint256 rebased,
         uint256 withdrawAmount
     ) public {
-        supply = bound(supply, 0, type(uint256).max);
+        supply = bound(supply, 0, type(uint16).max);
         rebased = bound(rebased, 0, supply);
         withdrawAmount = bound(withdrawAmount, 0, supply);
         vm.assume(withdrawAmount != 0);
@@ -65,8 +65,11 @@ contract astETHTest is BaseTest {
             token.withdraw(withdrawAmount);
         }
 
-        token.rescueStETH();
-        assertEq(stETH.balanceOf(address(this)), supply - rebased);
+        token.emergencyWithdraw(withdrawAmount);
+        assertEq(
+            stETH.balanceOf(address(this)),
+            (withdrawAmount * (supply - rebased)) / supply
+        );
     }
 
     function _mintStETHAndDeposit(uint256 amount) internal {
