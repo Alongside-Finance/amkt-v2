@@ -20,18 +20,22 @@ contract astETH is ERC20, Ownable2Step {
     }
 
     ///////////////////////// PERMISSIONLESS /////////////////////////
+
+    // @dev Must pass invariant check
     function deposit(uint256 amount) external {
         stETH.safeTransferFrom(msg.sender, address(this), amount);
         _mint(msg.sender, amount);
         _invariantCheck();
     }
 
+    // @dev Must pass invariant check
     function withdraw(uint256 amount) external {
         _burn(msg.sender, amount);
         stETH.safeTransfer(msg.sender, amount);
         _invariantCheck();
     }
 
+    // @dev Must pass invariant check
     function collectFee() external {
         uint256 stETHBalance = stETH.balanceOf(address(this));
         uint256 feeToCollect = stETHBalance - totalSupply();
@@ -39,15 +43,20 @@ contract astETH is ERC20, Ownable2Step {
         _invariantCheck();
     }
 
+    // @dev Must fail invariant check
+    function emergencyWithdraw(uint256 amount) external {
+        uint256 stETHBalance = stETH.balanceOf(address(this));
+        require(stETHBalance < totalSupply(), "Invariant check passes");
+        _burn(msg.sender, amount);
+        stETH.safeTransfer(
+            msg.sender,
+            amount * (stETHBalance / totalSupply() - 1) - 1
+        );
+    }
+
     ///////////////////////// OWNER /////////////////////////
     function setFeeRecipient(address _feeRecipient) external onlyOwner {
         feeRecipient = _feeRecipient;
-    }
-
-    function rescueStETH() external onlyOwner {
-        uint256 stETHBalance = stETH.balanceOf(address(this));
-        require(stETHBalance < totalSupply(), "Invariant check did not fail");
-        stETH.safeTransfer(owner(), stETHBalance);
     }
 
     ///////////////////////// INTERNAL /////////////////////////
