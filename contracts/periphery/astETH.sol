@@ -15,8 +15,8 @@ contract astETH is ERC20, Ownable2Step {
         address _feeRecipient
     ) ERC20("Alongside stETH", "astETH") {
         stETH = _stETH;
-        _transferOwnership(_owner);
         feeRecipient = _feeRecipient;
+        _transferOwnership(_owner);
     }
 
     ///////////////////////// PERMISSIONLESS /////////////////////////
@@ -35,7 +35,7 @@ contract astETH is ERC20, Ownable2Step {
     function collectFee() external {
         uint256 stETHBalance = stETH.balanceOf(address(this));
         uint256 feeToCollect = stETHBalance - totalSupply();
-        stETH.safeTransfer(owner(), feeToCollect);
+        stETH.safeTransfer(feeRecipient, feeToCollect);
         _invariantCheck();
     }
 
