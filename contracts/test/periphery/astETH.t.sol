@@ -38,7 +38,7 @@ contract astETHTest is BaseTest {
         assertEq(stETH.balanceOf(address(this)), surplus);
     }
 
-    function testEmergency(
+    function testSlashing(
         uint256 supply,
         uint256 rebased,
         uint256 withdrawAmount
@@ -52,20 +52,10 @@ contract astETHTest is BaseTest {
         // mint supply
         _mintStETHAndDeposit(supply);
 
-        // rebased down, invariant should fail
+        // rebased down, amount received should be proportional
         deal(address(stETH), address(token), supply - rebased);
 
-        if (withdrawAmount > stETH.balanceOf(address(token))) {
-            // unable to transfer enough stETH
-            vm.expectRevert();
-            token.withdraw(withdrawAmount);
-        } else {
-            // even though it has enough to transfer stETH, it should trigger invariant check failure
-            vm.expectRevert("Invariant check failed");
-            token.withdraw(withdrawAmount);
-        }
-
-        token.emergencyWithdraw(withdrawAmount);
+        token.withdraw(withdrawAmount);
         assertEq(
             stETH.balanceOf(address(this)),
             (withdrawAmount * (supply - rebased)) / supply
