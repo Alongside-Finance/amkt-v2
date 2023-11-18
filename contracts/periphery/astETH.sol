@@ -22,21 +22,21 @@ contract astETH is ERC20, Ownable2Step {
     ///////////////////////// PERMISSIONLESS /////////////////////////
 
     /// @notice Deposit stETH to receive astETH
-    /// @param  amount stETH amount to deposit
-    function deposit(uint256 amount) external {
-        stETH.safeTransferFrom(msg.sender, address(this), amount);
-        _mint(msg.sender, amount);
+    /// @param  amountToMint stETH amount to deposit
+    function deposit(uint256 amountToMint) external {
+        stETH.safeTransferFrom(msg.sender, address(this), amountToMint);
+        _mint(msg.sender, amountToMint);
     }
 
     /// @notice Burn astETH to receive stETH
-    /// @param  sharesToBurn astETH amount to burn
-    function withdraw(uint256 sharesToBurn) external {
+    /// @param  amountToBurn astETH amount to burn
+    function withdraw(uint256 amountToBurn) external {
         uint totalstETH = IERC20(stETH).balanceOf(address(this));
-        uint amountToWithdraw = sharesToBurn;
+        uint amountToWithdraw = amountToBurn;
         if (totalstETH < totalSupply()) {
-            amountToWithdraw = (sharesToBurn * totalstETH) / totalSupply();
+            amountToWithdraw = (amountToBurn * totalstETH) / totalSupply();
         }
-        _burn(msg.sender, sharesToBurn);
+        _burn(msg.sender, amountToBurn);
         stETH.safeTransfer(msg.sender, amountToWithdraw);
     }
 
