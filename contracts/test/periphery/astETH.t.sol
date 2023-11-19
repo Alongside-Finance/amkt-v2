@@ -1,18 +1,17 @@
-import {astETH} from "periphery/astETH.sol";
+import {AstETH, IStETH} from "periphery/AstETH.sol";
 import {BaseTest} from "test/utils/BaseTest.t.sol";
 import {MockMintableToken} from "test/utils/MockMintableToken.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 // 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84 stETH on mainnet
 
 contract astETHTest is BaseTest {
-    astETH token;
+    AstETH token;
     MockMintableToken stETH;
 
     function setUp() public {
         stETH = new MockMintableToken("stETH", "stETH", 18, 0);
-        token = new astETH(
-            IERC20(address(stETH)),
+        token = new AstETH(
+            IStETH(address(stETH)),
             address(this),
             address(this)
         );

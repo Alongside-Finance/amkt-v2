@@ -3,14 +3,23 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
-contract astETH is ERC20, Ownable2Step {
-    using SafeERC20 for IERC20;
+interface IStETH is IERC20 {
+    function submit(address _referral) external payable returns (uint256);
+}
 
-    IERC20 public immutable stETH;
+interface IAstETH {
+    event FeeRecipientSet(address feeRecipient);
+    event FeeCollected(address feeRecipient, uint256 feeCollected);
+}
+
+contract AstETH is IAstETH, ERC20, Ownable2Step {
+    using SafeERC20 for IStETH;
+
+    IStETH public immutable stETH;
     address public feeRecipient;
 
     constructor(
-        IERC20 _stETH,
+        IStETH _stETH,
         address _owner,
         address _feeRecipient
     ) ERC20("Alongside stETH", "astETH") {
@@ -19,38 +28,52 @@ contract astETH is ERC20, Ownable2Step {
         _transferOwnership(_owner);
     }
 
-    ///////////////////////// PERMISSIONLESS /////////////////////////
+    ///////////////////////// ISSUANCE /////////////////////////
 
     /// @notice Deposit stETH to receive astETH
     /// @param  amountToMint stETH amount to deposit
-    function deposit(uint256 amountToMint) external {
+    function deposit(uint256 amountToMint) external returns (uint256) {
         stETH.safeTransferFrom(msg.sender, address(this), amountToMint);
         _mint(msg.sender, amountToMint);
+        return amountToMint;
+    }
+
+    /// @notice Wraps ETH to stETH before depositing stETH to receive astETH
+    function wrapAndDeposit() external payable returns (uint256) {
+        uint256 balanceBefore = stETH.balanceOf(address(this));
+        uint256 shares = stETH.submit{value: msg.value}(address(0));
+        uint256 balanceAfter = stETH.balanceOf(address(this));
+        require(balanceAfter - balanceBefore == shares);
+        _mint(msg.sender, shares);
+        return shares;
     }
 
     /// @notice Burn astETH to receive stETH
     /// @param  amountToBurn astETH amount to burn
-    function withdraw(uint256 amountToBurn) external {
-        uint totalstETH = IERC20(stETH).balanceOf(address(this));
+    function withdraw(uint256 amountToBurn) external returns (uint256) {
+        uint totalstETH = stETH.balanceOf(address(this));
         uint amountToWithdraw = amountToBurn;
         if (totalstETH < totalSupply()) {
             amountToWithdraw = (amountToBurn * totalstETH) / totalSupply();
         }
         _burn(msg.sender, amountToBurn);
         stETH.safeTransfer(msg.sender, amountToWithdraw);
+        return amountToWithdraw;
     }
+
+    ///////////////////////// ADMIN /////////////////////////
 
     /// @notice Transfers excess stETH in the contract to the fee recipient
     function collectFee() external {
         uint256 stETHBalance = stETH.balanceOf(address(this));
         uint256 feeToCollect = stETHBalance - totalSupply();
         stETH.safeTransfer(feeRecipient, feeToCollect);
+        emit FeeCollected(feeRecipient, feeToCollect);
     }
-
-    ///////////////////////// OWNER /////////////////////////
 
     /// @param _feeRecipient address of new fee recipient
     function setFeeRecipient(address _feeRecipient) external onlyOwner {
         feeRecipient = _feeRecipient;
+        emit FeeRecipientSet(feeRecipient);
     }
 }
