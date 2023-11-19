@@ -8,6 +8,7 @@ interface IStETH is IERC20 {
 }
 
 interface IAstETH {
+    error WrapAndDepositMismatch();
     event FeeRecipientSet(address feeRecipient);
     event FeeCollected(address feeRecipient, uint256 feeCollected);
 }
@@ -41,11 +42,11 @@ contract AstETH is IAstETH, ERC20, Ownable2Step {
     /// @notice Wraps ETH to stETH before depositing stETH to receive astETH
     function wrapAndDeposit() external payable returns (uint256) {
         uint256 balanceBefore = stETH.balanceOf(address(this));
-        uint256 shares = stETH.submit{value: msg.value}(address(0));
+        stETH.submit{value: msg.value}(address(0));
         uint256 balanceAfter = stETH.balanceOf(address(this));
-        require(balanceAfter - balanceBefore == shares);
-        _mint(msg.sender, shares);
-        return shares;
+        uint256 amountToMint = balanceAfter - balanceBefore;
+        _mint(msg.sender, amountToMint);
+        return amountToMint;
     }
 
     /// @notice Burn astETH to receive stETH
