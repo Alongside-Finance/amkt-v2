@@ -8,7 +8,6 @@ interface IStETH is IERC20 {
 }
 
 interface IAstETH {
-    error WrapAndDepositMismatch();
     event FeeRecipientSet(address feeRecipient);
     event FeeCollected(address feeRecipient, uint256 feeCollected);
 }
