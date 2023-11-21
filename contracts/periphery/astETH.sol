@@ -45,7 +45,9 @@ contract AstETH is IAstETH, ERC20, Ownable2Step {
 
     /// @notice Deposit stETH to receive astETH
     /// @param  amountToMint stETH amount to deposit
-    function deposit(uint256 amountToMint) external returns (uint256) {
+    function deposit(
+        uint256 amountToMint
+    ) external reentrancyGuard returns (uint256) {
         stETH.safeTransferFrom(msg.sender, address(this), amountToMint);
         _mint(msg.sender, amountToMint);
         return amountToMint;
