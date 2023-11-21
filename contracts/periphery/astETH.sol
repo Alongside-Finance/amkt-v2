@@ -11,6 +11,7 @@ interface IStETH is IERC20 {
 }
 
 interface IAstETH {
+    error Reentrant();
     event FeeRecipientSet(address feeRecipient);
     event FeeCollected(address feeRecipient, uint256 feeCollected);
 }
@@ -20,6 +21,15 @@ contract AstETH is IAstETH, ERC20, Ownable2Step {
 
     IStETH public immutable stETH;
     address public feeRecipient;
+
+    uint256 public reentrancyLock = 1;
+
+    modifier reentrancyGuard() {
+        if (reentrancyLock > 1) revert Reentrant();
+        reentrancyLock = 2;
+        _;
+        reentrancyLock = 1;
+    }
 
     constructor(
         IStETH _stETH,
@@ -42,7 +52,12 @@ contract AstETH is IAstETH, ERC20, Ownable2Step {
     }
 
     /// @notice Wraps ETH to stETH before depositing stETH to receive astETH
-    function wrapAndDeposit() external payable returns (uint256) {
+    function wrapAndDeposit()
+        external
+        payable
+        reentrancyGuard
+        returns (uint256)
+    {
         uint256 balanceBefore = stETH.balanceOf(address(this));
         stETH.submit{value: msg.value}(address(0));
         uint256 balanceAfter = stETH.balanceOf(address(this));
