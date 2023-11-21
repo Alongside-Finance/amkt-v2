@@ -28,5 +28,6 @@ contract AstForkETHTest is BaseTest {
         vm.deal(address(this), amount);
         token.wrapAndDeposit{value: amount}();
         assertGt(amount, token.balanceOf(address(this)));
+        assertLt(amount, token.balanceOf(address(this)) + 3);
     }
 }
