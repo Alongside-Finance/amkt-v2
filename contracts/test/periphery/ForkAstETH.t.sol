@@ -2,8 +2,6 @@ import {AstETH, IStETH} from "periphery/AstETH.sol";
 import {BaseTest} from "test/utils/BaseTest.t.sol";
 import {MockMintableToken} from "test/utils/MockMintableToken.sol";
 
-// 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84 stETH on mainnet
-
 contract AstForkETHTest is BaseTest {
     AstETH token;
     IStETH stETH;
