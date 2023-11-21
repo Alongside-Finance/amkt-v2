@@ -70,7 +70,9 @@ contract AstETH is IAstETH, ERC20, Ownable2Step {
 
     /// @notice Burn astETH to receive stETH
     /// @param  amountToBurn astETH amount to burn
-    function withdraw(uint256 amountToBurn) external returns (uint256) {
+    function withdraw(
+        uint256 amountToBurn
+    ) external reentrancyGuard returns (uint256) {
         uint totalstETH = stETH.balanceOf(address(this));
         uint amountToWithdraw = amountToBurn;
         if (totalstETH < totalSupply()) {
@@ -84,7 +86,7 @@ contract AstETH is IAstETH, ERC20, Ownable2Step {
     ///////////////////////// ADMIN /////////////////////////
 
     /// @notice Transfers excess stETH in the contract to the fee recipient
-    function collectFee() external {
+    function collectFee() external reentrancyGuard {
         uint256 stETHBalance = stETH.balanceOf(address(this));
         uint256 feeToCollect = stETHBalance - totalSupply();
         stETH.safeTransfer(feeRecipient, feeToCollect);
