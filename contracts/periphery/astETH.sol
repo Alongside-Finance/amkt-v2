@@ -73,10 +73,10 @@ contract AstETH is IAstETH, ERC20, Ownable2Step {
     function withdraw(
         uint256 amountToBurn
     ) external reentrancyGuard returns (uint256) {
-        uint totalstETH = stETH.balanceOf(address(this));
+        uint totalStETH = stETH.balanceOf(address(this));
         uint amountToWithdraw = amountToBurn;
-        if (totalstETH < totalSupply()) {
-            amountToWithdraw = (amountToBurn * totalstETH) / totalSupply();
+        if (totalStETH < totalSupply()) {
+            amountToWithdraw = (amountToBurn * totalStETH) / totalSupply();
         }
         _burn(msg.sender, amountToBurn);
         stETH.safeTransfer(msg.sender, amountToWithdraw);
