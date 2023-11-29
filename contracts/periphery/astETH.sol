@@ -5,31 +5,22 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 interface IStETH is IERC20 {
     function submit(address _referral) external payable returns (uint256);
 }
 
 interface IAstETH {
-    error Reentrant();
     event FeeRecipientSet(address feeRecipient);
     event FeeCollected(address feeRecipient, uint256 feeCollected);
 }
 
-contract AstETH is IAstETH, ERC20, Ownable2Step {
+contract AstETH is IAstETH, ERC20, Ownable2Step, ReentrancyGuard {
     using SafeERC20 for IStETH;
 
     IStETH public immutable stETH;
     address public feeRecipient;
-
-    uint256 public reentrancyLock = 1;
-
-    modifier reentrancyGuard() {
-        if (reentrancyLock > 1) revert Reentrant();
-        reentrancyLock = 2;
-        _;
-        reentrancyLock = 1;
-    }
 
     constructor(
         IStETH _stETH,
@@ -45,21 +36,18 @@ contract AstETH is IAstETH, ERC20, Ownable2Step {
 
     /// @notice Deposit stETH to receive astETH
     /// @param  amountToMint stETH amount to deposit
+    /// @dev Always mints 1 astETH for depositing 1 stETH
     function deposit(
         uint256 amountToMint
-    ) external reentrancyGuard returns (uint256) {
+    ) external nonReentrant returns (uint256) {
         stETH.safeTransferFrom(msg.sender, address(this), amountToMint);
         _mint(msg.sender, amountToMint);
         return amountToMint;
     }
 
     /// @notice Wraps ETH to stETH before depositing stETH to receive astETH
-    function wrapAndDeposit()
-        external
-        payable
-        reentrancyGuard
-        returns (uint256)
-    {
+    /// @dev Always mints 1 astETH for depositing 1 stETH
+    function wrapAndDeposit() external payable nonReentrant returns (uint256) {
         uint256 balanceBefore = stETH.balanceOf(address(this));
         stETH.submit{value: msg.value}(address(0));
         uint256 balanceAfter = stETH.balanceOf(address(this));
@@ -70,9 +58,11 @@ contract AstETH is IAstETH, ERC20, Ownable2Step {
 
     /// @notice Burn astETH to receive stETH
     /// @param  amountToBurn astETH amount to burn
+    /// @dev Withdraws 1 stETH for burning 1 astETH
+    /// @dev To protect against stETH rebasing down, amountToWithdraw is prorated if total supply exceeds stETH balance
     function withdraw(
         uint256 amountToBurn
-    ) external reentrancyGuard returns (uint256) {
+    ) external nonReentrant returns (uint256) {
         uint totalStETH = stETH.balanceOf(address(this));
         uint amountToWithdraw = amountToBurn;
         if (totalStETH < totalSupply()) {
@@ -86,7 +76,7 @@ contract AstETH is IAstETH, ERC20, Ownable2Step {
     ///////////////////////// ADMIN /////////////////////////
 
     /// @notice Transfers excess stETH in the contract to the fee recipient
-    function collectFee() external reentrancyGuard {
+    function collectFee() external nonReentrant {
         uint256 stETHBalance = stETH.balanceOf(address(this));
         uint256 feeToCollect = stETHBalance - totalSupply();
         stETH.safeTransfer(feeRecipient, feeToCollect);
