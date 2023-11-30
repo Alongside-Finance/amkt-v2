@@ -4,7 +4,7 @@ out = "out"
 libs = ["lib"]
 [fuzz]
 # The number of fuzz runs for fuzz tests
-runs = 5
+runs = 10240
 [invariant]
 runs = 5
 
