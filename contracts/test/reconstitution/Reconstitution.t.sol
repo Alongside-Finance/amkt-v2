@@ -5,7 +5,8 @@ import {Test} from "forge-std/Test.sol";
 import {IVault} from "src/interfaces/IVault.sol";
 import {IInvokeableBounty} from "src/interfaces/IInvokeableBounty.sol";
 import {IActiveBounty} from "src/interfaces/IActiveBounty.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+// import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {GnosisTest, GnosisTransaction} from "test/upgrade/helpers/Gnosis.t.sol";
 import {Bounty} from "src/interfaces/IInvokeableBounty.sol";
 import {TokenInfo} from "src/Common.sol";
@@ -13,6 +14,7 @@ import {Dealer} from "test/utils/Dealer.t.sol";
 import {BTC, ETH as WSTETH, BNB, SOL, LINK, AVAX, MATIC, SHIB, UNI, MKR, LDO, CRO, MNT, OP, QNT, MULTISIG, AMKT_PROXY} from "src/scripts/Config.sol";
 import {Fulfiller} from "periphery/Fulfiller.sol";
 import {Quoter} from "periphery/Quoter.sol";
+import {console2} from "forge-std/console2.sol";
 
 // THESE NUMBERS WILL BE DETERMINED SHORTLY BEFORE RECONSTITUTION
 uint256 constant ASTETH_REMAINDER_AMOUNT = 26000144433693728047; // this will be determined by running the tests after determining units
@@ -32,6 +34,9 @@ uint256 constant SHIB_UNITS = 59700570576920143462400;
 uint256 constant SOL_UNITS = 43446024;
 uint256 constant UNI_UNITS = 60600827954304176;
 uint256 constant XRP_UNITS = 5477191;
+
+// current balances
+// expected revenue
 
 // STATIC
 address constant ASTETH = address(0x27C2B9fd547EAd2c05C305BeE2399A55811257c2);
@@ -172,6 +177,7 @@ contract ReconstitutionTest is GnosisTest {
     function tokens() internal returns (TokenInfo[] memory) {
         triggerReconstitutionWarning_determineTokens = true;
         TokenInfo[] memory _tokens = new TokenInfo[](15 + 7);
+
         // KEEP
         _tokens[0] = TokenInfo(BTC, BTC_UNITS);
         _tokens[1] = TokenInfo(WSTETH, WSTETH_UNITS);
@@ -242,9 +248,20 @@ contract ReconstitutionTest is GnosisTest {
         );
     }
 
-    function test_balances() public {}
-
     function test_state() public {
+        address[9] memory tokensKept = [
+            BTC,
+            WSTETH,
+            BNB,
+            SOL,
+            MATIC,
+            LINK,
+            SHIB,
+            AVAX,
+            UNI
+        ];
+        address[7] memory tokensAdded = [ASTETH, XRP, ADA, DOGE, DOT, LTC, BCH];
+        address[6] memory tokensRemoved = [MKR, LDO, CRO, MNT, OP, QNT];
         TokenInfo[] memory units = IVault(VAULT).virtualUnits();
         assertEq(units.length, 16);
         assertEq(units[0].token, BTC);
@@ -254,19 +271,34 @@ contract ReconstitutionTest is GnosisTest {
         );
         assertEq(units[0].units, BTC_UNITS);
         assertEq(units[15].units, BCH_UNITS);
-        // check that all units are greater than 0
-        for (uint256 i = 0; i < units.length; i++) {
+
+        for (uint256 i = 0; i < tokensKept.length; i++) {
+            assertEq(units[i].token, tokensKept[i]);
             assertGt(units[i].units, 0);
+            assertEq(IERC20(tokensKept[i]).balanceOf(FULFILLER), 0);
+            if (tokensKept[i] != WSTETH) {
+                assertGt(IERC20(tokensKept[i]).balanceOf(FULFILLER_SAFE), 0);
+            }
         }
+        for (uint256 i = 0; i < tokensAdded.length; i++) {
+            assertEq(units[i + 9].token, tokensAdded[i]);
+            assertGt(units[i + 9].units, 0);
+            assertEq(IERC20(tokensAdded[i]).balanceOf(FULFILLER), 0);
+            if (tokensAdded[i] != ASTETH) {
+                assertGt(IERC20(tokensAdded[i]).balanceOf(FULFILLER_SAFE), 0);
+            }
+        }
+        for (uint256 i = 0; i < tokensRemoved.length; i++) {
+            assertGt(IERC20(tokensRemoved[i]).balanceOf(FULFILLER_SAFE), 0);
+        }
+
         // check that fulfiller has positive balance of certain tokens
         assertGt(IERC20(BTC).balanceOf(FULFILLER_SAFE), 0);
         assertGt(IERC20(BNB).balanceOf(FULFILLER_SAFE), 0);
         assertGt(IERC20(SOL).balanceOf(FULFILLER_SAFE), 0);
         assertGt(IERC20(STETH).balanceOf(FULFILLER_SAFE), 0);
 
-        assertEq(IERC20(BTC).balanceOf(FULFILLER), 0);
-        assertEq(IERC20(BNB).balanceOf(FULFILLER), 0);
-        assertEq(IERC20(SOL).balanceOf(FULFILLER), 0);
-        assertEq(IERC20(ASTETH).balanceOf(FULFILLER), 0);
+        // check balance of multisig
+        // loop through all known tokens and console log multisig's balance
     }
 }
