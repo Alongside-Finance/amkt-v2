@@ -35,9 +35,6 @@ uint256 constant SOL_UNITS = 43446024;
 uint256 constant UNI_UNITS = 60600827954304176;
 uint256 constant XRP_UNITS = 5477191;
 
-// current balances
-// expected revenue
-
 // STATIC
 address constant ASTETH = address(0x27C2B9fd547EAd2c05C305BeE2399A55811257c2);
 address constant XRP = address(0x0d3bd40758dF4F79aaD316707FcB809CD4815Ffe);
@@ -278,6 +275,11 @@ contract ReconstitutionTest is GnosisTest {
             assertEq(IERC20(tokensKept[i]).balanceOf(FULFILLER), 0);
             if (tokensKept[i] != WSTETH) {
                 assertGt(IERC20(tokensKept[i]).balanceOf(FULFILLER_SAFE), 0);
+                console2.log(
+                    tokensKept[i],
+                    IERC20(tokensKept[i]).balanceOf(FULFILLER_SAFE) /
+                        (10 ** IERC20(tokensKept[i]).decimals())
+                );
             }
         }
         for (uint256 i = 0; i < tokensAdded.length; i++) {
@@ -286,11 +288,26 @@ contract ReconstitutionTest is GnosisTest {
             assertEq(IERC20(tokensAdded[i]).balanceOf(FULFILLER), 0);
             if (tokensAdded[i] != ASTETH) {
                 assertGt(IERC20(tokensAdded[i]).balanceOf(FULFILLER_SAFE), 0);
+                console2.log(
+                    tokensAdded[i],
+                    IERC20(tokensAdded[i]).balanceOf(FULFILLER_SAFE) /
+                        (10 ** IERC20(tokensAdded[i]).decimals())
+                );
             }
         }
         for (uint256 i = 0; i < tokensRemoved.length; i++) {
             assertGt(IERC20(tokensRemoved[i]).balanceOf(FULFILLER_SAFE), 0);
+            console2.log(
+                tokensRemoved[i],
+                IERC20(tokensRemoved[i]).balanceOf(FULFILLER_SAFE) /
+                    (10 ** IERC20(tokensRemoved[i]).decimals())
+            );
         }
+        console2.log(
+            STETH,
+            IERC20(STETH).balanceOf(FULFILLER_SAFE) /
+                (10 ** IERC20(STETH).decimals())
+        );
 
         // check that fulfiller has positive balance of certain tokens
         assertGt(IERC20(BTC).balanceOf(FULFILLER_SAFE), 0);
