@@ -24,10 +24,6 @@ contract ReconstitutionChecklistTest is ReconstitutionTest {
         assertFalse(triggerReconstitutionWarning_removeForkBlock);
     }
 
-    function test_RECONSTITUTION_WARNING_removeMockBalances() public {
-        assertFalse(triggerReconstitutionWarning_removeMockBalances);
-    }
-
     function test_RECONSTITUTION_WARNING_postBounty() public {
         assertFalse(triggerReconstitutionWarning_postBounty);
     }

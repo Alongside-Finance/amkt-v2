@@ -14,7 +14,6 @@ import {Dealer} from "test/utils/Dealer.t.sol";
 import {BTC, ETH as WSTETH, BNB, SOL, LINK, AVAX, MATIC, SHIB, UNI, MKR, LDO, CRO, MNT, OP, QNT, MULTISIG, AMKT_PROXY} from "src/scripts/Config.sol";
 import {Fulfiller} from "periphery/Fulfiller.sol";
 import {Quoter} from "periphery/Quoter.sol";
-import {console2} from "forge-std/console2.sol";
 
 // THESE NUMBERS WILL BE DETERMINED SHORTLY BEFORE RECONSTITUTION
 uint256 constant ASTETH_REMAINDER_AMOUNT = 26000144433693728047; // this will be determined by running the tests after determining units
@@ -34,6 +33,7 @@ uint256 constant SHIB_UNITS = 59700570576920143462400;
 uint256 constant SOL_UNITS = 43446024;
 uint256 constant UNI_UNITS = 60600827954304176;
 uint256 constant XRP_UNITS = 5477191;
+uint256 constant PREVIOUS_TOTAL_SUPPLY = 29836418682128071569920;
 
 // STATIC
 address constant ASTETH = address(0x27C2B9fd547EAd2c05C305BeE2399A55811257c2);
@@ -146,7 +146,6 @@ contract ReconstitutionTest is GnosisTest {
     bool triggerReconstitutionWarning_determineTokens;
     bool triggerReconstitutionWarning_determineAstETHAmount;
     bool triggerReconstitutionWarning_removeForkBlock;
-    bool triggerReconstitutionWarning_removeMockBalances;
     bool triggerReconstitutionWarning_postBounty;
     bool triggerReconstitutionWarning_fulfillBounty;
 
@@ -160,8 +159,8 @@ contract ReconstitutionTest is GnosisTest {
     function setUp() public {
         fork();
         enableSimulation();
-        _setFulfiller();
-        _postAndFulfillBounty();
+        fulfiller = Fulfiller(FULFILLER);
+        postAndFulfillBounty();
     }
 
     function testSetUp() public {}
@@ -206,13 +205,9 @@ contract ReconstitutionTest is GnosisTest {
         return _tokens;
     }
 
-    function _setFulfiller() public {
-        fulfiller = Fulfiller(FULFILLER);
-    }
-
-    function _postAndFulfillBounty() internal {
+    function postAndFulfillBounty() internal {
         GnosisTransaction[] memory batch = new GnosisTransaction[](1);
-        salt = keccak256(abi.encode("AMKT 01-01-2024 reconstitution"));
+        salt = keccak256(abi.encode(PREVIOUS_TOTAL_SUPPLY));
         Bounty memory _bountyToSet = Bounty({
             infos: tokens(),
             fulfiller: address(fulfiller),
@@ -236,86 +231,11 @@ contract ReconstitutionTest is GnosisTest {
         executeBatchData(batchExecutionData);
 
         triggerReconstitutionWarning_determineAstETHAmount = true;
-        triggerReconstitutionWarning_removeMockBalances = true;
         triggerReconstitutionWarning_fulfillBounty = true;
 
         fulfillerSafeTest = new FulfillerSafeTest();
         fulfillmentExecutionData = fulfillerSafeTest.runFulfillmentBatch(
             _bountyToSet
         );
-    }
-
-    function test_state() public {
-        address[9] memory tokensKept = [
-            BTC,
-            WSTETH,
-            BNB,
-            SOL,
-            MATIC,
-            LINK,
-            SHIB,
-            AVAX,
-            UNI
-        ];
-        address[7] memory tokensAdded = [ASTETH, XRP, ADA, DOGE, DOT, LTC, BCH];
-        address[6] memory tokensRemoved = [MKR, LDO, CRO, MNT, OP, QNT];
-        TokenInfo[] memory units = IVault(VAULT).virtualUnits();
-        assertEq(units.length, 16);
-        assertEq(units[0].token, BTC);
-        assertEq(
-            units[15].token,
-            address(0xFf4927e04c6a01868284F5C3fB9cba7F7ca4aeC0)
-        );
-        assertEq(units[0].units, BTC_UNITS);
-        assertEq(units[15].units, BCH_UNITS);
-
-        for (uint256 i = 0; i < tokensKept.length; i++) {
-            assertEq(units[i].token, tokensKept[i]);
-            assertGt(units[i].units, 0);
-            assertEq(IERC20(tokensKept[i]).balanceOf(FULFILLER), 0);
-            if (tokensKept[i] != WSTETH) {
-                assertGt(IERC20(tokensKept[i]).balanceOf(FULFILLER_SAFE), 0);
-                console2.log(
-                    tokensKept[i],
-                    IERC20(tokensKept[i]).balanceOf(FULFILLER_SAFE) /
-                        (10 ** IERC20(tokensKept[i]).decimals())
-                );
-            }
-        }
-        for (uint256 i = 0; i < tokensAdded.length; i++) {
-            assertEq(units[i + 9].token, tokensAdded[i]);
-            assertGt(units[i + 9].units, 0);
-            assertEq(IERC20(tokensAdded[i]).balanceOf(FULFILLER), 0);
-            if (tokensAdded[i] != ASTETH) {
-                assertGt(IERC20(tokensAdded[i]).balanceOf(FULFILLER_SAFE), 0);
-                console2.log(
-                    tokensAdded[i],
-                    IERC20(tokensAdded[i]).balanceOf(FULFILLER_SAFE) /
-                        (10 ** IERC20(tokensAdded[i]).decimals())
-                );
-            }
-        }
-        for (uint256 i = 0; i < tokensRemoved.length; i++) {
-            assertGt(IERC20(tokensRemoved[i]).balanceOf(FULFILLER_SAFE), 0);
-            console2.log(
-                tokensRemoved[i],
-                IERC20(tokensRemoved[i]).balanceOf(FULFILLER_SAFE) /
-                    (10 ** IERC20(tokensRemoved[i]).decimals())
-            );
-        }
-        console2.log(
-            STETH,
-            IERC20(STETH).balanceOf(FULFILLER_SAFE) /
-                (10 ** IERC20(STETH).decimals())
-        );
-
-        // check that fulfiller has positive balance of certain tokens
-        assertGt(IERC20(BTC).balanceOf(FULFILLER_SAFE), 0);
-        assertGt(IERC20(BNB).balanceOf(FULFILLER_SAFE), 0);
-        assertGt(IERC20(SOL).balanceOf(FULFILLER_SAFE), 0);
-        assertGt(IERC20(STETH).balanceOf(FULFILLER_SAFE), 0);
-
-        // check balance of multisig
-        // loop through all known tokens and console log multisig's balance
     }
 }

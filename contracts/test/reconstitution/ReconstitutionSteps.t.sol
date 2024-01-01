@@ -7,7 +7,10 @@ import {Test} from "forge-std/Test.sol";
 // These tests serve as a guide to the reconstitution process, step by step.
 // Each step should be marked as complete switching `false` to `true` in `assertTrue`.
 contract ReconstitutionStepsTest is Test {
-    function testStep0_determineTokens() public {
+    address constant FULFILLER_SAFE =
+        address(0x5ae65506979C00D70A13E7cE9eBf984d31660e5c);
+
+    function testStep0_determineTokensAndAmounts() public {
         // Determine the tokens and their units that will be used in the reconstitution process.
         // Set `triggerMigrationWarning_determineTokens` to `false` upon completion
         // Run `test_MIGRATION_WARNING_determineTokens` to confirm this step is over.
@@ -18,13 +21,6 @@ contract ReconstitutionStepsTest is Test {
         // Determine the amount of astETH that will be used in the reconstitution process.
         // Set `triggerMigrationWarning_determineAstETHAmount` to `false` upon completion
         // Run `test_MIGRATION_WARNING_determineAstETHAmount` to confirm this step is over.
-        assertTrue(false);
-    }
-
-    function testStep1_removeMockBalances() public {
-        // Remove the mock balances from the reconstitution process.
-        // Set `triggerMigrationWarning_removeMockBalances` to `false` upon completion
-        // Run `test_MIGRATION_WARNING_removeMockBalances` to confirm this step is over.
         assertTrue(false);
     }
 
