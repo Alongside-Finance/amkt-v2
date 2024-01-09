@@ -56,6 +56,15 @@ contract ReconstitutionStateTest is ReconstitutionTest {
         );
     }
 
+    function testStETHBalance() public {
+        console2.log(IERC20(STETH).balanceOf(FULFILLER_SAFE));
+        console2.log(IERC20(ASTETH).balanceOf(FULFILLER_SAFE));
+        console2.log(IERC20(WSTETH).balanceOf(FULFILLER_SAFE));
+        console2.log(IERC20(STETH).balanceOf(FULFILLER));
+        console2.log(IERC20(ASTETH).balanceOf(FULFILLER));
+        console2.log(IERC20(WSTETH).balanceOf(FULFILLER));
+    }
+
     function testTokensKept() public {
         TokenInfo[] memory units = IVault(VAULT).virtualUnits();
         for (uint256 i = 0; i < tokensKept.length; i++) {
@@ -66,8 +75,7 @@ contract ReconstitutionStateTest is ReconstitutionTest {
                 assertGt(IERC20(tokensKept[i]).balanceOf(FULFILLER_SAFE), 0);
                 console2.log(
                     tokensKept[i],
-                    IERC20(tokensKept[i]).balanceOf(FULFILLER_SAFE) /
-                        (10 ** IERC20(tokensKept[i]).decimals())
+                    IERC20(tokensKept[i]).balanceOf(FULFILLER_SAFE)
                 );
             }
         }
@@ -83,8 +91,7 @@ contract ReconstitutionStateTest is ReconstitutionTest {
                 assertGt(IERC20(tokensAdded[i]).balanceOf(FULFILLER_SAFE), 0);
                 console2.log(
                     tokensAdded[i],
-                    IERC20(tokensAdded[i]).balanceOf(FULFILLER_SAFE) /
-                        (10 ** IERC20(tokensAdded[i]).decimals())
+                    IERC20(tokensAdded[i]).balanceOf(FULFILLER_SAFE)
                 );
             }
         }
@@ -96,8 +103,7 @@ contract ReconstitutionStateTest is ReconstitutionTest {
             assertGt(IERC20(tokensRemoved[i]).balanceOf(FULFILLER_SAFE), 0);
             console2.log(
                 tokensRemoved[i],
-                IERC20(tokensRemoved[i]).balanceOf(FULFILLER_SAFE) /
-                    (10 ** IERC20(tokensRemoved[i]).decimals())
+                IERC20(tokensRemoved[i]).balanceOf(FULFILLER_SAFE)
             );
         }
     }

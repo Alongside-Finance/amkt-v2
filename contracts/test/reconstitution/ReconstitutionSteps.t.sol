@@ -14,28 +14,28 @@ contract ReconstitutionStepsTest is Test {
         // Determine the tokens and their units that will be used in the reconstitution process.
         // Set `triggerMigrationWarning_determineTokens` to `false` upon completion
         // Run `test_MIGRATION_WARNING_determineTokens` to confirm this step is over.
-        assertTrue(false);
+        assertTrue(true);
     }
 
     function testStep1_determineAstETHAmount() public {
         // Determine the amount of astETH that will be used in the reconstitution process.
         // Set `triggerMigrationWarning_determineAstETHAmount` to `false` upon completion
         // Run `test_MIGRATION_WARNING_determineAstETHAmount` to confirm this step is over.
-        assertTrue(false);
+        assertTrue(true);
     }
 
     function testStep2_removeForkBlock() public {
         // Remove the fork block from the reconstitution process.
         // Set `triggerMigrationWarning_removeForkBlock` to `false` upon completion
         // Run `test_MIGRATION_WARNING_removeForkBlock` to confirm this step is over.
-        assertTrue(false);
+        assertTrue(true);
     }
 
     function testStep3_postBounty() public {
         // Post the bounty for the reconstitution process.
         // Set `triggerMigrationWarning_postBounty` to `false` upon completion
         // Run `test_MIGRATION_WARNING_postBounty` to confirm this step is over.
-        assertTrue(false);
+        assertTrue(true);
     }
 
     function testStep4_fulfillBounty() public {

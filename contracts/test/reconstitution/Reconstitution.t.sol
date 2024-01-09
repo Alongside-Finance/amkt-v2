@@ -16,23 +16,23 @@ import {Fulfiller} from "periphery/Fulfiller.sol";
 import {Quoter} from "periphery/Quoter.sol";
 
 // THESE NUMBERS WILL BE DETERMINED SHORTLY BEFORE RECONSTITUTION
-uint256 constant ASTETH_REMAINDER_AMOUNT = 26000144433693728047; // this will be determined by running the tests after determining units
-uint256 constant ADA_UNITS = 3581925;
-uint256 constant AVAX_UNITS = 37021598089974576;
-uint256 constant BCH_UNITS = 198525;
-uint256 constant BNB_UNITS = 15367679603473306;
-uint256 constant BTC_UNITS = 198375;
-uint256 constant DOGE_UNITS = 1442564286;
-uint256 constant DOT_UNITS = 1354579209;
-uint256 constant ASTETH_UNITS = 6087764850689860;
-uint256 constant WSTETH_UNITS = 5286662159884741;
-uint256 constant LINK_UNITS = 57552784774828544;
-uint256 constant LTC_UNITS = 749905;
-uint256 constant MATIC_UNITS = 968027545433906560;
-uint256 constant SHIB_UNITS = 59700570576920143462400;
-uint256 constant SOL_UNITS = 43446024;
-uint256 constant UNI_UNITS = 60600827954304176;
-uint256 constant XRP_UNITS = 5477191;
+uint256 constant ASTETH_REMAINDER_AMOUNT = 25252648961028866998; // this will be determined by running the tests after determining units
+uint256 constant ADA_UNITS = 3592439;
+uint256 constant AVAX_UNITS = 37124671801077472;
+uint256 constant BCH_UNITS = 199114;
+uint256 constant BNB_UNITS = 15408519968943164;
+uint256 constant BTC_UNITS = 198959;
+uint256 constant DOGE_UNITS = 1447259210;
+uint256 constant DOT_UNITS = 1282859239;
+uint256 constant ASTETH_UNITS = 6103999421049957;
+uint256 constant WSTETH_UNITS = 5297749093365093;
+uint256 constant LINK_UNITS = 57706251332202136;
+uint256 constant LTC_UNITS = 752138;
+uint256 constant MATIC_UNITS = 970600654317392384;
+uint256 constant SHIB_UNITS = 59859711830567835140096;
+uint256 constant SOL_UNITS = 43667884;
+uint256 constant UNI_UNITS = 60762422227744168;
+uint256 constant XRP_UNITS = 5497904;
 uint256 constant PREVIOUS_TOTAL_SUPPLY = 29836418682128071569920;
 
 // STATIC
@@ -166,12 +166,10 @@ contract ReconstitutionTest is GnosisTest {
     function testSetUp() public {}
 
     function fork() public {
-        triggerReconstitutionWarning_removeForkBlock = true;
-        vm.createSelectFork(vm.envString("MAINNET_RPC"), 18871224);
+        vm.createSelectFork(vm.envString("MAINNET_RPC"));
     }
 
     function tokens() internal returns (TokenInfo[] memory) {
-        triggerReconstitutionWarning_determineTokens = true;
         TokenInfo[] memory _tokens = new TokenInfo[](15 + 7);
 
         // KEEP
@@ -230,7 +228,6 @@ contract ReconstitutionTest is GnosisTest {
         bytes memory batchExecutionData = getBatchExecutionData(batch);
         executeBatchData(batchExecutionData);
 
-        triggerReconstitutionWarning_determineAstETHAmount = true;
         triggerReconstitutionWarning_fulfillBounty = true;
 
         fulfillerSafeTest = new FulfillerSafeTest();
