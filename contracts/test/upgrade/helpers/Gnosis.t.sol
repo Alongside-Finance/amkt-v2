@@ -2,7 +2,6 @@ pragma solidity =0.8.18;
 
 import "forge-std/Test.sol";
 import {BaseTest} from "test/utils/BaseTest.t.sol";
-import {MULTISIG} from "src/scripts/Config.sol";
 
 struct GnosisTransaction {
     address to;
@@ -57,23 +56,31 @@ interface IMultiSendCallOnly {
 
 contract GnosisTest is BaseTest {
     using stdStorage for StdStorage;
-    IGnosisSafe safe = IGnosisSafe(MULTISIG);
+    IGnosisSafe safe;
     IMultiSendCallOnly multiSendCallOnly =
         IMultiSendCallOnly(0x40A2aCCbd92BCA938b02010E17A5b8929b49130D);
 
+    constructor(address multisig) {
+        safe = IGnosisSafe(multisig);
+    }
+
     function enableSimulation() public {
         address newOwner = vm.addr(0xB0B);
-        vm.store(MULTISIG, bytes32(uint256(4)), bytes32(uint256(1))); // slot for threshold is 4
+        vm.store(address(safe), bytes32(uint256(4)), bytes32(uint256(1))); // slot for threshold is 4
         assertEq(safe.getThreshold(), 1);
         address[] memory owners = safe.getOwners();
         bytes32 ownerData = vm.load(
-            MULTISIG,
+            address(safe),
             keccak256(abi.encode(owners[0], 2)) // slot for owners is 2
         );
         // zero out previous owner
-        vm.store(MULTISIG, keccak256(abi.encode(owners[0], 2)), bytes32(0));
+        vm.store(
+            address(safe),
+            keccak256(abi.encode(owners[0], 2)),
+            bytes32(0)
+        );
         // swap in new owner
-        vm.store(MULTISIG, keccak256(abi.encode(newOwner, 2)), ownerData);
+        vm.store(address(safe), keccak256(abi.encode(newOwner, 2)), ownerData);
         assertEq(safe.isOwner(newOwner), true);
     }
 

@@ -35,6 +35,8 @@ contract UpgradePreparationTest is GnosisTest {
     bool triggerMigrationWarning_setDeployedContracts;
     bool triggerMigrationWarning_safeBalances;
 
+    constructor() GnosisTest(MULTISIG) {}
+
     function setUp() public virtual {
         fork();
         enableSimulation();
