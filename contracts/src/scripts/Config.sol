@@ -33,6 +33,15 @@ address constant PROXY_ADMIN = address(
     0x998930C351EcB4918A5c5238B62d5277fE45ab9b
 );
 
+address payable constant GOVERNOR = payable(
+    0xb6a6f2a56693Dc4f893f8396D945f7dFe03aA9ba
+);
+address payable constant TIMELOCK = payable(
+    0x4c362faB50Bc81F0F58ef2DA6b6E10b55FC1d478
+);
+
+address constant VAULT = 0xf3bCeDaB2998933c6AAD1cB31430D8bAb329dD8C;
+
 // Native
 address constant BTC = address(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599);
 address constant ETH = address(0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0);
