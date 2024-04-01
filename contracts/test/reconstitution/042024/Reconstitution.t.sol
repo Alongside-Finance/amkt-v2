@@ -24,36 +24,41 @@ contract FulfillerSafeTest is GnosisTest, Constants {
         quoter = Quoter(QUOTER);
     }
 
-    // Exact amount of balances missing
     function _satisfyFulfillerBalances(
         address fulfiller,
         Bounty memory bounty
     ) internal {
         Dealer dealer = new Dealer();
-        dealer.dealToken(WBTC, fulfiller, FULFILLER_MISSING_WBTC_BALANCE); // 8 decimals
-        dealer.dealToken(MATIC, fulfiller, FULFILLER_MISSING_MATIC_BALANCE); // 18 decimals
-        dealer.dealToken(LINK, fulfiller, FULFILLER_MISSING_LINK_BALANCE); // 18 decimals
-        dealer.dealToken(
-            _21CO_BNB,
-            fulfiller,
-            FULFILLER_MISSING_21CO_BNB_BALANCE
-        ); // 8 decimals
-        dealer.dealToken(
-            _21CO_SOL,
-            fulfiller,
-            FULFILLER_MISSING_21CO_SOL_BALANCE
-        ); // 9 decimals
-        dealer.dealToken(
-            _21CO_AVAX,
-            fulfiller,
-            FULFILLER_MISSING_21CO_AVAX_BALANCE
-        ); // 18 decimals
+        (, TokenInfo[] memory ins) = quoter.quoteFulfillBounty(
+            bounty,
+            IERC20(AMKT_PROXY).totalSupply()
+        );
+        for (uint256 i = 0; i < ins.length; i++) {
+            if (ins[i].units == 0) {
+                continue;
+            }
+            uint256 currentBalance = IERC20(ins[i].token).balanceOf(fulfiller);
+            uint256 neededBalance = ins[i].units;
+            if (currentBalance < neededBalance) {
+                dealer.dealToken(
+                    ins[i].token,
+                    fulfiller,
+                    neededBalance - currentBalance
+                );
+                console2.log(
+                    "missing: ",
+                    ins[i].token,
+                    neededBalance - currentBalance,
+                    IERC20(ins[i].token).decimals()
+                );
+            }
+        }
     }
+
     function runFulfillmentBatch(
         Bounty memory bounty
     ) public returns (bytes memory) {
-        _satisfyFulfillerBalances(FULFILLER_SAFE, bounty);
-
+        // _satisfyFulfillerBalances(FULFILLER_SAFE, bounty);
         enableSimulation();
 
         (TokenInfo[] memory outs, TokenInfo[] memory ins) = quoter
@@ -115,7 +120,7 @@ contract ReconstitutionTest is GnosisTest, Constants {
     }
 
     function tokens() internal returns (TokenInfo[] memory) {
-        TokenInfo[] memory _tokens = new TokenInfo[](19);
+        TokenInfo[] memory _tokens = new TokenInfo[](16);
 
         // KEEP
         _tokens[0] = TokenInfo(WBTC, WBTC_UNITS);
@@ -134,12 +139,6 @@ contract ReconstitutionTest is GnosisTest, Constants {
         _tokens[13] = TokenInfo(_21CO_DOT, _21CO_DOT_UNITS);
         _tokens[14] = TokenInfo(_21CO_LTC, _21CO_LTC_UNITS);
         _tokens[15] = TokenInfo(_21CO_BCH, _21CO_BCH_UNITS);
-
-        // ADD
-        _tokens[16] = TokenInfo(_21CO_BNB, _21CO_BNB_UNITS);
-        _tokens[17] = TokenInfo(_21CO_SOL, _21CO_SOL_UNITS);
-        _tokens[18] = TokenInfo(_21CO_AVAX, _21CO_AVAX_UNITS);
-
         return _tokens;
     }
 
