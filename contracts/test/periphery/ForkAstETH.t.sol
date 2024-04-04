@@ -7,16 +7,9 @@ contract AstForkETHTest is BaseTest {
     IStETH stETH;
 
     function setUp() public {
-        vm.createSelectFork(
-            "https://mainnet.infura.io/v3/2c9945ed9e3c48bd8a3c7166ddd45057",
-            18608317
-        );
+        vm.createSelectFork(vm.envString("MAINNET_RPC"), 18608317);
         stETH = IStETH(0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84);
-        token = new AstETH(
-            IStETH(address(stETH)),
-            address(this),
-            address(this)
-        );
+        token = new AstETH(IStETH(address(stETH)), address(this), address(this));
     }
 
     function testWrapAndDeposit(uint256 amount) public {
