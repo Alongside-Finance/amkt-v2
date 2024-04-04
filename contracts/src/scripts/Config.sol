@@ -19,19 +19,15 @@ uint256 constant QUORUM_NUMERATOR = 250; // 2.5%. Denominator is 10000.
 
 address constant MULTISIG = address(0xAeB9ef94b6542BE7112f3a295646B5AaAa9Fca13);
 
-address constant FEE_RECEIPIENT = address(
-    0xC19a5b6E0a923519603985153515222D59cb3F2e
-);
+address constant FEE_RECEIPIENT = address(0xC19a5b6E0a923519603985153515222D59cb3F2e);
 
 uint256 constant INFLATION_RATE = 304132280; // per second rate for 95 bps per year
 
-address constant AMKT_PROXY = address(
-    0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D
-);
+address constant AMKT_PROXY = address(0xF17A3fE536F8F7847F1385ec1bC967b2Ca9caE8D);
 
-address constant PROXY_ADMIN = address(
-    0x998930C351EcB4918A5c5238B62d5277fE45ab9b
-);
+address constant PROXY_ADMIN = address(0x998930C351EcB4918A5c5238B62d5277fE45ab9b);
+
+address constant VAULT = address(0xf3bCeDaB2998933c6AAD1cB31430D8bAb329dD8C);
 
 // Native
 address constant BTC = address(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599);
