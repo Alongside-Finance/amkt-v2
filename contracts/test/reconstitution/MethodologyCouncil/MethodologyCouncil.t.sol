@@ -17,7 +17,7 @@ import {InvokeableBounty} from "src/invoke/Bounty.sol";
 
 import {AMKT_PROXY} from "src/scripts/Config.sol";
 
-import "test/reconstitution/Reconstitution.t.sol";
+import "test/reconstitution/012024/Reconstitution.t.sol";
 
 contract MethodologyCouncilReconstitutionTest is ReconstitutionTest {
     TimelockController public methodologyCouncil;
