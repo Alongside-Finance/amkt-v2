@@ -217,7 +217,7 @@ contract ReconstitutionTest is GnosisTest {
         bytes memory batchExecutionData = getBatchExecutionData(batch);
         executeBatchData(batchExecutionData);
 
-        triggerReconstitutionWarning_fulfillBounty = true;
+        triggerReconstitutionWarning_fulfillBounty = false;
 
         fulfillerSafeTest = new FulfillerSafeTest(address(fulfiller));
         fulfillmentExecutionData = fulfillerSafeTest.runFulfillmentBatch(_bountyToSet);
