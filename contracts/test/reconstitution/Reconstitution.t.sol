@@ -11,7 +11,25 @@ import {GnosisTest, GnosisTransaction} from "test/upgrade/helpers/Gnosis.t.sol";
 import {Bounty} from "src/interfaces/IInvokeableBounty.sol";
 import {TokenInfo} from "src/Common.sol";
 import {Dealer} from "test/utils/Dealer.t.sol";
-import {BTC, ETH as WSTETH, BNB, SOL, LINK, AVAX, MATIC, SHIB, UNI, MKR, LDO, CRO, MNT, OP, QNT, MULTISIG, AMKT_PROXY} from "src/scripts/Config.sol";
+import {
+    BTC,
+    ETH as WSTETH,
+    BNB,
+    SOL,
+    LINK,
+    AVAX,
+    MATIC,
+    SHIB,
+    UNI,
+    MKR,
+    LDO,
+    CRO,
+    MNT,
+    OP,
+    QNT,
+    MULTISIG,
+    AMKT_PROXY
+} from "src/scripts/Config.sol";
 import {Fulfiller} from "periphery/Fulfiller.sol";
 import {Quoter} from "periphery/Quoter.sol";
 
@@ -46,92 +64,68 @@ address constant BCH = address(0xFf4927e04c6a01868284F5C3fB9cba7F7ca4aeC0);
 
 address constant VAULT = address(0xf3bCeDaB2998933c6AAD1cB31430D8bAb329dD8C);
 address constant STETH = address(0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84);
-address constant FULFILLER = address(
-    0xF2bD82133cE54BE7D9A66Bf36240C47f6A874F2e
-);
+address constant FULFILLER = address(0xF2bD82133cE54BE7D9A66Bf36240C47f6A874F2e);
 
-address constant INVOKEABLE_BOUNTY = address(
-    0xE13Ee59C41c67696754277cDC73710f6D65Ef2Ac
-);
-address constant ACTIVE_BOUNTY = address(
-    0x0DAF7e851f6054085432229150c1706988aBc562
-);
+address constant INVOKEABLE_BOUNTY = address(0xE13Ee59C41c67696754277cDC73710f6D65Ef2Ac);
+address constant ACTIVE_BOUNTY = address(0x0DAF7e851f6054085432229150c1706988aBc562);
 
-address constant FULFILLER_SAFE = address(
-    0x5ae65506979C00D70A13E7cE9eBf984d31660e5c
-);
+address constant FULFILLER_SAFE = address(0x5ae65506979C00D70A13E7cE9eBf984d31660e5c);
 address constant QUOTER = address(0xE3BE63E1B959c152212ce1dD45D0d2f749eB227c);
 
 contract FulfillerSafeTest is GnosisTest {
     Quoter quoter;
 
-    constructor() GnosisTest(FULFILLER_SAFE) {
+    address fullfiller;
+
+    constructor(address _fullfiller) GnosisTest(FULFILLER_SAFE) {
         quoter = Quoter(QUOTER);
+        fullfiller = _fullfiller;
     }
 
-    function runFulfillmentBatch(
-        Bounty memory bounty
-    ) public returns (bytes memory) {
+    function runFulfillmentBatch(Bounty memory bounty) public returns (bytes memory) {
         enableSimulation();
 
         GnosisTransaction[] memory batch = new GnosisTransaction[](24);
 
-        (TokenInfo[] memory outs, TokenInfo[] memory ins) = quoter
-            .quoteFulfillBounty(bounty, IERC20(AMKT_PROXY).totalSupply());
+        (TokenInfo[] memory outs, TokenInfo[] memory ins) =
+            quoter.quoteFulfillBounty(bounty, IERC20(AMKT_PROXY).totalSupply());
 
         for (uint256 i; i < ins.length; i++) {
             if (ins[i].token == ASTETH) continue;
             batch[i] = GnosisTransaction({
                 to: address(ins[i].token),
-                data: abi.encodeWithSelector(
-                    bytes4(keccak256("transfer(address,uint256)")),
-                    FULFILLER,
-                    ins[i].units
-                )
+                data: abi.encodeWithSelector(bytes4(keccak256("transfer(address,uint256)")), fullfiller, ins[i].units)
             });
         }
 
         batch[7] = GnosisTransaction({
-            to: FULFILLER,
+            to: fullfiller,
             data: abi.encodeWithSelector(
-                bytes4(
-                    keccak256(
-                        "fulfillBounty(((address,uint256)[],address,uint256,bytes32),bool)"
-                    )
-                ),
-                bounty,
-                true
-            )
+                bytes4(keccak256("fulfillBounty(((address,uint256)[],address,uint256,bytes32),bool)")), bounty, true
+                )
         });
 
         for (uint256 i; i < outs.length; i++) {
             if (outs[i].token == WSTETH) {
                 batch[i + 8] = GnosisTransaction({
-                    to: FULFILLER,
+                    to: fullfiller,
                     data: abi.encodeWithSelector(
-                        bytes4(keccak256("withdrawERC20(address,uint256)")),
-                        ASTETH,
-                        ASTETH_REMAINDER_AMOUNT
-                    )
+                        bytes4(keccak256("withdrawERC20(address,uint256)")), ASTETH, ASTETH_REMAINDER_AMOUNT
+                        )
                 });
             } else {
                 batch[i + 8] = GnosisTransaction({
-                    to: FULFILLER,
+                    to: fullfiller,
                     data: abi.encodeWithSelector(
-                        bytes4(keccak256("withdrawERC20(address,uint256)")),
-                        outs[i].token,
-                        outs[i].units
-                    )
+                        bytes4(keccak256("withdrawERC20(address,uint256)")), outs[i].token, outs[i].units
+                        )
                 });
             }
         }
 
         batch[23] = GnosisTransaction({
             to: ASTETH,
-            data: abi.encodeWithSelector(
-                bytes4(keccak256("withdraw(uint256)")),
-                ASTETH_REMAINDER_AMOUNT
-            )
+            data: abi.encodeWithSelector(bytes4(keccak256("withdraw(uint256)")), ASTETH_REMAINDER_AMOUNT)
         });
 
         bytes memory batchExecutionData = getBatchExecutionData(batch);
@@ -156,7 +150,7 @@ contract ReconstitutionTest is GnosisTest {
 
     constructor() GnosisTest(MULTISIG) {}
 
-    function setUp() public {
+    function setUp() public virtual {
         fork();
         enableSimulation();
         fulfiller = Fulfiller(FULFILLER);
@@ -166,7 +160,7 @@ contract ReconstitutionTest is GnosisTest {
     function testSetUp() public {}
 
     function fork() public {
-        vm.createSelectFork(vm.envString("MAINNET_RPC"));
+        vm.createSelectFork(vm.envString("MAINNET_RPC"), 18915800);
     }
 
     function tokens() internal returns (TokenInfo[] memory) {
@@ -203,7 +197,7 @@ contract ReconstitutionTest is GnosisTest {
         return _tokens;
     }
 
-    function postAndFulfillBounty() internal {
+    function postAndFulfillBounty() internal virtual {
         GnosisTransaction[] memory batch = new GnosisTransaction[](1);
         salt = keccak256(abi.encode(PREVIOUS_TOTAL_SUPPLY));
         Bounty memory _bountyToSet = Bounty({
@@ -213,26 +207,19 @@ contract ReconstitutionTest is GnosisTest {
             deadline: 1704585600 // January 7, 2024 0:0:0 GMT
         });
 
-        bountyHash = IInvokeableBounty(INVOKEABLE_BOUNTY).hashBounty(
-            _bountyToSet
-        );
+        bountyHash = IInvokeableBounty(INVOKEABLE_BOUNTY).hashBounty(_bountyToSet);
         batch[0] = GnosisTransaction({
             to: ACTIVE_BOUNTY,
-            data: abi.encodeWithSelector(
-                bytes4(keccak256("setHash(bytes32)")),
-                bountyHash
-            )
+            data: abi.encodeWithSelector(bytes4(keccak256("setHash(bytes32)")), bountyHash)
         });
 
         triggerReconstitutionWarning_postBounty = true;
         bytes memory batchExecutionData = getBatchExecutionData(batch);
         executeBatchData(batchExecutionData);
 
-        triggerReconstitutionWarning_fulfillBounty = true;
+        triggerReconstitutionWarning_fulfillBounty = false;
 
-        fulfillerSafeTest = new FulfillerSafeTest();
-        fulfillmentExecutionData = fulfillerSafeTest.runFulfillmentBatch(
-            _bountyToSet
-        );
+        fulfillerSafeTest = new FulfillerSafeTest(address(fulfiller));
+        fulfillmentExecutionData = fulfillerSafeTest.runFulfillmentBatch(_bountyToSet);
     }
 }

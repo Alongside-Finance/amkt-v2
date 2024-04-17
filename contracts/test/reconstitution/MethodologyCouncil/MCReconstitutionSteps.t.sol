@@ -6,9 +6,8 @@ import {Test} from "forge-std/Test.sol";
 // This checklist test is used to ensure safety of the reconstitution process.
 // These tests serve as a guide to the reconstitution process, step by step.
 // Each step should be marked as complete switching `false` to `true` in `assertTrue`.
-contract ReconstitutionStepsTest is Test {
-    address constant FULFILLER_SAFE =
-        address(0x5ae65506979C00D70A13E7cE9eBf984d31660e5c);
+contract MCReconstitutionStepsTest is Test {
+    address constant FULFILLER_SAFE = address(0x5ae65506979C00D70A13E7cE9eBf984d31660e5c);
 
     function testStep0_determineTokensAndAmounts() public {
         // Determine the tokens and their units that will be used in the reconstitution process.
