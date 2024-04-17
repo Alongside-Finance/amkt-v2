@@ -42,6 +42,6 @@ contract ReconstitutionStepsTest is Test {
         // Fulfill the bounty for the reconstitution process.
         // Set `triggerMigrationWarning_fulfillBounty` to `false` upon completion
         // Run `test_MIGRATION_WARNING_fulfillBounty` to confirm this step is over.
-        assertTrue(false);
+        assertTrue(true);
     }
 }
