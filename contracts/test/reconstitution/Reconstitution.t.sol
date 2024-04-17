@@ -213,7 +213,7 @@ contract ReconstitutionTest is GnosisTest {
             data: abi.encodeWithSelector(bytes4(keccak256("setHash(bytes32)")), bountyHash)
         });
 
-        triggerReconstitutionWarning_postBounty = true;
+        triggerReconstitutionWarning_postBounty = false;
         bytes memory batchExecutionData = getBatchExecutionData(batch);
         executeBatchData(batchExecutionData);
 
