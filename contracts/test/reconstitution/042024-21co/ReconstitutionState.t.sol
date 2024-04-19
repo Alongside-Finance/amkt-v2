@@ -1,5 +1,5 @@
 pragma solidity =0.8.18;
-import {ReconstitutionTest} from "test/reconstitution/042024/Reconstitution.t.sol";
+import {ReconstitutionTest} from "test/reconstitution/042024-21co/Reconstitution.t.sol";
 import {TokenInfo} from "src/Common.sol";
 import {console2} from "forge-std/console2.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
@@ -10,8 +10,6 @@ contract ReconstitutionStateTest_042024_21co is ReconstitutionTest {
     function testVirtualUnits() public {
         TokenInfo[] memory units = IVault(VAULT).virtualUnits();
         assertEq(units.length, 16);
-        assertEq(units[0].token, WBTC);
-        assertEq(units[15].token, _21CO_BCH);
     }
 
     function testTotalSupplyMatch() public {

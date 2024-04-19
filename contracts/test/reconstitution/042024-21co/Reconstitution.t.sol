@@ -67,6 +67,7 @@ contract FulfillerSafeTest is BaseTest, Constants {
         GnosisTransaction[] memory batch = new GnosisTransaction[](
             ins.length + 1
         );
+        vm.startPrank(FULFILLER_SAFE);
         for (uint256 i; i < ins.length; i++) {
             if (ins[i].token == ASTETH) continue;
             IERC20(ins[i].token).approve(INVOKEABLE_BOUNTY, ins[i].units);
@@ -99,26 +100,25 @@ contract ReconstitutionTest is GnosisTest, Constants {
     }
 
     function tokens() internal returns (TokenInfo[] memory) {
-        TokenInfo[] memory _tokens = new TokenInfo[](16);
+        TokenInfo[] memory _tokens = new TokenInfo[](19);
 
-        // KEEP
+        // PREVIOUS TOKENS
         _tokens[0] = TokenInfo(WBTC, WBTC_UNITS);
         _tokens[1] = TokenInfo(WSTETH, WSTETH_UNITS);
-        _tokens[2] = TokenInfo(MATIC, MATIC_UNITS);
-        _tokens[3] = TokenInfo(LINK, LINK_UNITS);
-        _tokens[4] = TokenInfo(SHIB, SHIB_UNITS);
-        _tokens[5] = TokenInfo(UNI, UNI_UNITS);
-        _tokens[6] = TokenInfo(ASTETH, ASTETH_UNITS);
-        _tokens[7] = TokenInfo(_21CO_XRP, _21CO_XRP_UNITS);
-        _tokens[8] = TokenInfo(_21CO_ADA, _21CO_ADA_UNITS);
-        _tokens[9] = TokenInfo(_21CO_DOGE, _21CO_DOGE_UNITS);
-        _tokens[10] = TokenInfo(_21CO_DOT, _21CO_DOT_UNITS);
-        _tokens[11] = TokenInfo(_21CO_LTC, _21CO_LTC_UNITS);
-        _tokens[12] = TokenInfo(_21CO_BCH, _21CO_BCH_UNITS);
-        // REMOVE
-        _tokens[13] = TokenInfo(WORMHOLE_BNB, WORMHOLE_BNB_UNITS);
-        _tokens[14] = TokenInfo(WORMHOLE_SOL, WORMHOLE_SOL_UNITS);
-        _tokens[15] = TokenInfo(WORMHOLE_AVAX, WORMHOLE_AVAX_UNITS);
+        _tokens[2] = TokenInfo(WORMHOLE_BNB, WORMHOLE_BNB_UNITS);
+        _tokens[3] = TokenInfo(WORMHOLE_SOL, WORMHOLE_SOL_UNITS);
+        _tokens[4] = TokenInfo(MATIC, MATIC_UNITS);
+        _tokens[5] = TokenInfo(LINK, LINK_UNITS);
+        _tokens[6] = TokenInfo(SHIB, SHIB_UNITS);
+        _tokens[7] = TokenInfo(WORMHOLE_AVAX, WORMHOLE_AVAX_UNITS);
+        _tokens[8] = TokenInfo(UNI, UNI_UNITS);
+        _tokens[9] = TokenInfo(ASTETH, ASTETH_UNITS);
+        _tokens[10] = TokenInfo(_21CO_XRP, _21CO_XRP_UNITS);
+        _tokens[11] = TokenInfo(_21CO_ADA, _21CO_ADA_UNITS);
+        _tokens[12] = TokenInfo(_21CO_DOGE, _21CO_DOGE_UNITS);
+        _tokens[13] = TokenInfo(_21CO_DOT, _21CO_DOT_UNITS);
+        _tokens[14] = TokenInfo(_21CO_LTC, _21CO_LTC_UNITS);
+        _tokens[15] = TokenInfo(_21CO_BCH, _21CO_BCH_UNITS);
         // ADD
         _tokens[16] = TokenInfo(_21CO_BNB, _21CO_BNB_UNITS);
         _tokens[17] = TokenInfo(_21CO_SOL, _21CO_SOL_UNITS);
