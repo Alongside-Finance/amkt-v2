@@ -129,7 +129,7 @@ contract ReconstitutionTest is GnosisTest, Constants {
 
     function postAndFulfillBounty() internal {
         GnosisTransaction[] memory batch = new GnosisTransaction[](1);
-        salt = keccak256(abi.encode(PREVIOUS_TOTAL_SUPPLY));
+        salt = keccak256(abi.encode(PREVIOUS_TOTAL_SUPPLY)); // total supply as an arbitrary salt, not sensitive.
         Bounty memory _bountyToSet = Bounty({
             infos: tokens(),
             fulfiller: FULFILLER_SAFE,

@@ -64,12 +64,12 @@ contract Constants {
 
     uint256 constant WBTC_UNITS = 198805;
     uint256 constant WSTETH_UNITS = 5221439286413233;
-    uint256 constant WORMHOLE_BNB_UNITS = 0;
-    uint256 constant WORMHOLE_SOL_UNITS = 0;
+    uint256 constant WORMHOLE_BNB_UNITS = 0; // removing WORMHOLE_BNB
+    uint256 constant WORMHOLE_SOL_UNITS = 0; // removing WORMHOLE_SOL
     uint256 constant MATIC_UNITS = 1001273570203344896;
     uint256 constant LINK_UNITS = 59338725940650864;
     uint256 constant SHIB_UNITS = 59560014661513119793152;
-    uint256 constant WORMHOLE_AVAX_UNITS = 0;
+    uint256 constant WORMHOLE_AVAX_UNITS = 0; // removing WORMHOLE_AVAX
     uint256 constant UNI_UNITS = 60514804110132464;
     uint256 constant ASTETH_UNITS = 6067833494301819;
     uint256 constant _21CO_XRP_UNITS = 5553078;
