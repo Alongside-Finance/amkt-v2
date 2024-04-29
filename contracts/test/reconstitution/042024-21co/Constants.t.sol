@@ -53,7 +53,7 @@ contract Constants {
         address(0x0DAF7e851f6054085432229150c1706988aBc562);
 
     address constant FULFILLER_SAFE =
-        address(0x5ae65506979C00D70A13E7cE9eBf984d31660e5c); // TODO: Replace with actual address
+        address(0x386F09fB1547F1d4f408EC6c5a53Fa90E1E87f18);
     address constant QUOTER =
         address(0xE3BE63E1B959c152212ce1dD45D0d2f749eB227c);
 
