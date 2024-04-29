@@ -10,6 +10,10 @@ contract ReconstitutionStateTest_042024_21co is ReconstitutionTest {
     function testVirtualUnits() public {
         TokenInfo[] memory units = IVault(VAULT).virtualUnits();
         assertEq(units.length, 16);
+        for (uint256 i = 0; i < units.length; i++) {
+            assertFalse(units[i].token == WORMHOLE_BNB);
+            assertFalse(units[i].token == WORMHOLE_SOL);
+        }
     }
 
     function testTotalSupplyMatch() public {

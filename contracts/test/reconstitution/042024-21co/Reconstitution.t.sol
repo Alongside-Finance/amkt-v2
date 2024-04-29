@@ -149,6 +149,7 @@ contract ReconstitutionTest is GnosisTest, Constants {
         });
 
         bytes memory batchExecutionData = getBatchExecutionData(batch);
+        console2.logBytes(batchExecutionData);
         executeBatchData(batchExecutionData);
 
         fulfillerSafeTest = new FulfillerSafeTest();
