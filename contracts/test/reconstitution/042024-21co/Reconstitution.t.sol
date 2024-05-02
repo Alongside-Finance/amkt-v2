@@ -41,11 +41,7 @@ contract FulfillerSafeTest is BaseTest, Constants {
             uint256 currentBalance = IERC20(ins[i].token).balanceOf(fulfiller);
             uint256 neededBalance = ins[i].units;
             if (currentBalance < neededBalance) {
-                dealer.dealToken(
-                    ins[i].token,
-                    fulfiller,
-                    neededBalance - currentBalance
-                );
+                dealer.dealToken(ins[i].token, fulfiller, neededBalance);
                 console2.log(
                     "missing: ",
                     ins[i].token,

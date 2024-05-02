@@ -60,7 +60,7 @@ contract Constants {
     // CONFIGS
     uint256 constant PREVIOUS_TOTAL_SUPPLY = 19824299042318053468632;
     uint256 constant BOUNTY_DEADLINE = 1715040000; // May 7, 2024 0:0:0 GMT
-    uint256 constant FORK_BLOCK = 19684109;
+    uint256 constant FORK_BLOCK = 19780200;
 
     uint256 constant WBTC_UNITS = 198805;
     uint256 constant WSTETH_UNITS = 5221439286413233;
