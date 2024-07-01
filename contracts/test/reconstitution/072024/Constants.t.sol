@@ -49,30 +49,30 @@ contract Constants {
         address(0x0DAF7e851f6054085432229150c1706988aBc562);
 
     address constant FULFILLER_SAFE =
-        address(0x386F09fB1547F1d4f408EC6c5a53Fa90E1E87f18);
+        address(0x5ae65506979C00D70A13E7cE9eBf984d31660e5c);
     address constant QUOTER =
         address(0xE3BE63E1B959c152212ce1dD45D0d2f749eB227c);
 
     // CONFIGS
-    uint256 constant PREVIOUS_TOTAL_SUPPLY = 10952579042318054255064;
+    uint256 constant PREVIOUS_TOTAL_SUPPLY = 10889059042318054255064;
     uint256 constant BOUNTY_DEADLINE = 1720137600; // July 5, 2024 0:0:0 GMT
-    uint256 constant FORK_BLOCK = 20206740;
+    uint256 constant FORK_BLOCK = 20212843;
 
-    uint256 constant WBTC_UNITS = 197432;
-    uint256 constant WSTETH_UNITS = 5138542430382155;
-    uint256 constant MATIC_UNITS = 989756535449415168;
-    uint256 constant LINK_UNITS = 60890739490445040;
-    uint256 constant SHIB_UNITS = 59005367409131892244480;
-    uint256 constant UNI_UNITS = 60075390745994344;
-    uint256 constant ASTETH_UNITS = 6016928013067526;
-    uint256 constant _21CO_XRP_UNITS = 5569203;
-    uint256 constant _21CO_ADA_UNITS = 3579320;
-    uint256 constant _21CO_DOGE_UNITS = 1450621419;
-    uint256 constant _21CO_DOT_UNITS = 1439862720;
+    uint256 constant WBTC_UNITS = 197433;
+    uint256 constant WSTETH_UNITS = 5136430376396251;
+    uint256 constant MATIC_UNITS = 989663461533506560;
+    uint256 constant LINK_UNITS = 60885002820227448;
+    uint256 constant SHIB_UNITS = 58999774687539662684160;
+    uint256 constant UNI_UNITS = 60069730891839392;
+    uint256 constant ASTETH_UNITS = 6016879558902152;
+    uint256 constant _21CO_XRP_UNITS = 5575701;
+    uint256 constant _21CO_ADA_UNITS = 3579876;
+    uint256 constant _21CO_DOGE_UNITS = 1451159884;
+    uint256 constant _21CO_DOT_UNITS = 1439727067;
     uint256 constant _21CO_LTC_UNITS = 0;
-    uint256 constant _21CO_BCH_UNITS = 197509;
-    uint256 constant _21CO_BNB_UNITS = 1477793;
-    uint256 constant _21CO_SOL_UNITS = 46285969;
-    uint256 constant _21CO_AVAX_UNITS = 39428884221500336;
-    uint256 constant _21CO_TON_UNITS = 246230403;
+    uint256 constant _21CO_BCH_UNITS = 197513;
+    uint256 constant _21CO_BNB_UNITS = 1477651;
+    uint256 constant _21CO_SOL_UNITS = 46323679;
+    uint256 constant _21CO_AVAX_UNITS = 39461699165209144;
+    uint256 constant _21CO_TON_UNITS = 246306088;
 }

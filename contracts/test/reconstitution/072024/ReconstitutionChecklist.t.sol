@@ -26,4 +26,9 @@ contract ReconstitutionChecklistTest_072024 is ReconstitutionTest {
             console2.logBytes32(salt);
         }
     }
+
+    function test_printBountyExecutionData() public view {
+        console2.log("fulfillmentExecutionData");
+        console2.logBytes(fulfillmentExecutionData);
+    }
 }

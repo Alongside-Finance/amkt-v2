@@ -18,10 +18,10 @@ import {console2} from "forge-std/console2.sol";
 import {Constants} from "test/reconstitution/072024/Constants.t.sol";
 import {BaseTest} from "test/utils/BaseTest.t.sol";
 
-contract FulfillerSafeTest is BaseTest, Constants {
+contract FulfillerSafeTest is GnosisTest, Constants {
     Quoter quoter;
 
-    constructor() {
+    constructor() GnosisTest(FULFILLER_SAFE) {
         quoter = Quoter(QUOTER);
     }
 
@@ -57,19 +57,41 @@ contract FulfillerSafeTest is BaseTest, Constants {
     ) public returns (bytes memory) {
         // TODO: Remove once fulfiller has the necessary balances
         _satisfyFulfillerBalances(FULFILLER_SAFE, bounty);
+        enableSimulation();
 
         (TokenInfo[] memory outs, TokenInfo[] memory ins) = quoter
             .quoteFulfillBounty(bounty, IERC20(AMKT_PROXY).totalSupply());
         GnosisTransaction[] memory batch = new GnosisTransaction[](
             ins.length + 1
         );
-        vm.startPrank(FULFILLER_SAFE);
+
         for (uint256 i; i < ins.length; i++) {
             if (ins[i].token == ASTETH) continue;
-            IERC20(ins[i].token).approve(INVOKEABLE_BOUNTY, ins[i].units);
+            batch[i] = GnosisTransaction({
+                to: address(ins[i].token),
+                data: abi.encodeWithSelector(
+                    bytes4(keccak256("approve(address,uint256)")),
+                    INVOKEABLE_BOUNTY,
+                    ins[i].units
+                )
+            });
         }
-        IInvokeableBounty(INVOKEABLE_BOUNTY).fulfillBounty(bounty, false);
-        vm.stopPrank();
+        batch[ins.length] = GnosisTransaction({
+            to: INVOKEABLE_BOUNTY,
+            data: abi.encodeWithSelector(
+                bytes4(
+                    keccak256(
+                        "fulfillBounty(((address,uint256)[],address,uint256,bytes32),bool)"
+                    )
+                ),
+                bounty,
+                false
+            )
+        });
+
+        bytes memory batchExecutionData = getBatchExecutionData(batch);
+        executeBatchData(batchExecutionData);
+        return batchExecutionData;
     }
 }
 
