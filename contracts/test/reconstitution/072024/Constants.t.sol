@@ -37,7 +37,7 @@ contract Constants {
     address constant _21CO_BCH =
         address(0xFf4927e04c6a01868284F5C3fB9cba7F7ca4aeC0);
     address constant _21CO_TON =
-        address(0x5eB019E89624bafe20A521A89667Faa0E509a1D4);
+        address(0x73225F88fEEA4E41Fc67E986a95AC61dd7118866);
     address constant STETH =
         address(0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84);
     address constant VAULT =
@@ -56,7 +56,7 @@ contract Constants {
     // CONFIGS
     uint256 constant PREVIOUS_TOTAL_SUPPLY = 10889059042318054255064;
     uint256 constant BOUNTY_DEADLINE = 1720137600; // July 5, 2024 0:0:0 GMT
-    uint256 constant FORK_BLOCK = 20212843;
+    uint256 constant FORK_BLOCK = 20214774;
 
     uint256 constant WBTC_UNITS = 197433;
     uint256 constant WSTETH_UNITS = 5136430376396251;
