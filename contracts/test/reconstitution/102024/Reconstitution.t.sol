@@ -37,6 +37,8 @@ contract FulfillerSafeTest is GnosisTest, Constants {
             if (currentBalance < neededBalance) {
                 dealer.dealToken(ins[i].token, fulfiller, neededBalance);
                 console2.log("missing: ", ins[i].token, neededBalance - currentBalance, IERC20(ins[i].token).decimals());
+            } else {
+                console2.log("enough: ", ins[i].token);
             }
         }
     }
